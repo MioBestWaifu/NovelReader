@@ -10,7 +10,7 @@ namespace Maria.CLI.Interpretation
     {
         private static readonly List<string> validRoots = ["tracking","tell"];
 
-        public static bool IsValidRoot(string word)
+        public static bool IsValidAction(string word)
         {
            return validRoots.Contains(word);
         }

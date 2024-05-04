@@ -1,4 +1,4 @@
-﻿using Maria.Services.Communication;
+﻿using Maria.Services.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace Maria.CLI.Interpretation
                 var arg = args[i];
                 
 
-                if (Validator.IsValidRoot(arg))
+                if (Validator.IsValidAction(arg))
                 {
                     currentCommand = new Command(arg.TrimEnd(',', ';'));
                     currentCommand.Prefixes = prefixes;
@@ -53,6 +53,7 @@ namespace Maria.CLI.Interpretation
                     isInModifiers = true;
                 } else if (arg.EndsWith(';'))
                 {
+                    //Remember to deal with cases where there is no valid action
                     currentCommand.Modifiers = modifiers;
                     result.Add(currentCommand);
                     currentCommand = null;
@@ -72,7 +73,7 @@ namespace Maria.CLI.Interpretation
 
             foreach (var command in result)
             {
-                Console.WriteLine($"Root: {command.Root}");
+                Console.WriteLine($"action: {command.Action}");
                 Console.WriteLine($"Prefixes: {string.Join(", ", command.Prefixes)}");
                 Console.WriteLine($"Options: {string.Join(", ", command.Options)}");
                 Console.WriteLine($"Modifiers: {string.Join(", ", command.Modifiers)}");
