@@ -1,4 +1,5 @@
-﻿using Maria.Services.Communication.Commanding;
+﻿using Maria.CLI.Exceptions;
+using Maria.Services.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,10 @@ namespace Maria.CLI.Interpretation
         public List<Command> Parse(string[] args)
         {
             var result = new List<Command>();
-            Dictionary<string, string> modifiers = new Dictionary<string, string>();
+            Dictionary<string, string> options = new Dictionary<string, string>();
             List<string> prefixes = new List<string>();
             Command currentCommand = null;
-            bool isInModifiers = false; int modifierCount = 0;
+            bool isInOptions = false; int optionCount = 0;
             for (int i = 0; i < args.Length; i ++)
             {
                 var arg = args[i];
@@ -25,12 +26,13 @@ namespace Maria.CLI.Interpretation
                 {
                     currentCommand = new Command(arg.TrimEnd(',', ';'));
                     currentCommand.Prefixes = prefixes;
-                    currentCommand.Options = new List<string>();
-                } else if (!isInModifiers)
+                } else if (!isInOptions)
                 {
                     if (currentCommand != null)
                     {
-                        currentCommand.Options.Add(arg.TrimEnd(',',';'));
+                        if (!string.IsNullOrEmpty(currentCommand.Suffix))
+                            throw new MultipleSuffixesException();
+                        currentCommand.Suffix = arg.TrimEnd(',',';');
                     }
                     else
                     {
@@ -38,45 +40,45 @@ namespace Maria.CLI.Interpretation
                     }
                 } else
                 {
-                    if (modifierCount == 1)
+                    if (optionCount == 1)
                     {
-                        modifiers.Add(args[i - 1].TrimEnd(',', ';'), arg.TrimEnd(',', ';'));
-                        modifierCount = 0;
+                        options.Add(args[i - 1].TrimEnd(',', ';'), arg.TrimEnd(',', ';'));
+                        optionCount = 0;
                     } else
                     {
-                        modifierCount++;
+                        optionCount++;
                     }
                 }
 
-                if (!isInModifiers && arg.EndsWith(','))
+                if (!isInOptions && arg.EndsWith(','))
                 {
-                    isInModifiers = true;
+                    isInOptions = true;
                 } else if (arg.EndsWith(';'))
                 {
                     //Remember to deal with cases where there is no valid action
-                    currentCommand.Modifiers = modifiers;
+                    currentCommand.Options = options;
                     result.Add(currentCommand);
                     currentCommand = null;
                     prefixes = new List<string>();
-                    modifiers = new Dictionary<string, string>();
-                    modifierCount = 0;
-                    isInModifiers = false;
+                    options = new Dictionary<string, string>();
+                    optionCount = 0;
+                    isInOptions = false;
                     continue;
                 }
             }
 
             if(currentCommand != null)
             {
-                currentCommand.Modifiers = modifiers;
+                currentCommand.Options = options;
                 result.Add(currentCommand);
             }
 
             foreach (var command in result)
             {
-                Console.WriteLine($"action: {command.Action}");
                 Console.WriteLine($"Prefixes: {string.Join(", ", command.Prefixes)}");
+                Console.WriteLine($"Action: {command.Action}");
+                Console.WriteLine($"Suffix: {string.Join(", ", command.Suffix)}");
                 Console.WriteLine($"Options: {string.Join(", ", command.Options)}");
-                Console.WriteLine($"Modifiers: {string.Join(", ", command.Modifiers)}");
             }
 
             return result;
