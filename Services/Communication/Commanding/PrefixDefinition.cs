@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Communication.Commanding
 {
-    internal class ActionDefinition
+    public class PrefixDefinition
     {
     }
 }
