@@ -13,12 +13,13 @@ namespace Maria.CLI.Interpretation
         {
             var result = new List<Command>();
             Dictionary<string, string> modifiers = new Dictionary<string, string>();
+            List<string> prefixes = new List<string>();
             Command currentCommand = null;
             bool isInModifiers = false; int modifierCount = 0;
             for (int i = 0; i < args.Length; i ++)
             {
                 var arg = args[i];
-                List<string> prefixes = new List<string>();
+                
 
                 if (Validator.IsValidRoot(arg))
                 {

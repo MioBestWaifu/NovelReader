@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "start tracking browser, end 16:00, ignore youtube.com"
+    }
+  }
+}
