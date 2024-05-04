@@ -8,4 +8,8 @@
     <RootNamespace>Maria.CLI</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Docs\" />
+  </ItemGroup>
+
 </Project>
