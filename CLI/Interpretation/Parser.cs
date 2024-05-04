@@ -24,7 +24,7 @@ namespace Maria.CLI.Interpretation
 
                 if (Validator.IsValidAction(arg))
                 {
-                    currentCommand = new Command(arg.TrimEnd(',', ';'));
+                    currentCommand = new Command(arg.TrimEnd(',', ';').ToLower());
                     currentCommand.Prefixes = prefixes;
                 } else if (!isInOptions)
                 {
@@ -36,13 +36,13 @@ namespace Maria.CLI.Interpretation
                     }
                     else
                     {
-                        prefixes.Add(arg.TrimEnd(',', ';'));
+                        prefixes.Add(arg.TrimEnd(',', ';').ToLower().ToLower());
                     }
                 } else
                 {
                     if (optionCount == 1)
                     {
-                        options.Add(args[i - 1].TrimEnd(',', ';'), arg.TrimEnd(',', ';'));
+                        options.Add(args[i - 1].TrimEnd(',', ';').ToLower(), arg.TrimEnd(',', ';').ToLower());
                         optionCount = 0;
                     } else
                     {
