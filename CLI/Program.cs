@@ -1,4 +1,4 @@
-﻿namespace CLI
+﻿namespace Maria.CLI
 {
     internal class Program
     {
