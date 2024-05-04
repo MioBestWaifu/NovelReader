@@ -8,5 +8,11 @@ namespace Maria.CLI.Interpretation
 {
     internal class Validator
     {
+        private static readonly List<string> validRoots = ["track","tell"];
+
+        public static bool IsValidRoot(string word)
+        {
+           return validRoots.Contains(word);
+        }
     }
 }

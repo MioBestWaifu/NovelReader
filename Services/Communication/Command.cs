@@ -8,10 +8,10 @@ namespace Maria.Services.Communication
 {
     public class Command
     {
-        public List<string>? Prefixes { get; set; }
+        public List<string> Prefixes { get; set; }
         public string Root { get; set; }
-        public List<string>? Options { get; set; }
-        public Dictionary<string,string>? Modifiers { get; set; }
+        public List<string> Options { get; set; }
+        public Dictionary<string,string> Modifiers { get; set; }
 
         public Command (string root)
         {
