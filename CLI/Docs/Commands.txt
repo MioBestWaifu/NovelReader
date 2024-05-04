@@ -1,0 +1,16 @@
+SYNTAX
+
+Commands are structured as follows: prefixes (optional) root (required) options (some are optional, some not), modifiers key:value (optional, may be any number);
+An example would be: start (prefix) tracking (root) browser (required option for tracking root), end at: 16:00 (modifier key:value), ignore: youtube.com (modifier key:value);
+
+Roots are the main thing for Maria to understand what to do, and generally each root has its own module to handle it. 
+
+Prefixes specify a broad general action on the root, when needed. So, the root track/tracking by itself always starts the tracking, if it isn't already, and by prefixing it with stop, pause, resume, etc, other broaad actions other than the standard may be taken. 
+
+Options specify further the details of the command, with some options being required for generic roots. For example, tracking may be of browser or of the foregroung process, and it is required to specify which one. 
+
+Modifiers are fully optional and tweak the standard behavior of the command. So, as an example, the tracking command by default continues until the user stops it explicitly or the machine shuts down, but by adding a "end at: time" modifier, the tracking will stop at the specified time.
+
+Modifiers are separated from the the general command and each other by a comma. Furthermore, multiple commands may be given at once by separating them with a semicolon.
+
+Multiple commands present another use for prefixes: determine order of execution. By default, Maria will try to execute all comands simultanously. This can be prevented by prefixing a command with "then", in which case Maria will execute the previous and command, then this one. For cases in which the previous command starts a continuos, long-running action that must finish before this command the prefix "after" must be used, as otherwise Maria will start the action then do this command.  
