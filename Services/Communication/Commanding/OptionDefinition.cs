@@ -16,6 +16,6 @@ namespace Maria.Services.Communication.Commanding
         public List<string>? Values { get; private set; }
 
         [JsonInclude]
-        public string TypeName { get; private set; };
+        public string TypeName { get; private set; }
     }
 }
