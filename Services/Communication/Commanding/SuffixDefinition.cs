@@ -9,9 +9,10 @@ namespace Maria.Services.Communication.Commanding
 {
     public class SuffixDefinition
     {
+        //Temporarily with public sets
         [JsonInclude]
-        public bool Required { get; private set; }
+        public bool Required { get; set; }
         [JsonInclude]
-        public List<string> Values { get; private set;}
+        public List<string> Values { get; set;}
     }
 }

@@ -9,13 +9,29 @@ namespace Maria.CLI.Interpretation
 {
     internal class Validator
     {
-        private static readonly List<string> validRoots = ["tracking","tell"];
 
         private static Dictionary<string, CommandDefinition> definitions;
 
         public static void Initialize()
         {
+            definitions = new Dictionary<string, CommandDefinition>();
+            CommandDefinition testDefinition = new CommandDefinition();
+            testDefinition.Suffix = new SuffixDefinition {
+                Required = true, Values = new List<string> { "browsers, apps" } 
+            };
+            testDefinition.Prefixes = new Dictionary<string, PrefixDefinition>
+            {
+                { "start", new PrefixDefinition { Mutex = new List<string> { "start" } } },
+                { "stop", new PrefixDefinition { Mutex = new List<string> { "stop" } } }
+            };
+            testDefinition.Options = new Dictionary<string, OptionDefinition>
+            {
+                { "end", new OptionDefinition { ValidateBy = OptionValidationMethod.Type, TypeName = "time" } },
+                { "ignore", new OptionDefinition { ValidateBy = OptionValidationMethod.Type, TypeName = "string" } },
+                { "clube", new OptionDefinition { ValidateBy = OptionValidationMethod.Value, Values = ["crvg","fla"] } }
+            };
 
+            definitions.Add("tracking", testDefinition);
         }
 
         /// <summary>

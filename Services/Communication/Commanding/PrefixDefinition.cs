@@ -9,7 +9,8 @@ namespace Maria.Services.Communication.Commanding
 {
     public class PrefixDefinition
     {
+        //Temporarily with public sets
         [JsonInclude]
-        public List<string> Mutex { get; private set; }
+        public List<string> Mutex { get; set; }
     }
 }

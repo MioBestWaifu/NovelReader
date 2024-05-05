@@ -9,11 +9,12 @@ namespace Maria.Services.Communication.Commanding
 {
     public class CommandDefinition
     {
+        //Temporarily with public sets
         [JsonInclude]
-        public Dictionary<string,PrefixDefinition> Prefixes { get; private set; }
+        public Dictionary<string,PrefixDefinition> Prefixes { get; set; }
         [JsonInclude]
-        public SuffixDefinition Suffix { get; private set; }
+        public SuffixDefinition Suffix { get; set; }
         [JsonInclude]
-        public Dictionary<string, OptionDefinition> Options { get; private set; }
+        public Dictionary<string, OptionDefinition> Options { get; set; }
     }
 }

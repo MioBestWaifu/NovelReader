@@ -9,13 +9,14 @@ namespace Maria.Services.Communication.Commanding
 {
     public class OptionDefinition
     {
+        //Temporarily with public sets
         [JsonInclude]
-        public OptionValidationMethod ValidateBy { get; private set; }
+        public OptionValidationMethod ValidateBy { get; set; }
 
         [JsonInclude]
-        public List<string>? Values { get; private set; }
+        public List<string>? Values { get; set; }
 
         [JsonInclude]
-        public string TypeName { get; private set; }
+        public string TypeName { get; set; }
     }
 }
