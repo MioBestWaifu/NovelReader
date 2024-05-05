@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.CLI.Exceptions
+namespace Maria.Common.Communication.Commanding
 {
-    internal class MultipleSuffixesException : Exception
+    public enum OptionValidationMethod
     {
+        Type,
+        Value
     }
 }
