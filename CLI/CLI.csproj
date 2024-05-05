@@ -8,4 +8,12 @@
     <RootNamespace>Maria.CLI</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Docs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Services\Services.csproj" />
+  </ItemGroup>
+
 </Project>
