@@ -89,8 +89,9 @@ namespace Maria.CLI.Interpretation
                 {
                     message += $"\nOption \"{pair.Key}\" is not valid for action \"{originalCommand.Action}\".";
                     invalid = true;
-                } else if (!IsValidOptionValue(definition.Options[pair.Key],pair.Value,message))
+                } else if (!IsValidOptionValue(definition.Options[pair.Key],pair.Value, message))
                 {
+                    
                     invalid = true;
                 } else
                 {
@@ -109,7 +110,55 @@ namespace Maria.CLI.Interpretation
 
         private static bool IsValidOptionValue(OptionDefinition definition, string value, string message)
         {
-            return definition.Values.Contains(value);
+            bool toReturn;
+            switch (definition.ValidateBy)
+            {
+                case OptionValidationMethod.Type:
+                    toReturn = ValidateByType(value, definition.TypeName);
+                    if (!toReturn)
+                    {
+                        message += $"\nValue \"{value}\" is not of type \"{definition.TypeName}\".";
+                    }
+                    break;
+                case OptionValidationMethod.Value:
+                    toReturn = ValidateByValue(value, definition.Values);
+                    if (!toReturn)
+                    {
+                        message += $"\nValue \"{value}\" is not a valid value for option \"{definition.TypeName}\". Valid values are: {string.Join(", ", definition.Values)}";
+                    }
+                    break;
+                default:
+                    return false;
+            }
+            return toReturn;
         }
+
+        private static bool ValidateByValue(string value, List<string> validValues)
+        {
+            if (!validValues.Contains(value))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static bool ValidateByType(string value, string type)
+        {
+            switch (type)
+            {
+                case "int":
+                    return int.TryParse(value, out _);
+                case "float":
+                    return float.TryParse(value, out _);
+                case "bool":
+                    return bool.TryParse(value, out _);
+                case "string":
+                    return true;
+                case "time":
+                    return TimeSpan.TryParse(value, out _);
+                default:
+                    return false;
+            }
+        }   
     }
 }
