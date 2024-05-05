@@ -6,8 +6,18 @@ namespace Maria.CLI
     {
         static void Main(string[] args)
         {
+            Validator.Initialize();
             Parser parser = new Parser();
-            parser.Parse(args);
+            var res = parser.Parse(args);
+
+            foreach (var command in res)
+            {
+                var validation = Validator.Validate(command, out var modifiedCommand, out var message);
+                Console.WriteLine($"\nOriginal command: {command}" +
+                    $"\nResult: {validation}" +
+                    $"\nModified command: {command}" +
+                    $"\nMessage: {message}");
+            }
         }
     }
 }
