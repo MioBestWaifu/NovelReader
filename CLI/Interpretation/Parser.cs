@@ -16,9 +16,19 @@ namespace Maria.CLI.Interpretation
             Dictionary<string, string> options = new Dictionary<string, string>();
             List<string> prefixes = new List<string>();
             Command currentCommand = new Command();
-            bool isInOptions = false; int optionCount = 0;
+            bool isInOptions = false, reInit = false; int optionCount = 0;
             for (int i = 0; i < args.Length; i ++)
             {
+                if (reInit)
+                {
+                    currentCommand = new Command();
+                    prefixes = new List<string>();
+                    options = new Dictionary<string, string>();
+                    optionCount = 0;
+                    isInOptions = false;
+                    reInit = false;
+                }
+
                 var arg = args[i];
                 
 
@@ -53,16 +63,12 @@ namespace Maria.CLI.Interpretation
                 if (!isInOptions && arg.EndsWith(','))
                 {
                     isInOptions = true;
-                } else if (arg.EndsWith(';'))
+                } else if (arg.EndsWith(';') && i < args.Length - 1)
                 {
                     //Remember to deal with cases where there is no valid action
                     currentCommand.Options = options;
                     result.Add(currentCommand);
-                    currentCommand = new Command();
-                    prefixes = new List<string>();
-                    options = new Dictionary<string, string>();
-                    optionCount = 0;
-                    isInOptions = false;
+                    reInit = true;
                     continue;
                 }
             }
