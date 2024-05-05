@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.CLI.Interpretation
+namespace Maria.CLI.Input
 {
     internal class Parser
     {

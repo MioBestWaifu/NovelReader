@@ -1,4 +1,4 @@
-﻿using Maria.CLI.Interpretation;
+﻿using Maria.CLI.Input;
 
 namespace Maria.CLI
 {
