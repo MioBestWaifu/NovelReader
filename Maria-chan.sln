@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services", "Services\Services.csproj", "{7D926A42-A4F6-4180-B824-1DFD00AC49B6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CLI", "CLI\CLI.csproj", "{17F32C42-FCDB-443F-B7FD-E7945A40180C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7D926A42-A4F6-4180-B824-1DFD00AC49B6} = {7D926A42-A4F6-4180-B824-1DFD00AC49B6}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{2D12FD31-B1C6-4D28-980C-241C8F3C7AF1}"
 EndProject
