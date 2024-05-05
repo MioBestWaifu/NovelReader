@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Maria.Common.Exceptions
 {
-    public class MultipleSuffixesException : Exception
+    public class CommandSyntaxException : Exception
     {
     }
 }

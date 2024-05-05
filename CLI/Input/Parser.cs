@@ -41,7 +41,7 @@ namespace Maria.CLI.Input
                     if (!string.IsNullOrEmpty(currentCommand.Action))
                     {
                         if (!string.IsNullOrEmpty(currentCommand.Suffix))
-                            throw new MultipleSuffixesException();
+                            throw new CommandSyntaxException();
                         currentCommand.Suffix = arg.TrimEnd(',',';');
                     }
                     else
