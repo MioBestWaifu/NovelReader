@@ -8,14 +8,14 @@ namespace Maria.Services.Communication.Commanding
 {
     public class Command
     {
-        public List<string> Prefixes { get; set; }
-        public string Action { get; set; }
-        public string Suffix { get; set; }
-        public Dictionary<string, string> Options { get; set; }
+        public List<string> Prefixes { get; set; } = [];
+        public string Action { get; set; } = "";
+        public string Suffix { get; set; } = "";
+        public Dictionary<string, string> Options { get; set; } = [];
 
-        public Command(string action)
+        public override string ToString()
         {
-            Action = action;
+            return $"{string.Join(' ',Prefixes)} {Action} {Suffix}, {string.Join(',',Options)}";
         }
     }
 }

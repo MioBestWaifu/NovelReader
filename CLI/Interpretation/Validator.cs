@@ -17,12 +17,12 @@ namespace Maria.CLI.Interpretation
             definitions = new Dictionary<string, CommandDefinition>();
             CommandDefinition testDefinition = new CommandDefinition();
             testDefinition.Suffix = new SuffixDefinition {
-                Required = true, Values = new List<string> { "browsers, apps" } 
+                Required = true, Values = ["browsers", "apps"] 
             };
             testDefinition.Prefixes = new Dictionary<string, PrefixDefinition>
             {
-                { "start", new PrefixDefinition { Mutex = new List<string> { "start" } } },
-                { "stop", new PrefixDefinition { Mutex = new List<string> { "stop" } } }
+                { "start", new PrefixDefinition { Mutex = new List<string> { "stop" } } },
+                { "stop", new PrefixDefinition { Mutex = new List<string> { "start" } } }
             };
             testDefinition.Options = new Dictionary<string, OptionDefinition>
             {
@@ -58,7 +58,8 @@ namespace Maria.CLI.Interpretation
             }
 
             CommandDefinition definition = definitions[originalCommand.Action];
-            modifiedCommand = new Command(originalCommand.Action);
+            modifiedCommand = new Command();
+            modifiedCommand.Action = originalCommand.Action;
 
             if (definition.Suffix.Required && string.IsNullOrEmpty(originalCommand.Suffix))
             {
@@ -78,6 +79,7 @@ namespace Maria.CLI.Interpretation
             }
 
             modifiedCommand.Suffix = originalCommand.Suffix;
+            modifiedCommand.Prefixes = [];
 
             foreach (var prefix in originalCommand.Prefixes)
             {
@@ -89,7 +91,7 @@ namespace Maria.CLI.Interpretation
                 {
                     message += $"\nPrefix \"{prefix}\" is not valid for action \"{originalCommand.Action}\".";
                     invalid = true;
-                } else if (prefixDefinition.Mutex.Any(p => originalCommand.Prefixes.Contains(p)))
+                } else if (prefixDefinition.Mutex.Intersect(modifiedCommand.Prefixes).Any())
                 {
                     message += $"\nPrefix \"{prefix}\" is mutually exclusive with the following prefixes: {string.Join(", ", prefixDefinition.Mutex)}.";
                     invalid = true;
@@ -98,6 +100,9 @@ namespace Maria.CLI.Interpretation
                     modifiedCommand.Prefixes.Add(prefix);
                 }
             }
+
+
+            modifiedCommand.Options = new Dictionary<string, string>();
 
             foreach(var pair in originalCommand.Options)
             {

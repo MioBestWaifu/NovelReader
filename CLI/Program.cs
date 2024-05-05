@@ -15,7 +15,7 @@ namespace Maria.CLI
                 var validation = Validator.Validate(command, out var modifiedCommand, out var message);
                 Console.WriteLine($"\nOriginal command: {command}" +
                     $"\nResult: {validation}" +
-                    $"\nModified command: {command}" +
+                    $"\nModified command: {modifiedCommand}" +
                     $"\nMessage: {message}");
             }
         }

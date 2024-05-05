@@ -15,7 +15,7 @@ namespace Maria.CLI.Interpretation
             var result = new List<Command>();
             Dictionary<string, string> options = new Dictionary<string, string>();
             List<string> prefixes = new List<string>();
-            Command currentCommand = null;
+            Command currentCommand = new Command();
             bool isInOptions = false; int optionCount = 0;
             for (int i = 0; i < args.Length; i ++)
             {
@@ -24,11 +24,11 @@ namespace Maria.CLI.Interpretation
 
                 if (Validator.IsValidAction(arg))
                 {
-                    currentCommand = new Command(arg.TrimEnd(',', ';').ToLower());
+                    currentCommand.Action = arg.TrimEnd(',', ';').ToLower();
                     currentCommand.Prefixes = prefixes;
                 } else if (!isInOptions)
                 {
-                    if (currentCommand != null)
+                    if (!string.IsNullOrEmpty(currentCommand.Action))
                     {
                         if (!string.IsNullOrEmpty(currentCommand.Suffix))
                             throw new MultipleSuffixesException();
@@ -58,7 +58,7 @@ namespace Maria.CLI.Interpretation
                     //Remember to deal with cases where there is no valid action
                     currentCommand.Options = options;
                     result.Add(currentCommand);
-                    currentCommand = null;
+                    currentCommand = new Command();
                     prefixes = new List<string>();
                     options = new Dictionary<string, string>();
                     optionCount = 0;
@@ -67,11 +67,8 @@ namespace Maria.CLI.Interpretation
                 }
             }
 
-            if(currentCommand != null)
-            {
-                currentCommand.Options = options;
-                result.Add(currentCommand);
-            }
+            currentCommand.Options = options;
+            result.Add(currentCommand);
 
             foreach (var command in result)
             {
