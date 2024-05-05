@@ -1,4 +1,5 @@
 ﻿using Maria.CLI.Input;
+using Maria.Common.Communication;
 
 namespace Maria.CLI
 {
@@ -6,6 +7,8 @@ namespace Maria.CLI
     {
         static void Main(string[] args)
         {
+            Thread.Sleep(3000);
+            CommandClient client = new CommandClient();
             Validator.Initialize();
             Parser parser = new Parser();
             var res = parser.Parse(args);
@@ -17,6 +20,8 @@ namespace Maria.CLI
                     $"\nResult: {validation}" +
                     $"\nModified command: {modifiedCommand}" +
                     $"\nMessage: {message}");
+                if(modifiedCommand != null)
+                    client.SendCommand(modifiedCommand);
             }
         }
     }

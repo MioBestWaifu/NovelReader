@@ -51,6 +51,9 @@ namespace Maria.Common.Communication
             Command command = JsonSerializer.Deserialize<Command>(requestBody);
 
             OnCommandReceived?.Invoke(command);
+
+            context.Response.StatusCode = 200;
+            context.Response.Close();
         }
 
     }
