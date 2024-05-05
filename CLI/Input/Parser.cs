@@ -1,12 +1,12 @@
-﻿using Maria.CLI.Exceptions;
-using Maria.Services.Communication.Commanding;
+﻿using Maria.Common.Exceptions;
+using Maria.Common.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.CLI.Interpretation
+namespace Maria.CLI.Input
 {
     internal class Parser
     {
@@ -41,7 +41,7 @@ namespace Maria.CLI.Interpretation
                     if (!string.IsNullOrEmpty(currentCommand.Action))
                     {
                         if (!string.IsNullOrEmpty(currentCommand.Suffix))
-                            throw new MultipleSuffixesException();
+                            throw new CommandSyntaxException();
                         currentCommand.Suffix = arg.TrimEnd(',',';');
                     }
                     else

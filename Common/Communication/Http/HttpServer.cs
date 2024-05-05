@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Communication.Commanding
+namespace Maria.Common.Communication.Http
 {
-    public enum OptionValidationMethod
+    internal class HttpServer
     {
-        Type,
-        Value
     }
 }

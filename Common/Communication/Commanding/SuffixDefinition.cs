@@ -5,12 +5,14 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Communication.Commanding
+namespace Maria.Common.Communication.Commanding
 {
-    public class PrefixDefinition
+    public class SuffixDefinition
     {
         //Temporarily with public sets
         [JsonInclude]
-        public List<string> Mutex { get; set; }
+        public bool Required { get; set; }
+        [JsonInclude]
+        public List<string> Values { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Communication.Commanding
+namespace Maria.Common.Communication.Commanding
 {
     public class OptionDefinition
     {

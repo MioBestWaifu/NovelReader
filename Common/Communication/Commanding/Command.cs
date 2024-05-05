@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Communication.Commanding
+namespace Maria.Common.Communication.Commanding
 {
     public class Command
     {
@@ -15,7 +15,7 @@ namespace Maria.Services.Communication.Commanding
 
         public override string ToString()
         {
-            return $"{string.Join(' ',Prefixes)} {Action} {Suffix}, {string.Join(',',Options)}";
+            return $"{string.Join(' ', Prefixes)} {Action} {Suffix}, {string.Join(',', Options)}";
         }
     }
 }
