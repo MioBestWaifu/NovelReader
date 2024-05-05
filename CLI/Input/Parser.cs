@@ -1,5 +1,5 @@
-﻿using Maria.CLI.Exceptions;
-using Maria.Services.Communication.Commanding;
+﻿using Maria.Common.Exceptions;
+using Maria.Common.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;

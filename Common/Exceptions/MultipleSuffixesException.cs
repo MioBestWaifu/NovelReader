@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Maria.Common.Exceptions
 {
-    internal class MultipleSuffixesException : Exception
+    public class MultipleSuffixesException : Exception
     {
     }
 }
