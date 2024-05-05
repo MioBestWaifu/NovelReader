@@ -72,7 +72,7 @@ namespace Maria.CLI.Interpretation
                     continue;
                 }
             }
-
+            currentCommand.Prefixes = prefixes;
             currentCommand.Options = options;
             result.Add(currentCommand);
 
