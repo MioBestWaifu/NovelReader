@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Communication.Http
+namespace Maria.Common.Communication
 {
-    internal class HttpResponder
+    public class CommandServer
     {
     }
 }
