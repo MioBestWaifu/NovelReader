@@ -10,7 +10,7 @@ namespace Maria.Services.Communication.Commanding
     public class CommandDefinition
     {
         [JsonInclude]
-        public PrefixDefinition Prefixes { get; private set; }
+        public Dictionary<string,PrefixDefinition> Prefixes { get; private set; }
         [JsonInclude]
         public SuffixDefinition Suffix { get; private set; }
         [JsonInclude]
