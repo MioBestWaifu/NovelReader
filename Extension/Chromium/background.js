@@ -66,7 +66,9 @@ function sendTabInfoToHost(tab) {
         module:"tracking",
         submodule:"browser",
         options:{
-            url: url
+            url: url,
+            title: title,
+            time:  new Date().toLocaleTimeString('en-US', { hour12: false })
         }
     };
 
