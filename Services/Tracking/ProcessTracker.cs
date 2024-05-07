@@ -111,5 +111,19 @@ namespace Maria.Services.Tracking
             Process process = System.Diagnostics.Process.GetProcessById((int)processId);
             return process.ProcessName;
         }
+
+        public override void Start()
+        {
+            base.Start();
+            Thread thread = new Thread( () =>
+            {
+                while (Running)
+                {
+                    Console.WriteLine("Scanning");
+                    ScanAndRegister();
+                    Thread.Sleep(1000);
+                }
+            });
+        }
     }
 }

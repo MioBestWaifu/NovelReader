@@ -12,6 +12,12 @@ namespace Maria.Services.Tracking
     internal class BrowserTracker : Tracker
     {
 
+        public BrowserTracker()
+        {
+            Running = true;
+        }
+
+
         public override async Task<int> Register(Command command)
         {
             //Duplicate code with ProcessTracker

@@ -9,17 +9,29 @@ namespace Maria.Services.Tracking
 {
     internal abstract class Tracker
     {
-        
+        public bool Running { get; protected set; }
+
         public async Task<int> Process(Command command)
         {
-            if (string.IsNullOrEmpty(command.Action))
+            switch (command.Action)
             {
-                return 400;
-            } else if (command.Action == "add") //Should check if it is active once start-stop are implemented
-            {
-                return await ValidateAndRegister(command);
+                case null:
+                    return 400;
+                case "add":
+                    if (!Running)
+                    {
+                        return 403;
+                    }
+                    return await ValidateAndRegister(command);
+                case "start":
+                    Start();
+                    return 200;
+                case "stop":
+                    Stop();
+                    return 200;
+                default:
+                    return 400;
             }
-            return 400;
         }
 
         public async Task<int> ValidateAndRegister(Command command)
@@ -36,5 +48,15 @@ namespace Maria.Services.Tracking
         public abstract bool Validate(Command command);
 
         public abstract Task<int> Register(Command command);
+
+        public virtual void Start()
+        {
+            Running = true;
+        }
+
+        public virtual void Stop()
+        {
+            Running = false;
+        }
     }
 }
