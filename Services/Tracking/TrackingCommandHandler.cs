@@ -12,7 +12,7 @@ namespace Maria.Services.Tracking
         public async Task<string> HandleCommand(Command command)
         {
             int result;
-            switch(command.Module)
+            switch(command.Submodule)
             {
                 case "browser":
                     result = await new BrowserTracker().Process(command);
