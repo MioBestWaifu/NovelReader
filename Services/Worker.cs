@@ -1,4 +1,5 @@
 using Maria.Common.Communication;
+using Maria.Common.Testing;
 using Maria.Services.Communication;
 using Maria.Services.Recordkeeping;
 
@@ -17,6 +18,7 @@ namespace Maria.Services
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
             Writer.CreateInstance();
+            new Thread(() => TrackProcessTester.StartAndStop(15)).Start();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
