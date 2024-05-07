@@ -35,6 +35,10 @@ namespace Maria.Services.Tracking
                     TimeSpan timestamp = DateTime.Now.TimeOfDay;
                     record.Time = timestamp.ToString(@"hh\:mm\:ss");
                 }
+                if (command.Options.TryGetValue("title", out string extra))
+                {
+                    record.Extra = extra;
+                }
                 await Writer.Instance.AddBrowserRecord(record);
                 return 200;
             } catch (Exception e)

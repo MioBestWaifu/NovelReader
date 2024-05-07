@@ -13,6 +13,7 @@ namespace Maria.Services.Recordkeeping.Records.Maps
         {
             Map(m => m.Name).Index(1).Name("name");
             Map(m => m.Time).Index(2).Name("time");
+            Map(m => m.Extra).Index(3).Name("extra");
         }
     }
 }

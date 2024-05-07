@@ -11,5 +11,7 @@ namespace Maria.Services.Recordkeeping.Records
         public string Name { get; set; }
         //Maybe this should be a time object of some kind
         public string Time { get; set; }
+        //Represents whatever extra information we want to store, like the exact book open on drive, or project on VS.
+        public string? Extra { get; set; }
     }
 }
