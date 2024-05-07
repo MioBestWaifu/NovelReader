@@ -1,3 +1,5 @@
+using Maria.Services.Recordkeeping;
+
 namespace Maria.Services
 {
     public class Program
@@ -5,6 +7,7 @@ namespace Maria.Services
         public static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+            builder.Services.AddSingleton<Writer>();
             builder.Services.AddHostedService<Worker>();
 
             var host = builder.Build();

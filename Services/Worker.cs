@@ -1,15 +1,16 @@
 using Maria.Common.Communication;
 using Maria.Services.Communication;
+using Maria.Services.Recordkeeping;
 
 namespace Maria.Services
 {
-    public class Worker : BackgroundService
+    internal class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
         private readonly CommandServer commandServer;
         private readonly Interpreter interpreter;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, Writer writer)
         {
             _logger = logger;
             commandServer = new CommandServer();
