@@ -18,7 +18,8 @@ namespace Maria.Services.Tracking
             try
             {
                 TrackingRecord record = new TrackingRecord();
-                record.Name = command.Submodule;
+                //I should register all the options expected somewhere. Also, validate should check is they are there
+                record.Name = command.Options["url"];
                 TimeSpan timestamp = DateTime.Now.TimeOfDay;
                 record.Time = timestamp.ToString(@"hh\:mm\:ss");
                 await Writer.Instance.AddBrowserRecord(record);

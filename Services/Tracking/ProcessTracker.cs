@@ -18,7 +18,8 @@ namespace Maria.Services.Tracking
             try
             {
                 TrackingRecord record = new TrackingRecord();
-                record.Name = command.Submodule;
+                //not always true, may be window, depends on the process
+                record.Name = command.Options["name"];
                 TimeSpan timestamp = DateTime.Now.TimeOfDay;
                 record.Time = timestamp.ToString(@"hh\:mm\:ss");
                 await Writer.Instance.AddProcessRecord(record);
