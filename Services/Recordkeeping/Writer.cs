@@ -12,6 +12,7 @@ namespace Maria.Services.Recordkeeping
     //Designed to be a singleton
     internal class Writer
     {
+        public static Writer Instance { get; }
         //Should be customizable
         public string BasePath { get; set; } = @"D:\Programs\maria-chan\Tests\";
 

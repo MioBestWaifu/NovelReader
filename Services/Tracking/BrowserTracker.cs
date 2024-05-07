@@ -1,4 +1,6 @@
 ﻿using Maria.Common.Communication.Commanding;
+using Maria.Services.Recordkeeping;
+using Maria.Services.Recordkeeping.Records;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +11,29 @@ namespace Maria.Services.Tracking
 {
     internal class BrowserTracker : Tracker
     {
-        public override Task<int> Process(Command command)
-        {
-            throw new NotImplementedException();
-        }
 
-        public override Task<int> Register(Command command)
+        public override async Task<int> Register(Command command)
         {
-            throw new NotImplementedException();
+            //Duplicate code with ProcessTracker
+            try
+            {
+                TrackingRecord record = new TrackingRecord();
+                record.Name = command.Suffix;
+                TimeSpan timestamp = DateTime.Now.TimeOfDay;
+                record.Time = timestamp.ToString(@"hh\:mm\:ss");
+                await Writer.Instance.AddBrowserRecord(record);
+                return 200;
+            } catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return 500;
+            }
+
         }
 
         public override bool Validate(Command command)
         {
-            throw new NotImplementedException();
+            return true;
         }
     }
 }
