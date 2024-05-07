@@ -9,6 +9,11 @@ namespace Maria.Services.Tracking
 {
     internal class BrowserTracker : Tracker
     {
+        public override Task<int> Process(Command command)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<int> Register(Command command)
         {
             throw new NotImplementedException();

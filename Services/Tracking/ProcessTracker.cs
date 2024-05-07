@@ -9,6 +9,12 @@ namespace Maria.Services.Tracking
 {
     internal class ProcessTracker : Tracker
     {
+        //Process process is some strange naming
+        public override Task<int> Process(Command command)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<int> Register(Command command)
         {
             throw new NotImplementedException();

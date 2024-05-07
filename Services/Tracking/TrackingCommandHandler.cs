@@ -15,10 +15,10 @@ namespace Maria.Services.Tracking
             switch(command.Action)
             {
                 case "browsers":
-                    result = await new BrowserTracker().ValidateAndRegister(command);
+                    result = await new BrowserTracker().Process(command);
                     break;
                 case "processes":
-                    result = await new ProcessTracker().ValidateAndRegister(command);
+                    result = await new ProcessTracker().Process(command);
                     break;
                 default:
                     return "Invalid action";

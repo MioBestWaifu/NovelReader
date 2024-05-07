@@ -1,4 +1,5 @@
 ﻿using Maria.Common.Communication.Commanding;
+using Maria.Services.Tracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,14 @@ namespace Maria.Services.Communication
     internal class Interpreter
     {
         //Maybe this should return a message or something like that. as of now, the plan is for communication to be decoupled, so it doesnt make sense to return anything. 
-        private Dictionary<string, ICommandHandler> handlers = new Dictionary<string, ICommandHandler>();
+        private Dictionary<string, ICommandHandler> handlers;
+
+        public Interpreter()
+        {
+            handlers = new Dictionary<string, ICommandHandler>() {
+                { "tracking",new TrackingCommandHandler()}
+            };
+        }
         public async Task ProcessCommand (Command command)
         {
             Console.WriteLine($"Command: {command}");

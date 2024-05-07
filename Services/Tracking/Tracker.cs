@@ -9,6 +9,8 @@ namespace Maria.Services.Tracking
 {
     internal abstract class Tracker
     {
+        public abstract Task<int> Process(Command command);
+
         public async Task<int> ValidateAndRegister(Command command)
         {
             bool isValid = Validate(command);
