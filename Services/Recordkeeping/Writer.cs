@@ -36,6 +36,7 @@ namespace Maria.Services.Recordkeeping
             processesSemaphore.Release();
         }
 
+        //Maybe this should be conditioned on wether there even are records to flush. Design choice to be made.
         public async Task FlushAll()
         {
             await browsersSemaphore.WaitAsync();

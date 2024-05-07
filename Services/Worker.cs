@@ -9,6 +9,7 @@ namespace Maria.Services
         private readonly ILogger<Worker> _logger;
         private readonly CommandServer commandServer;
         private readonly Interpreter interpreter;
+        private readonly Writer writer;
 
         public Worker(ILogger<Worker> logger, Writer writer)
         {
@@ -16,6 +17,7 @@ namespace Maria.Services
             commandServer = new CommandServer();
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
+            this.writer = writer;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,7 +28,8 @@ namespace Maria.Services
                 {
                     //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(60000, stoppingToken);
+                await writer.FlushAll();
             }
         }
     }
