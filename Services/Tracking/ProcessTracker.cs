@@ -24,6 +24,8 @@ namespace Maria.Services.Tracking
 
         private static IntPtr previousForegroundWindow = IntPtr.Zero;
 
+        private static Thread scannerThread;
+
         public static ProcessTracker Instance { get { 
                 return instance ??= new ProcessTracker();
             } 
@@ -92,6 +94,7 @@ namespace Maria.Services.Tracking
                 {
                     command.Options.Add("name", processName);
                 }
+                Register(command);
             }
         }
 
@@ -114,16 +117,21 @@ namespace Maria.Services.Tracking
 
         public override void Start()
         {
+            Console.WriteLine("Process Tracker Started");
             base.Start();
-            Thread thread = new Thread( () =>
+            if (scannerThread == null)
             {
-                while (Running)
+                scannerThread = new Thread(() =>
                 {
-                    Console.WriteLine("Scanning");
-                    ScanAndRegister();
-                    Thread.Sleep(1000);
-                }
-            });
+                    while (Running)
+                    {
+                        Console.WriteLine("Scanning");
+                        ScanAndRegister();
+                        Thread.Sleep(1000);
+                    }
+                });
+                scannerThread.Start();
+            }
         }
     }
 }
