@@ -12,7 +12,7 @@ namespace Maria.Services.Recordkeeping
     //Designed to be a singleton
     internal class Writer
     {
-        public static Writer Instance { get; }
+        public static Writer Instance { get; private set; }
         //Should be customizable
         public string BasePath { get; set; } = @"D:\Programs\maria-chan\Tests\";
 
@@ -21,6 +21,11 @@ namespace Maria.Services.Recordkeeping
 
         private SemaphoreSlim browsersSemaphore = new SemaphoreSlim(1, 1);
         private SemaphoreSlim processesSemaphore = new SemaphoreSlim(1, 1);
+
+        private Writer()
+        {
+            //This is a singleton
+        }
         
 
         public async Task AddBrowserRecord(TrackingRecord record)
@@ -76,6 +81,11 @@ namespace Maria.Services.Recordkeeping
 
             processesSemaphore.Release();
             browsersSemaphore.Release();
+        }
+
+        public static void CreateInstance()
+        {
+            Instance = new Writer();
         }
 
     }
