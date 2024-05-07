@@ -14,10 +14,10 @@ namespace Maria.Services.Tracking
             int result;
             switch(command.Module)
             {
-                case "browsers":
+                case "browser":
                     result = await new BrowserTracker().Process(command);
                     break;
-                case "processes":
+                case "process":
                     result = await new ProcessTracker().Process(command);
                     break;
                 default:

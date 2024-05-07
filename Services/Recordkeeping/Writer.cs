@@ -16,11 +16,11 @@ namespace Maria.Services.Recordkeeping
         //Should be customizable
         public string BasePath { get; set; } = @"D:\Programs\maria-chan\Tests\";
 
-        private List<TrackingRecord> browsersBuffer = new List<TrackingRecord>();
-        private List<TrackingRecord> processesBuffer = new List<TrackingRecord>();
+        private List<TrackingRecord> browserBuffer = new List<TrackingRecord>();
+        private List<TrackingRecord> processBuffer = new List<TrackingRecord>();
 
-        private SemaphoreSlim browsersSemaphore = new SemaphoreSlim(1, 1);
-        private SemaphoreSlim processesSemaphore = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim browserSemaphore = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim processSemaphore = new SemaphoreSlim(1, 1);
 
         private Writer()
         {
@@ -30,23 +30,23 @@ namespace Maria.Services.Recordkeeping
 
         public async Task AddBrowserRecord(TrackingRecord record)
         {
-            await browsersSemaphore.WaitAsync();
-            browsersBuffer.Add(record);
-            browsersSemaphore.Release();
+            await browserSemaphore.WaitAsync();
+            browserBuffer.Add(record);
+            browserSemaphore.Release();
         }
 
         public async Task AddProcessRecord(TrackingRecord record)
         {
-            await processesSemaphore.WaitAsync();
-            processesBuffer.Add(record);
-            processesSemaphore.Release();
+            await processSemaphore.WaitAsync();
+            processBuffer.Add(record);
+            processSemaphore.Release();
         }
 
         //Maybe this should be conditioned on wether there even are records to flush. Design choice to be made.
         public async Task FlushAll()
         {
-            await browsersSemaphore.WaitAsync();
-            await processesSemaphore.WaitAsync();
+            await browserSemaphore.WaitAsync();
+            await processSemaphore.WaitAsync();
 
             /*
              * The fact that no checks of record's times against this value are made mean that the manager of the instance
@@ -58,29 +58,29 @@ namespace Maria.Services.Recordkeeping
              * implementation they seem unimportant since the multiple flushes in a day are only for keeping files relatively small.
              */
             DateTime now = DateTime.Now;
-            string browsersPath = @$"{BasePath}\browsers\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.csv";
-            string processesPath = @$"{BasePath}\processes\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.csv";
+            string browserPath = @$"{BasePath}\browser\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.csv";
+            string processPath = @$"{BasePath}\process\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.csv";
 
-            Directory.CreateDirectory(Path.GetDirectoryName(browsersPath));
-            Directory.CreateDirectory(Path.GetDirectoryName(processesPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(browserPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(processPath));
 
-            using (var writer = new StreamWriter(browsersPath))
+            using (var writer = new StreamWriter(browserPath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csv.WriteRecords(browsersBuffer);
+                csv.WriteRecords(browserBuffer);
             }
 
-            using (var writer = new StreamWriter(processesPath))
+            using (var writer = new StreamWriter(processPath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csv.WriteRecords(processesBuffer);
+                csv.WriteRecords(processBuffer);
             }
 
-            browsersBuffer.Clear();
-            processesBuffer.Clear();
+            browserBuffer.Clear();
+            processBuffer.Clear();
 
-            processesSemaphore.Release();
-            browsersSemaphore.Release();
+            processSemaphore.Release();
+            browserSemaphore.Release();
         }
 
         public static void CreateInstance()
