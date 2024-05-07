@@ -11,10 +11,10 @@ namespace Maria.Services.Tracking
     {
         public async Task<int> Process(Command command)
         {
-            if (command.Prefixes.Count == 0)
+            if (string.IsNullOrEmpty(command.Action))
             {
                 return 400;
-            } else if (command.Prefixes.Contains("add")) //Should check if it is active once start-stop are implemented
+            } else if (command.Action == "add") //Should check if it is active once start-stop are implemented
             {
                 return await ValidateAndRegister(command);
             }

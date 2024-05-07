@@ -22,21 +22,21 @@ namespace Maria.Services.Communication
         public async Task ProcessCommand (Command command)
         {
             Console.WriteLine($"Command: {command}");
-            bool hasHandlerRegistered = handlers.TryGetValue(command.Action, out ICommandHandler handler);
+            bool hasHandlerRegistered = handlers.TryGetValue(command.Module, out ICommandHandler handler);
             if (hasHandlerRegistered)
             {
-                Console.WriteLine($"Handler found for action: {command.Action}");
+                Console.WriteLine($"Handler found for action: {command.Module}");
                 await handler.HandleCommand(command);
             }
             else
             {
-                Console.WriteLine($"No handler registered for action: {command.Action}");
+                Console.WriteLine($"No handler registered for action: {command.Module}");
             }
         }
 
-        public void RegisterHandler(ICommandHandler handler, string action)
+        public void RegisterHandler(ICommandHandler handler, string module)
         { 
-            handlers.Add(action, handler);
+            handlers.Add(module, handler);
         }
     }
 }
