@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Maria.CLI.Input
 {
+
     internal class Validator
     {
 
@@ -63,17 +64,17 @@ namespace Maria.CLI.Input
 
             if (definition.Suffix.Required && string.IsNullOrEmpty(originalCommand.Suffix))
             {
-                message = $"The command is missing a required suffix.";
+                message = $"The command is missing a required suffix.\n";
                 return ValidationResult.InvalidNonExecutable;
             } else if ( !definition.Suffix.Values.Contains(originalCommand.Suffix))
             {
                 if (definition.Suffix.Required)
                 {
-                    message = $"The suffix \"{originalCommand.Suffix}\" is not valid for action \"{originalCommand.Action}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}";
+                    message = $"The suffix \"{originalCommand.Suffix}\" is not valid for action \"{originalCommand.Action}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}\n";
                     return ValidationResult.InvalidNonExecutable;
                 } else
                 {
-                    message = $"The suffix \"{originalCommand.Suffix}\" is not valid for action \"{originalCommand.Action}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}";
+                    message = $"The suffix \"{originalCommand.Suffix}\" is not valid for action \"{originalCommand.Action}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}\n";
                     invalid = true;
                 }
             }
@@ -89,11 +90,11 @@ namespace Maria.CLI.Input
                 //This has to take into account time-based prefixes. Maybe they should be separated. 
                 if (!hasPrefix)
                 {
-                    message += $"\nPrefix \"{prefix}\" is not valid for action \"{originalCommand.Action}\".";
+                    message += $"Prefix \"{prefix}\" is not valid for action \"{originalCommand.Action}\".\n";
                     invalid = true;
                 } else if (prefixDefinition.Mutex.Intersect(modifiedCommand.Prefixes).Any())
                 {
-                    message += $"\nPrefix \"{prefix}\" is mutually exclusive with the following prefixes: {string.Join(", ", prefixDefinition.Mutex)}.";
+                    message += $"Prefix \"{prefix}\" is mutually exclusive with the following prefixes: {string.Join(", ", prefixDefinition.Mutex)}.\n";
                     invalid = true;
                 } else
                 {
@@ -108,7 +109,7 @@ namespace Maria.CLI.Input
             {
                 if (!definition.Options.ContainsKey(pair.Key))
                 {
-                    message += $"\nOption \"{pair.Key}\" is not valid for action \"{originalCommand.Action}\".";
+                    message += $"Option \"{pair.Key}\" is not valid for action \"{originalCommand.Action}\".\n";
                     invalid = true;
                 } else if (!IsValidOptionValue(definition.Options[pair.Key],pair.Value, message))
                 {
@@ -138,14 +139,14 @@ namespace Maria.CLI.Input
                     toReturn = ValidateByType(value, definition.TypeName);
                     if (!toReturn)
                     {
-                        message += $"\nValue \"{value}\" is not of type \"{definition.TypeName}\".";
+                        message += $"Value \"{value}\" is not of type \"{definition.TypeName}\".\n";
                     }
                     break;
                 case OptionValidationMethod.Value:
                     toReturn = ValidateByValue(value, definition.Values);
                     if (!toReturn)
                     {
-                        message += $"\nValue \"{value}\" is not a valid value for option \"{definition.TypeName}\". Valid values are: {string.Join(", ", definition.Values)}";
+                        message += $"Value \"{value}\" is not a valid value for option \"{definition.TypeName}\". Valid values are: {string.Join(", ", definition.Values)}\n";
                     }
                     break;
                 default:
