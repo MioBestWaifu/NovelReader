@@ -14,7 +14,7 @@ namespace Maria.Services
             _logger = logger;
             commandServer = new CommandServer();
             interpreter = new Interpreter();
-            commandServer.OnCommandReceived += interpreter.ProcessComand;
+            commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
