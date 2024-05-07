@@ -42,8 +42,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Function to send tab information to the other application
 function sendTabInfoToHost(tab) {
     // Extract title and URL from the tab
-    const title = tab.title;
-    const url = decodeURIComponent(tab.url);
+    let title = tab.title;
+    let url = decodeURIComponent(tab.url);
     url = removeQueryAndProtocol(url);
 
     if (url == "" || url == "chrome://newtab/" || url == "edge://newtab/" ||
@@ -59,8 +59,12 @@ function sendTabInfoToHost(tab) {
 
     // Construct message to send to the other application
     const message = {
-        title: title,
-        url: url
+        action:"add",
+        module:"tracking",
+        submodule:"browser",
+        options:{
+            url: url
+        }
     };
 
     console.log(JSON.stringify(message));
