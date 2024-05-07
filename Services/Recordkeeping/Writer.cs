@@ -47,6 +47,7 @@ namespace Maria.Services.Recordkeeping
         {
             await browserSemaphore.WaitAsync();
             await processSemaphore.WaitAsync();
+            Console.WriteLine("FLUSHING");
 
             /*
              * The fact that no checks of record's times against this value are made mean that the manager of the instance

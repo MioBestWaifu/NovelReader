@@ -44,17 +44,20 @@ function sendTabInfoToHost(tab) {
     // Extract title and URL from the tab
     let title = tab.title;
     let url = decodeURIComponent(tab.url);
-    url = removeQueryAndProtocol(url);
-
-    if (url == "" || url == "chrome://newtab/" || url == "edge://newtab/" ||
-        url.startsWith("https://www.google.com/") || url.startsWith("https://www.bing.com/") ||
-        url.startsWith("https://search.brave")){
-        return;
-    }
 
     if(!url.startsWith("http://") && !url.startsWith("https://")){
         return;
     }
+    url = removeQueryAndProtocol(url);
+
+    console.log(url);
+
+    if (url == "" || url == "chrome://newtab/" || url == "edge://newtab/" ||
+        url.startsWith("www.google.com/") || url.startsWith("www.bing.com/") ||
+        url.startsWith("search.brave")){
+        return;
+    }
+
 
 
     // Construct message to send to the other application

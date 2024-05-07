@@ -30,7 +30,7 @@ namespace Maria.Services.Communication
             }
             else
             {
-                Console.WriteLine($"No handler registered for action: {command.Module}");
+                Console.WriteLine($"No handler registered for module: {command.Module}");
             }
         }
 

@@ -16,6 +16,10 @@ namespace Maria.Common.Communication
         public delegate void CommandReceived(Command command);
         public event CommandReceived OnCommandReceived;
         private HttpListener httpListener;
+        private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
 
         public CommandServer()
         {
@@ -48,7 +52,7 @@ namespace Maria.Common.Communication
                 }
             }
 
-            Command command = JsonSerializer.Deserialize<Command>(requestBody);
+            Command command = JsonSerializer.Deserialize<Command>(requestBody, jsonOptions);
 
             OnCommandReceived?.Invoke(command);
 
