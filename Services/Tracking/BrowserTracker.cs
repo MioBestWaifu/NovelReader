@@ -24,10 +24,17 @@ namespace Maria.Services.Tracking
             try
             {
                 TrackingRecord record = new TrackingRecord();
-                //I should register all the options expected somewhere. Also, validate should check is they are there
+                //I should register all the options expected somewhere. Also, validate should check if they are there
                 record.Name = command.Options["url"];
-                TimeSpan timestamp = DateTime.Now.TimeOfDay;
-                record.Time = timestamp.ToString(@"hh\:mm\:ss");
+                if (command.Options.TryGetValue("time", out string time))
+                {
+                    record.Time = time;
+                }
+                else
+                {
+                    TimeSpan timestamp = DateTime.Now.TimeOfDay;
+                    record.Time = timestamp.ToString(@"hh\:mm\:ss");
+                }
                 await Writer.Instance.AddBrowserRecord(record);
                 return 200;
             } catch (Exception e)
