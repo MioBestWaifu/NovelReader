@@ -18,7 +18,7 @@ namespace Maria.Services.Tracking
                     result = await new BrowserTracker().Process(command);
                     break;
                 case "process":
-                    result = await new ProcessTracker().Process(command);
+                    result = await ProcessTracker.Instance.Process(command);
                     break;
                 default:
                     return "Invalid action";

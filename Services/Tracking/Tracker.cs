@@ -9,6 +9,7 @@ namespace Maria.Services.Tracking
 {
     internal abstract class Tracker
     {
+        
         public async Task<int> Process(Command command)
         {
             if (string.IsNullOrEmpty(command.Action))

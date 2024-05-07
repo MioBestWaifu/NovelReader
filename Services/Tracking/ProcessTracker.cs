@@ -24,6 +24,20 @@ namespace Maria.Services.Tracking
 
         private static IntPtr previousForegroundWindow = IntPtr.Zero;
 
+        public static ProcessTracker Instance { get { 
+                return instance ??= new ProcessTracker();
+            } 
+            private set { 
+                instance = value;
+            } }
+
+        private static ProcessTracker instance;
+
+        private ProcessTracker()
+        {
+            //This is a singleton
+        }
+
         public override async Task<int> Register(Command command)
         {
             //Duplicate code with BrowserTracker
