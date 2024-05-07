@@ -11,7 +11,7 @@ namespace Maria.Services.Communication
     internal class Interpreter
     {
         //Maybe this should return a message or something like that. as of now, the plan is for communication to be decoupled, so it doesnt make sense to return anything. 
-        private Dictionary<string, ICommandHandler> handlers;
+        private readonly Dictionary<string, ICommandHandler> handlers;
 
         public Interpreter()
         {
