@@ -3,7 +3,12 @@ REMINDERS
 1 - Turn these txts indo MD's
 2 - Register the Command API, noting the options available and expected from each command. 
 
-MORPHOLOGICAL ANALYSIS
+TRANSLATION
+As of now, only japanese-to-english translations are needed, and so the translation implementiation will not be abstracted,
+everything will be written only with jp-to-en in mind. However, the overall structure (namespace, entrypoints, etc) will be prepared for possible future expansion.
+
+
+MORPHOLOGICAL ANALYSIS AND DICTIONARY SIZES
 
 To translate japanese, the EDRDG database (mainly JMDICT) is used. However, the entries there are (unsurprinsingly) 
 in dictionary form. This means that to translate a flexioned verb, as an example, an unflexioned form of it must be determined.
@@ -11,9 +16,12 @@ To that end a morphological analysis tool is the best fit. The chosen tool is a 
 dicionary by default. However, this package bundles the dictionary into it, so it may bloat Maria.Services final size by up to 50mb.
 As of writing, this is unimportant. However, if size becomes a problem, another solution using the same analysis tool is to
 use its python wrapper (mecab-python3), because it does not bundle a dictionary, and so the app would only bloat if the user
-needs this funtion. This approach was not chosen at first because it is more convenient to use a C# wrapper in a C# project.
+needs this funtion. This approach was not chosen at first because it is more convenient to use a C# wrapper.
 Another option, of course, is to build our own wrapper, but that is a lot of work for a small gain.
-Also, while using the current C# wrapper, it may be optimal do include unidic, since it is beter-maintained and more complete. It is also, however, very large and so will only be available as an option. 
+Also, while using the current C# wrapper, it may be optimal do include unidic, since it is better-maintained and more complete. It is also, however, very large and so will only be available as an option. 
+
+Also, the EDRDG database is itself very large, so in the end it is likely that the whole translation module bundled in the 
+program will contain only code to interface with the database, and the database itself will be downloaded upon user input.
 
 JAPANESE SERIES NAMES
 
