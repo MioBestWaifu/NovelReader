@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Maria.Services.Translation.Japanese.Edrdg
 {
@@ -27,5 +28,9 @@ namespace Maria.Services.Translation.Japanese.Edrdg
         public JapanesePriority Priority { get; private set; }
 
         //There is also the re_nokanji tag, but i dont know what to do with it and cant make out how to declare it, so it will be missing here.
+
+        public ReadingElement(XElement element)
+        {
+        }
     }
 }

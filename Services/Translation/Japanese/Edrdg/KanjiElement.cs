@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Maria.Services.Translation.Japanese.Edrdg
 {
@@ -19,5 +20,9 @@ namespace Maria.Services.Translation.Japanese.Edrdg
         //but not use it.
         private string Info { get; set; } 
         public JapanesePriority Priority { get; private set; }
+
+        public KanjiElement(XElement element)
+        {
+        }
     }
 }
