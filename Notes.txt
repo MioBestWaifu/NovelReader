@@ -12,3 +12,13 @@ dicionary by default. However, this package bundles the dictionary into it, so i
 As of writing, this is unimportant. However, if size becomes a problem, another solution using the same analysis tool is to
 use its python wrapper (mecab-python3), because it does not bundle a dictionary, and so the app would only bloat if the user
 needs this funtion. This approach was not chosen at first because it is more convenient to use a C# wrapper in a C# project.
+Another option, of course, is to build our own wrapper, but that is a lot of work for a small gain.
+Also, while using the current C# wrapper, it may be optimal do include unidic, since it is beter-maintained and more complete. It is also, however, very large and so will only be available as an option. 
+
+JAPANESE SERIES NAMES
+
+One of the files in the EDRDG database is a names dictionary. It contains names of people, places, and, i think, some art pieces like movies and anime.
+It is likely that this file will be incomplete. So, it will probrably have to be expanded.
+It is relatively easy and feasible to expand it, especially with anime-related things, because the japanese and english names
+of them are easily obtainable from MAL. Other categories i do not know, but it is probably easy to find the english name if
+we can determine that it is a art piece.
