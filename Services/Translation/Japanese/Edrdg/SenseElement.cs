@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Translation.Japanese.Edrdg
 {
+    //A bunch of information contained in the sense tag has been ignored for simplicity's sake. Some of them ARE important 
+    //for a full implementation, but they are not essential for a basic, working one and so will be left for later.
     internal class SenseElement
     {
+        public List<string> Glosses { get; private set; }
     }
 }
