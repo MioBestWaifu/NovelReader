@@ -19,10 +19,12 @@ namespace Maria.Services.Translation.Japanese.Edrdg
         //From the ke_inf tag. I dont know what to do with this and it doenst seem necessary now, so i will declare it
         //but not use it.
         private string Info { get; set; } 
-        public JapanesePriority Priority { get; private set; }
+        //This is actually multiple tags. Should look in what to do about it later.
+        private JapanesePriority Priority { get; set; }
 
         public KanjiElement(XElement element)
         {
+            Kanji = element.Element("keb")!.Value;
         }
     }
 }

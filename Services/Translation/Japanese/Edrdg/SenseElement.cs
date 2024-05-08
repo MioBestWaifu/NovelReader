@@ -16,6 +16,11 @@ namespace Maria.Services.Translation.Japanese.Edrdg
         public SenseElement(XElement element)
         {
             Glosses = new List<string>();
+            var glosses = element.Elements("gloss");
+            foreach (var gloss in glosses)
+            {
+                Glosses.Add(gloss.Value);
+            }
         }
     }
 }
