@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{CC6BEDC3-4C76-40CE-994E-E2F63E17B5E1}"
 	ProjectSection(SolutionItems) = preProject
 		Commands.txt = Commands.txt
+		Notes.txt = Notes.txt
 		Project Structure.txt = Project Structure.txt
 	EndProjectSection
 EndProject
