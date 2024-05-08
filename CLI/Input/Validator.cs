@@ -48,38 +48,38 @@ namespace Maria.CLI.Input
             message = string.Empty;
             bool invalid = false;
 
-            if (string.IsNullOrEmpty(originalCommand.Action))
+            if (string.IsNullOrEmpty(originalCommand.Module))
             {
                 message = "The command is missing an action.";
                 return ValidationResult.InvalidNonExecutable;
-            } else if (!IsValidAction(originalCommand.Action))
+            } else if (!IsValidAction(originalCommand.Module))
             {
-                message = $"Action \"{originalCommand.Action}\" is not a valid. Valid actions are: {string.Join(", ", definitions.Keys)}";
+                message = $"Action \"{originalCommand.Module}\" is not a valid. Valid actions are: {string.Join(", ", definitions.Keys)}";
                 return ValidationResult.InvalidNonExecutable;
             }
 
-            CommandDefinition definition = definitions[originalCommand.Action];
+            CommandDefinition definition = definitions[originalCommand.Module];
             modifiedCommand = new Command();
-            modifiedCommand.Action = originalCommand.Action;
+            modifiedCommand.Module = originalCommand.Module;
 
-            if (definition.Suffix.Required && string.IsNullOrEmpty(originalCommand.Suffix))
+            if (definition.Suffix.Required && string.IsNullOrEmpty(originalCommand.Submodule))
             {
                 message = $"The command is missing a required suffix.\n";
                 return ValidationResult.InvalidNonExecutable;
-            } else if ( !definition.Suffix.Values.Contains(originalCommand.Suffix))
+            } else if ( !definition.Suffix.Values.Contains(originalCommand.Submodule))
             {
                 if (definition.Suffix.Required)
                 {
-                    message = $"The suffix \"{originalCommand.Suffix}\" is not valid for action \"{originalCommand.Action}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}\n";
+                    message = $"The suffix \"{originalCommand.Submodule}\" is not valid for action \"{originalCommand.Module}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}\n";
                     return ValidationResult.InvalidNonExecutable;
                 } else
                 {
-                    message = $"The suffix \"{originalCommand.Suffix}\" is not valid for action \"{originalCommand.Action}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}\n";
+                    message = $"The suffix \"{originalCommand.Submodule}\" is not valid for action \"{originalCommand.Module}\". Valid suffixes are: {string.Join(", ", definition.Suffix.Values)}\n";
                     invalid = true;
                 }
             }
 
-            modifiedCommand.Suffix = originalCommand.Suffix;
+            modifiedCommand.Submodule = originalCommand.Submodule;
             modifiedCommand.Prefixes = [];
 
             foreach (var prefix in originalCommand.Prefixes)
@@ -90,7 +90,7 @@ namespace Maria.CLI.Input
                 //This has to take into account time-based prefixes. Maybe they should be separated. 
                 if (!hasPrefix)
                 {
-                    message += $"Prefix \"{prefix}\" is not valid for action \"{originalCommand.Action}\".\n";
+                    message += $"Prefix \"{prefix}\" is not valid for action \"{originalCommand.Module}\".\n";
                     invalid = true;
                 } else if (prefixDefinition.Mutex.Intersect(modifiedCommand.Prefixes).Any())
                 {
@@ -109,7 +109,7 @@ namespace Maria.CLI.Input
             {
                 if (!definition.Options.ContainsKey(pair.Key))
                 {
-                    message += $"Option \"{pair.Key}\" is not valid for action \"{originalCommand.Action}\".\n";
+                    message += $"Option \"{pair.Key}\" is not valid for action \"{originalCommand.Module}\".\n";
                     invalid = true;
                 } else if (!IsValidOptionValue(definition.Options[pair.Key],pair.Value, message))
                 {

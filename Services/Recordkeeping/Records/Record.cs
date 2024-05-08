@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Recordkeeping.CSV
+namespace Maria.Services.Recordkeeping.Records
 {
-    internal class CsvWriter
+    internal abstract class Record
     {
     }
 }

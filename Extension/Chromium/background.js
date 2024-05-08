@@ -42,20 +42,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Function to send tab information to the other application
 function sendTabInfoToHost(tab) {
     // Extract title and URL from the tab
-    const title = tab.title;
-    const url = decodeURIComponent(tab.url);
+    let title = tab.title;
+    let url = decodeURIComponent(tab.url);
+
+    if(!url.startsWith("http://") && !url.startsWith("https://")){
+        return;
+    }
+    url = removeQueryAndProtocol(url);
+
+    console.log(url);
+
+    if (url == "" || url == "chrome://newtab/" || url == "edge://newtab/" ||
+        url.startsWith("www.google.com/") || url.startsWith("www.bing.com/") ||
+        url.startsWith("search.brave")){
+        return;
+    }
+
+
 
     // Construct message to send to the other application
     const message = {
-        title: title,
-        url: url
+        action:"add",
+        module:"tracking",
+        submodule:"browser",
+        options:{
+            url: url,
+            title: title,
+            time:  new Date().toLocaleTimeString('en-US', { hour12: false })
+        }
     };
-
-    if (url == "" || url == "chrome://newtab/" || url == "edge://newtab/" ||
-        url.startsWith("https://www.google.com/") || url.startsWith("https://www.bing.com/") ||
-        url.startsWith("https://search.brave")){
-        return;
-    }
 
     console.log(JSON.stringify(message));
 
@@ -66,7 +81,7 @@ function sendTabInfoToHost(tab) {
 // Function to send HTTP POST request to the other application
 function sendHttpPostRequest(data) {
     // URL of the endpoint in the other application
-    const endpointUrl = 'http://localhost:50000/';
+    const endpointUrl = 'http://localhost:47100/';
 
     // Convert data object to JSON string
     const jsonData = JSON.stringify(data);
@@ -86,6 +101,19 @@ function sendHttpPostRequest(data) {
     .catch(error => {
         console.error('Error sending HTTP POST request:', error);
     });
+}
+
+function removeQueryAndProtocol(url) {
+    // Parse the URL string using URL constructor
+    const parsedUrl = new URL(url);
+
+    // Remove query parameters
+    const urlWithoutParams = parsedUrl.origin + parsedUrl.pathname;
+
+    // Remove protocol
+    const urlWithoutProtocol = urlWithoutParams.replace(/^https?:\/\//, '');
+
+    return urlWithoutProtocol;
 }
 
 

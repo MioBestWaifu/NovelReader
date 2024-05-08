@@ -24,7 +24,7 @@ namespace Maria.Common.Communication
 
         public void SendCommand(Command command)
         {
-            httpClient.PostAsync($"/{command.Action}", new StringContent(JsonSerializer.Serialize(command))).Wait();
+            httpClient.PostAsync($"/{command.Module}", new StringContent(JsonSerializer.Serialize(command))).Wait();
         }
     }
 }

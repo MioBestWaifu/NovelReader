@@ -1,9 +1,11 @@
 using Maria.Common.Communication;
+using Maria.Common.Testing;
 using Maria.Services.Communication;
+using Maria.Services.Recordkeeping;
 
 namespace Maria.Services
 {
-    public class Worker : BackgroundService
+    internal class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
         private readonly CommandServer commandServer;
@@ -14,7 +16,8 @@ namespace Maria.Services
             _logger = logger;
             commandServer = new CommandServer();
             interpreter = new Interpreter();
-            commandServer.OnCommandReceived += interpreter.ProcessComand;
+            commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
+            Writer.CreateInstance();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,7 +28,8 @@ namespace Maria.Services
                 {
                     //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(60000, stoppingToken);
+                await Writer.Instance.FlushAll();
             }
         }
     }

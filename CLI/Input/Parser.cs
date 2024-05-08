@@ -34,15 +34,15 @@ namespace Maria.CLI.Input
 
                 if (Validator.IsValidAction(arg))
                 {
-                    currentCommand.Action = arg.TrimEnd(',', ';').ToLower();
+                    currentCommand.Module = arg.TrimEnd(',', ';').ToLower();
                     currentCommand.Prefixes = prefixes;
                 } else if (!isInOptions)
                 {
-                    if (!string.IsNullOrEmpty(currentCommand.Action))
+                    if (!string.IsNullOrEmpty(currentCommand.Module))
                     {
-                        if (!string.IsNullOrEmpty(currentCommand.Suffix))
+                        if (!string.IsNullOrEmpty(currentCommand.Submodule))
                             throw new CommandSyntaxException();
-                        currentCommand.Suffix = arg.TrimEnd(',',';');
+                        currentCommand.Submodule = arg.TrimEnd(',',';');
                     }
                     else
                     {
@@ -79,8 +79,8 @@ namespace Maria.CLI.Input
             foreach (var command in result)
             {
                 Console.WriteLine($"Prefixes: {string.Join(", ", command.Prefixes)}");
-                Console.WriteLine($"Action: {command.Action}");
-                Console.WriteLine($"Suffix: {string.Join(", ", command.Suffix)}");
+                Console.WriteLine($"Action: {command.Module}");
+                Console.WriteLine($"Suffix: {string.Join(", ", command.Submodule)}");
                 Console.WriteLine($"Options: {string.Join(", ", command.Options)}");
             }
 

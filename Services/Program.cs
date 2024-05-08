@@ -1,3 +1,6 @@
+using Maria.Common.Testing;
+using Maria.Services.Recordkeeping;
+
 namespace Maria.Services
 {
     public class Program
@@ -8,7 +11,7 @@ namespace Maria.Services
             builder.Services.AddHostedService<Worker>();
 
             var host = builder.Build();
-            host.Run();
+            host.Run(); 
         }
     }
 }
