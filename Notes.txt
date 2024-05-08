@@ -1,0 +1,14 @@
+REMINDERS
+
+1 - Turn these txts indo MD's
+2 - Register the Command API, noting the options available and expected from each command. 
+
+MORPHOLOGICAL ANALYSIS
+
+To translate japanese, the EDRDG database (mainly JMDICT) is used. However, the entries there are (unsurprinsingly) 
+in dictionary form. This means that to translate a flexioned verb, as an example, an unflexioned form of it must be determined.
+To that end a morphological analysis tool is the best fit. The chosen tool is a wrapper of MeCab, that uses IPADIC as its 
+dicionary by default. However, this package bundles the dictionary into it, so it may bloat Maria.Services final size by up to 50mb.
+As of writing, this is unimportant. However, if size becomes a problem, another solution using the same analysis tool is to
+use its python wrapper (mecab-python3), because it does not bundle a dictionary, and so the app would only bloat if the user
+needs this funtion. This approach was not chosen at first because it is more convenient to use a C# wrapper in a C# project.
