@@ -17,6 +17,11 @@ namespace Maria.Services.Translation.Japanese
             tagger = MeCabTagger.Create();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns>Always a initialized list</returns>
         public List<JapaneseLexeme> Analyze(string text)
         {
             var nodes = tagger.ParseToNodes(text);
