@@ -35,8 +35,11 @@ namespace Maria.Services.Translation
                     {
                         return $"Error starting Japanese translation: {e.Message}";
                     }
-                /*case "translate":
-                    return await JapaneseTranslator.Translate(command.Parameters);*/
+                case "stop":
+                    JapaneseTranslator.Dispose();
+                    return "Japanese translation stopped";
+                case "translate":
+                    return await JapaneseTranslator.Instance?.Translate(command);
                 default:
                     return $"{command.Action} translation not implemented as an action";
             }

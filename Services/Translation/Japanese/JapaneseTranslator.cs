@@ -1,4 +1,5 @@
-﻿using Maria.Services.Translation.Japanese.Edrdg;
+﻿using Maria.Common.Communication.Commanding;
+using Maria.Services.Translation.Japanese.Edrdg;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -88,6 +89,13 @@ namespace Maria.Services.Translation.Japanese
             Console.WriteLine("Time to load: " + stopwatch.ElapsedMilliseconds);
             Console.WriteLine($"Number of elements: {Instance.conversionTable.Count}");
             Console.WriteLine($"Number of times the key already existed: {argumentExisting}");
+        }
+        
+        //This should return something else, a custom type for translations maybe. But that requires rethinking the 
+        //command response interface and that will be done later.
+        public async Task<string> Translate(Command command)
+        {
+            return "success";
         }
 
         public static void Dispose()
