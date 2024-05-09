@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message && message.type === 'text-selected') {
         // Log or process the selected text.
         //Check if text is different from the previous when actually implementing this
-        console.log('Selected text:', message.text);
+        sendTranslationRequest(message.text);
     }
 });
 
@@ -96,7 +96,7 @@ function sendTranslationRequest(text) {
 function sendHttpPostRequest(data, awaitResponse = false) {
     // URL of the endpoint in the other application
     const endpointUrl = 'http://localhost:47100/';
-
+    console.log('Sending HTTP POST request to:', endpointUrl);
     // Convert data object to JSON string
     const jsonData = JSON.stringify(data);
 
