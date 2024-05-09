@@ -59,8 +59,8 @@ namespace Maria.Services.Recordkeeping
              * implementation they seem unimportant since the multiple flushes in a day are only for keeping files relatively small.
              */
             DateTime now = DateTime.Now;
-            string browserPath = @$"{BasePath}\browser\{now.Year}\{now.Month}\{now.Day}\{now.Hour}:{now.Minute}:{now.Second}.csv";
-            string processPath = @$"{BasePath}\process\{now.Year}\{now.Month}\{now.Day}\{now.Hour}:{now.Minute}:{now.Second}.csv";
+            string browserPath = @$"{BasePath}\browser\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.csv";
+            string processPath = @$"{BasePath}\process\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.csv";
 
             Directory.CreateDirectory(Path.GetDirectoryName(browserPath));
             Directory.CreateDirectory(Path.GetDirectoryName(processPath));

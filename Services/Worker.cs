@@ -29,8 +29,8 @@ namespace Maria.Services
                 {
                     //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(60000, stoppingToken);
-                await Writer.Instance.FlushAll();
+                //await Task.Delay(60000, stoppingToken);
+                //await Writer.Instance.FlushAll();
             }
         }
     }
