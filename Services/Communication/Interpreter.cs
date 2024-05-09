@@ -1,5 +1,6 @@
 ﻿using Maria.Common.Communication.Commanding;
 using Maria.Services.Tracking;
+using Maria.Services.Translation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,8 @@ namespace Maria.Services.Communication
         public Interpreter()
         {
             handlers = new Dictionary<string, ICommandHandler>() {
-                { "tracking",new TrackingCommandHandler()}
+                { "tracking",new TrackingCommandHandler()},
+                { "translation", new TranslationCommandHandler()}
             };
         }
         public async Task ProcessCommand (Command command)
