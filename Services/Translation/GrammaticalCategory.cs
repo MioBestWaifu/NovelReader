@@ -6,7 +6,19 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Translation
 {
-    internal class GrammaticalCategory
+    internal enum GrammaticalCategory
     {
+        Noun,
+        Verb,
+        Adjective,
+        Adverb,
+        Particle,
+        AuxiliaryVerb,
+        Conjunction,
+        Interjection,
+        Symbol,
+        Filler,
+        Other,
+        Unknown
     }
 }
