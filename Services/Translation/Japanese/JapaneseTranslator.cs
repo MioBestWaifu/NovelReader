@@ -1,5 +1,6 @@
 ﻿using Maria.Services.Translation.Japanese.Edrdg;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,12 +21,12 @@ namespace Maria.Services.Translation.Japanese
     {
         private static string pathToData = @"D:\Programs\Data\JMdict_e\";
         //Remember to start it with an apropriate size
-        private Dictionary<string, EdrdgEntry> conversionTable = [];
+        private ConcurrentDictionary<string, EdrdgEntry> conversionTable = [];
         public static JapaneseTranslator? Instance { get; private set; }
         private JapaneseTranslator() { }
 
         /// <summary>
-        /// This is expensive as fuck, like 50 seconds expensive.
+        /// This is expensive as fuck, like 7 seconds expensive.
         /// </summary>
         public static void Initialize()
         {
@@ -41,8 +42,8 @@ namespace Maria.Services.Translation.Japanese
             XmlReader reader = XmlReader.Create(pathToData+ "JMdict_e.xml", settings);
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
-            int amountOfArgumentExceptions = 0;
-            foreach (XElement element in elements)
+            int argumentExisting = 0;
+            Parallel.ForEach(elements, element =>
             {
                 //Two important things should be done here:
                 //1 - it should check if the entry is usually in kana. this info is contained in the dict but ignored. if it is, then kana keys should be added irrespective of the kanji keys.
@@ -54,34 +55,39 @@ namespace Maria.Services.Translation.Japanese
                     {
                         try
                         {
-                            Instance.conversionTable.Add(kanjiElemnt.Kanji, entry);
-                        } catch (ArgumentException)
+                            if (!Instance.conversionTable.TryAdd(kanjiElemnt.Kanji, entry))
+                                argumentExisting++;
+                        }
+                        catch (ArgumentException)
                         {
                             //This is a very common exception, as many entries have the same kanji. It is not an error.
                             //It will be dealt with eventually.
-                            amountOfArgumentExceptions++;
-                        }
-                    }
-                } else
-                {
-                    foreach(var readingElemnt in entry.ReadingElements)
-                    {
-                        try
-                        {
-                            Instance.conversionTable.Add(readingElemnt.Reading, entry);
-                        } catch (ArgumentException)
-                        {
-                            //This is a very common exception, as many entries have the same kana. It is not an error.
-                            //It will be dealt with eventually.
-                            amountOfArgumentExceptions++;
+                            argumentExisting++;
                         }
                     }
                 }
-            }
+                else
+                {
+                    foreach (var readingElemnt in entry.ReadingElements)
+                    {
+                        try
+                        {
+                            if (!Instance.conversionTable.TryAdd(readingElemnt.Reading, entry))
+                                argumentExisting++;
+                        }
+                        catch (ArgumentException)
+                        {
+                            //This is a very common exception, as many entries have the same kana. It is not an error.
+                            //It will be dealt with eventually.
+                            argumentExisting++;
+                        }
+                    }
+                }
+            });
             stopwatch.Stop();
             Console.WriteLine("Time to load: " + stopwatch.ElapsedMilliseconds);
             Console.WriteLine($"Number of elements: {Instance.conversionTable.Count}");
-            Console.WriteLine($"Number of exceptions: {amountOfArgumentExceptions}");
+            Console.WriteLine($"Number of times the key already existed: {argumentExisting}");
         }
 
         public static void Dispose()
