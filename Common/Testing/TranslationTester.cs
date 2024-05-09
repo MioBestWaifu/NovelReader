@@ -20,5 +20,33 @@ namespace Maria.Common.Testing
             command.Submodule = "jp";
             commandClient.SendCommand(command);
         }
+
+        public static void StopJp(int delayInSeconds = 0)
+        {
+            Task.Delay(delayInSeconds * 1000).Wait();
+            CommandClient commandClient = new CommandClient();
+            Command command = new Command();
+            command.Action = "stop";
+            command.Module = "translation";
+            command.Submodule = "jp";
+            commandClient.SendCommand(command);
+        }
+
+        public static void TranslateSamplesJp(int delayInSeconds = 10,int intervalInSeconds = 0)
+        {
+            Task.Delay(delayInSeconds * 1000).Wait();
+            string[] terms = ["消えた", "女性同性愛者", "手のひら"];
+            CommandClient commandClient = new CommandClient();
+            Command command = new Command();
+            command.Action = "translate";
+            command.Module = "translation";
+            command.Submodule = "jp";
+            foreach (string term in terms)
+            {
+                command.Options.Add("term", term);
+                commandClient.SendCommand(command);
+                Task.Delay(intervalInSeconds * 1000).Wait();
+            }
+        }
     }
 }
