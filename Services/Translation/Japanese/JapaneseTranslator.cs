@@ -1,4 +1,5 @@
-﻿using Maria.Common.Communication.Commanding;
+﻿using Maria.Common.Communication;
+using Maria.Common.Communication.Commanding;
 using Maria.Services.Translation.Japanese.Edrdg;
 using System;
 using System.Collections.Concurrent;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -100,31 +102,31 @@ namespace Maria.Services.Translation.Japanese
         {
             if (conversionTable.TryGetValue(command.Options["term"],out EdrdgEntry? entry))
             {
-                List<string> glosses = new List<string>();
-                entry.SenseElements.ForEach(element => glosses.AddRange(element.Glosses));
-                Console.WriteLine($"Found glosses: {string.Join(',',glosses)}");
-                return "success";
+                return JsonSerializer.Serialize(entry,CommandServer.jsonOptions);
             }
             List<JapaneseLexeme> lexemes = analyzer.Analyze(command.Options["term"]);
             if (lexemes.Count == 0)
             {
                 Console.WriteLine("No lexemes found");
-                return "No lexemes found";
+                return "Fail";
             }
             GrammaticalCategory[] signicantCategories = new GrammaticalCategory[] { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb };
             //These relations should be stored somewhere
+            List<EdrdgEntry> lexemeBasedEntries = new List<EdrdgEntry>();
             foreach (var lexeme in lexemes.Where(x => signicantCategories.Contains(x.Category)))
             {
                 if (conversionTable.TryGetValue(lexeme.BaseForm, out entry))
                 {
-                    List<string> glosses = new List<string>();
-                    entry.SenseElements.ForEach(element => glosses.AddRange(element.Glosses));
-                    Console.WriteLine($"Found glosses after analysis: {string.Join(',', glosses)}");
-                    return "success";
+                    lexemeBasedEntries.Add(entry);
                 }
             }
 
-            return "No translation found";
+            if (lexemeBasedEntries.Count > 0)
+            {
+                return JsonSerializer.Serialize(lexemeBasedEntries, CommandServer.jsonOptions);
+            }
+
+            return "Fail";
         }
 
         public static void Dispose()

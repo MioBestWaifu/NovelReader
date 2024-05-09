@@ -21,6 +21,8 @@ namespace Maria.Services.Translation
             }
         }
 
+        //How to pass errors? Should they go all the way back to CommandServer? Maybe in a tuple?
+        //Also, response messages should be standardized.
         private static async Task<string> ProcessJapanese(Command command)
         {
             switch (command.Action)
