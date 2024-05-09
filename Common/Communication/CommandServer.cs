@@ -13,7 +13,7 @@ namespace Maria.Common.Communication
     //It is not made for the finished application.
     public class CommandServer
     {
-        public delegate void CommandReceived(Command command);
+        public delegate Task<string> CommandReceived(Command command);
         public event CommandReceived OnCommandReceived;
         private HttpListener httpListener;
         private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
@@ -39,7 +39,8 @@ namespace Maria.Common.Communication
         }
 
         //This should have exception handling.
-        private void RaiseCommandReceived(HttpListenerContext context)
+        //Also, have decided that the management of response timing is the client's problem.
+        private async void RaiseCommandReceived(HttpListenerContext context)
         {
             string requestBody;
 
@@ -54,8 +55,11 @@ namespace Maria.Common.Communication
 
             Command command = JsonSerializer.Deserialize<Command>(requestBody, jsonOptions);
 
-            OnCommandReceived?.Invoke(command);
-
+            //May be a regular string, may be a regular json, anyways the header is not important now.
+            string response = await OnCommandReceived?.Invoke(command);
+            byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+            context.Response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
+            context.Response.OutputStream.Flush();
             context.Response.StatusCode = 200;
             context.Response.Close();
         }

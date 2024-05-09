@@ -43,7 +43,14 @@ namespace Maria.Common.Testing
             command.Submodule = "jp";
             foreach (string term in terms)
             {
-                command.Options.Add("term", term);
+                if (!command.Options.ContainsKey("term"))
+                {
+                    command.Options.Add("term", term);
+                }
+                else
+                {
+                    command.Options["term"] = term;
+                }
                 commandClient.SendCommand(command);
                 Task.Delay(intervalInSeconds * 1000).Wait();
             }

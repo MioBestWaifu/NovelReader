@@ -21,18 +21,19 @@ namespace Maria.Services.Communication
                 { "translation", new TranslationCommandHandler()}
             };
         }
-        public async Task ProcessCommand (Command command)
+        public async Task<string> ProcessCommand (Command command)
         {
             Console.WriteLine($"Command: {command}");
-            bool hasHandlerRegistered = handlers.TryGetValue(command.Module, out ICommandHandler handler);
+            bool hasHandlerRegistered = handlers.TryGetValue(command.Module, out ICommandHandler? handler);
             if (hasHandlerRegistered)
             {
                 Console.WriteLine($"Handler found for action: {command.Module}");
-                await handler.HandleCommand(command);
+                return await handler!.HandleCommand(command);
             }
             else
             {
                 Console.WriteLine($"No handler registered for module: {command.Module}");
+                return $"No handler registered for module: {command.Module}";
             }
         }
 
