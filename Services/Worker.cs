@@ -18,9 +18,7 @@ namespace Maria.Services
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
             Writer.CreateInstance();
-            Task.Run(() => TranslationTester.StartJp(3)).ContinueWith(
-                (antecedent) => Task.Run(() => TranslationTester.TranslateSamplesJp(10,1))
-                );
+            Task.Run(() => TranslationTester.StartJp(3));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
