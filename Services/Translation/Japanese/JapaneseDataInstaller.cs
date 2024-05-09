@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Translation.Japanese
 {
+    //Maybe all installers will be their own module
     internal class JapaneseDataInstaller
     {
     }

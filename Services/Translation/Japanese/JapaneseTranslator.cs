@@ -29,7 +29,7 @@ namespace Maria.Services.Translation.Japanese
         public static void Initialize()
         {
             if (Instance != null)
-                throw new Exception(); //Should be a custom exception
+                throw new Exception("Already initialized"); //Should be a custom exception
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             Instance = new JapaneseTranslator();
