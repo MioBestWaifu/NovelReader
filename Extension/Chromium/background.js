@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.action.onClicked.addListener((tab) => {
     chrome.tabs.create({ url: chrome.runtime.getURL('translation_history.html') });
-  });
+});
 
 /* });
  */
@@ -93,7 +93,10 @@ function sendTranslationRequest(text) {
         }
     };
 
-    sendHttpPostRequest(command, true);
+    sendHttpPostRequest(command, true).then(response => {
+        console.log('Entered translation response');
+        chrome.runtime.sendMessage({ type: 'translation', text: response });
+    });
 
 }
 
@@ -118,7 +121,7 @@ function sendHttpPostRequest(data, awaitResponse = false) {
     if (awaitResponse) {
         // Send HTTP POST request and return the response
         return fetch(endpointUrl, requestOptions)
-            .then(response => response.json())
+            .then(response => response.text())
             .then(data => {
                 console.log('Response:', data);
                 return data;
