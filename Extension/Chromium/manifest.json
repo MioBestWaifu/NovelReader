@@ -16,6 +16,9 @@
         "matches": ["<all_urls>"],
         "js": ["text_tracker.js"]
       }
-    ]
+    ],
+    "action":{
+      "default_title":"Opens Maria's pages"
+    }
 }
   

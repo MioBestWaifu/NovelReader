@@ -31,11 +31,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Check if the message is about a text selection.
     if (message && message.type === 'text-selected') {
+        chrome.runtime.sendMessage({ type: 'pinto', text: message.text });
         // Log or process the selected text.
         //Check if text is different from the previous when actually implementing this
         sendTranslationRequest(message.text);
     }
 });
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('translation_history.html') });
+  });
 
 /* });
  */
