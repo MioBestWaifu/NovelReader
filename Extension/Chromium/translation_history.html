@@ -5,13 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recent translations history</title>
-    <script src="vue.min.js"></script>
     <script src="translation_page_controller.js"></script>
     <link rel="stylesheet" type="text/css" href="translation_page.css">
 </head>
 <body>
     <div id="main">
-        <div class="translationBlock" v-for="item in translations" :key="item">{{ item.senseElements[0].glosses[0] }}</div>
     </div>
 </body>
 </html>
