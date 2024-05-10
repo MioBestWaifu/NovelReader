@@ -36,3 +36,6 @@ The current version is to be a stepping stone for future devolepment. New major 
     - Launch it and read specific book on Command
     - Track it properly
 - Have a downloading module to get the optional data 
+- Schedule 
+    - Create tasks
+    - Send reminders
