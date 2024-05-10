@@ -18,6 +18,7 @@ namespace Maria.Services
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
             Writer.CreateInstance();
+            Task.Run(() => TranslationTester.StartJp(3));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,8 +29,8 @@ namespace Maria.Services
                 {
                     //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(60000, stoppingToken);
-                await Writer.Instance.FlushAll();
+                //await Task.Delay(60000, stoppingToken);
+                //await Writer.Instance.FlushAll();
             }
         }
     }

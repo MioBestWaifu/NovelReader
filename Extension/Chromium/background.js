@@ -31,12 +31,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Check if the message is about a text selection.
     if (message && message.type === 'text-selected') {
-      // Log or process the selected text.
-      //Check if text is different from the previous when actually implementing this
-      console.log('Selected text:', message.text);
+        chrome.runtime.sendMessage({ type: 'pinto', text: message.text });
+        // Log or process the selected text.
+        //Check if text is different from the previous when actually implementing this
+        sendTranslationRequest(message.text);
     }
 });
-  
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('translation_history.html') });
+});
+
 /* });
  */
 // Function to send tab information to the other application
@@ -45,7 +50,7 @@ function sendTabInfoToHost(tab) {
     let title = tab.title;
     let url = decodeURIComponent(tab.url);
 
-    if(!url.startsWith("http://") && !url.startsWith("https://")){
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
         return;
     }
     url = removeQueryAndProtocol(url);
@@ -54,7 +59,7 @@ function sendTabInfoToHost(tab) {
 
     if (url == "" || url == "chrome://newtab/" || url == "edge://newtab/" ||
         url.startsWith("www.google.com/") || url.startsWith("www.bing.com/") ||
-        url.startsWith("search.brave")){
+        url.startsWith("search.brave")) {
         return;
     }
 
@@ -62,13 +67,13 @@ function sendTabInfoToHost(tab) {
 
     // Construct message to send to the other application
     const message = {
-        action:"add",
-        module:"tracking",
-        submodule:"browser",
-        options:{
+        action: "add",
+        module: "tracking",
+        submodule: "browser",
+        options: {
             url: url,
             title: title,
-            time:  new Date().toLocaleTimeString('en-US', { hour12: false })
+            time: new Date().toLocaleTimeString('en-US', { hour12: false })
         }
     };
 
@@ -78,11 +83,28 @@ function sendTabInfoToHost(tab) {
     sendHttpPostRequest(message);
 }
 
+function sendTranslationRequest(text) {
+    const command = {
+        action: "translate",
+        module: "translation",
+        submodule: "jp",
+        options: {
+            term: text
+        }
+    };
+
+    sendHttpPostRequest(command, true).then(response => {
+        console.log('Entered translation response');
+        chrome.runtime.sendMessage({ type: 'translation', text: response });
+    });
+
+}
+
 // Function to send HTTP POST request to the other application
-function sendHttpPostRequest(data) {
+function sendHttpPostRequest(data, awaitResponse = false) {
     // URL of the endpoint in the other application
     const endpointUrl = 'http://localhost:47100/';
-
+    console.log('Sending HTTP POST request to:', endpointUrl);
     // Convert data object to JSON string
     const jsonData = JSON.stringify(data);
 
@@ -96,11 +118,24 @@ function sendHttpPostRequest(data) {
         body: jsonData
     };
 
-    // Send HTTP POST request
+    if (awaitResponse) {
+        // Send HTTP POST request and return the response
+        return fetch(endpointUrl, requestOptions)
+            .then(response => response.text())
+            .then(data => {
+                console.log('Response:', data);
+                return data;
+            })
+            .catch(error => {
+                console.error('Error sending HTTP POST request:', error);
+            });
+    }
+
+    // Send HTTP POST request and ignore the response
     fetch(endpointUrl, requestOptions)
-    .catch(error => {
-        console.error('Error sending HTTP POST request:', error);
-    });
+        .catch(error => {
+            console.error('Error sending HTTP POST request:', error);
+        });
 }
 
 function removeQueryAndProtocol(url) {

@@ -1,5 +1,6 @@
 ﻿using Maria.Common.Communication.Commanding;
 using Maria.Services.Tracking;
+using Maria.Services.Translation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,21 +17,23 @@ namespace Maria.Services.Communication
         public Interpreter()
         {
             handlers = new Dictionary<string, ICommandHandler>() {
-                { "tracking",new TrackingCommandHandler()}
+                { "tracking",new TrackingCommandHandler()},
+                { "translation", new TranslationCommandHandler()}
             };
         }
-        public async Task ProcessCommand (Command command)
+        public async Task<string> ProcessCommand (Command command)
         {
             Console.WriteLine($"Command: {command}");
-            bool hasHandlerRegistered = handlers.TryGetValue(command.Module, out ICommandHandler handler);
+            bool hasHandlerRegistered = handlers.TryGetValue(command.Module, out ICommandHandler? handler);
             if (hasHandlerRegistered)
             {
                 Console.WriteLine($"Handler found for action: {command.Module}");
-                await handler.HandleCommand(command);
+                return await handler!.HandleCommand(command);
             }
             else
             {
                 Console.WriteLine($"No handler registered for module: {command.Module}");
+                return $"No handler registered for module: {command.Module}";
             }
         }
 

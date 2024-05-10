@@ -7,6 +7,7 @@ namespace Maria.Services
     {
         public static void Main(string[] args)
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             var builder = Host.CreateApplicationBuilder(args);
             builder.Services.AddHostedService<Worker>();
 
