@@ -20,12 +20,12 @@ A possible solution to these two problems is to use a database. SQLite is the be
 
 As of now, only Japanese-to-English translations are needed, and so the translation implementation will not be abstracted, everything will be written only with jp-to-en in mind. However, the overall structure (namespace, entrypoints, etc) will be prepared for possible future expansion.
 
-## MORPHOLOGICAL ANALYSIS AND DICTIONARY SIZES
+### MORPHOLOGICAL ANALYSIS AND DICTIONARY SIZES
 
 To translate Japanese, the EDRDG database (mainly JMDICT) is used. However, the entries there are (unsurprisingly) in dictionary form. This means that to translate a flexioned verb, as an example, an unflexioned form of it must be determined. To that end a morphological analysis tool is the best fit. The chosen tool is a wrapper of MeCab, that uses IPADIC as its dictionary by default. However, this package bundles the dictionary into it, so it may bloat Maria.Services final size by up to 50mb. As of writing, this is unimportant. However, if size becomes a problem, another solution using the same analysis tool is to use its python wrapper (mecab-python3), because it does not bundle a dictionary, and so the app would only bloat if the user needs this function. This approach was not chosen at first because it is more convenient to use a C# wrapper. Another option, of course, is to build our own wrapper, but that is a lot of work for a small gain. Also, while using the current C# wrapper, it may be optimal do include unidic, since it is better-maintained and more complete. It is also, however, very large and so will only be available as an option. 
 
 Also, the EDRDG database is itself very large, so in the end it is likely that the whole translation module bundled in the program will contain only code to interface with the database, and the database itself will be downloaded upon user input.
 
-## JAPANESE SERIES NAMES
+### JAPANESE SERIES NAMES
 
 One of the files in the EDRDG database is a names dictionary. It contains names of people, places, and, I think, some art pieces like movies and anime. It is likely that this file will be incomplete. So, it will probably have to be expanded. It is relatively easy and feasible to expand it, especially with anime-related things, because the Japanese and English names of them are easily obtainable from MAL. Other categories I do not know, but it is probably easy to find the English name if we can determine that it is an art piece.
