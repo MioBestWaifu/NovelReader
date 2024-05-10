@@ -1,3 +1,4 @@
+# Notes
 This file is to register todo's, thoughts, plans, considerations and motivations. Explanations on how the things touched here work are elsewhere.
 
 ## REMINDERS

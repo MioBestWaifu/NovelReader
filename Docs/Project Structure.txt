@@ -1,3 +1,0 @@
-Maria is divided into multiple projects for the purposes of segregating user interface from the working code. There are the Services project, which is the one that actually does things, the Common project, a library holding common code such as exceptions and communications interface, and various UI projects, that take and format commands from the user in one way or another and sends it to Services.
-
-The only project another project may reference is Common. Inter-project communication must be done by HTTP using the module in Common. 
