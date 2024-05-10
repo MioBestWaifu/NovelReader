@@ -24,7 +24,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist",
+            "outputPath": "Build",
             "outputHashing": "none" ,
             "index": "src/index.html",
             "browser": "src/main.ts",
