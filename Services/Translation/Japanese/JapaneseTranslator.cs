@@ -102,7 +102,8 @@ namespace Maria.Services.Translation.Japanese
         {
             if (conversionTable.TryGetValue(command.Options["term"],out EdrdgEntry? entry))
             {
-                return JsonSerializer.Serialize(entry,CommandServer.jsonOptions);
+                //Cast to array because the client expects an array
+                return JsonSerializer.Serialize(new EdrdgEntry[] { entry },CommandServer.jsonOptions);
             }
             List<JapaneseLexeme> lexemes = analyzer.Analyze(command.Options["term"]);
             if (lexemes.Count == 0)

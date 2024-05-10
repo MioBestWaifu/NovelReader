@@ -6,7 +6,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         let mainElement = document.getElementById('main');
         let newDiv = document.createElement('div');
-        newDiv.textContent = translationObject.senseElements[0].glosses[0];
+        newDiv.className = 'translationBlock';
+
+        let p1 = document.createElement('p');
+        p1.textContent ="Original: " + translationObject[0].kanjiElements[0].kanji;
+        newDiv.appendChild(p1);
+
+        let p2 = document.createElement('p');
+        p2.textContent ="Translation: " + translationObject[0].senseElements[0].glosses[0];
+        newDiv.appendChild(p2);
+
         mainElement.appendChild(newDiv);
     }
 });
