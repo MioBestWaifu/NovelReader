@@ -3,7 +3,7 @@ This file is to register todo's, thoughts, plans, considerations and motivations
 
 ## REMINDERS
 
-~~1. Turn these txts into MD's~~
+1. ~~Turn these txts into MD's~~
 2. Register the Command API, noting the options available and expected from each command. 
 
 ## LARGE DATASETS AND STORAGE

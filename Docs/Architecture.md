@@ -13,8 +13,8 @@ Services is Maria's beating hearth. An instance of Services is what serves the u
 This project exists to automatically test Services. Its functionality is actually defined in Common, because all projects should be able to have handy means of testing, but it implements so in a standalone manner.
 
 ## CLI
-A user interface in the command line. As of 0.2 it is dysfunctional, but that is due to ohter priorities, not abandonment. The idea is that CLI ends up not just a place for a user to manually write Command, but a parser of natural language into Command.
+A user interface in the command line. As of 0.2 it is dysfunctional, but that is due to other priorities, not abandonment. The idea is that CLI ends up not just a place for a user to manually write Command, but a parser of natural language into Command.
 
 ## Extension
-The extension provides a interface for Maria right into the browser. It is the only way to keep track of the websites visited by the user. 
+The extension provides a interface for Maria right into the browser. It is the only way to keep track of the websites visited by the user.  
 As of 0.2, it is the only project not written in C#. It is, in fact, being moved into Angular. This may seem like overkill, but it is planned that the extension will expose many features, somewhat like a web client of Maria. That may end up being a good idea, and some day Extension will be separated into a standalone monitoring extension and a web client installed and launched alongside Services. 
