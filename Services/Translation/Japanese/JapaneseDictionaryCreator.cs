@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml;
+using System.Text.Json;
+using Maria.Common.Communication;
 
 namespace Maria.Services.Translation.Japanese
 {
@@ -76,6 +78,40 @@ namespace Maria.Services.Translation.Japanese
             });
 
             return toReturn;
+        }
+
+        public static void CreateDictionary()
+        {
+            Directory.CreateDirectory(pathToConvertedJmdict);
+            List<ConversionEntry> conversionEntries = new List<ConversionEntry>();
+            List<List<EdrdgEntry>> jmdictiesBrokenByFile = new List<List<EdrdgEntry>>();
+
+            ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
+
+            int file = 0; int offset = 0;
+            jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
+            foreach (var entry in originalJMdict)
+            {   
+                if (offset >= 1000)
+                {
+                    file++;
+                    offset = 0;
+                    jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
+                    continue;
+                }
+                conversionEntries.Add(new ConversionEntry(entry.Key, file, offset));
+                jmdictiesBrokenByFile[file].Add(entry.Value);
+                offset++;
+            }
+
+            string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
+            File.WriteAllText(pathToConversionTable, conversionEntriesJson);
+
+            for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
+            {
+                string jmdictJson = JsonSerializer.Serialize(jmdictiesBrokenByFile[i], CommandServer.jsonOptions);
+                File.WriteAllText(pathToConvertedJmdict + i + ".json", jmdictJson);
+            }
         }
     }
 }
