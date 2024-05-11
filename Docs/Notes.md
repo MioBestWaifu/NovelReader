@@ -16,6 +16,13 @@ Some of Maria's functionality is based on large datasets, notably translations, 
 
 A possible solution to these two problems is to use a database. SQLite is the best candidate because it is very light and works on basically everything. Since the bulk of the code will be the same with or without it, this will be implemented in the future, if a code solution is not found. 
 
+### 0.3 Update
+It was ultimately decided against SQLite. The reason is that it is very slow to write a large database into it. While ideally the database will only be rewritten/updated rarely in production, in development this will happen multiple times and it is just unfeasible to await hours for every databse rewrite.  
+
+The solution then, is to parse the EDRDG database into more compact files and a conversion table referencing those files from the word-keys. Thus, only a table saying "word x - file y entry z" would be in memory. Some caching would also help. Then the address is determined, file Y is loaded into memory, entry Z is retrieved and file Y is unloaded (cache scheme yet to be determined). For single-word searches, or searches where all keys are in the same file, this is perfectly feasible. Tests with JSON's with 1000 entries indicate that the reading and deserialization time is in the rage of 45-100ms, averaging around 60 ms (serialization was not optimized using small vairable property names). For multi-search queries this time would pile up and be a problem, but this is a problem for another version, and Maria is not suposed to translate whole sentences.  
+  
+
+As of now, JSON will be used for that purpose. However, it may be beneficial, both to storage and to reading times, to use a binary serialization protocol. This will be looked at in the future.
 ## TRANSLATION
 
 As of now, only Japanese-to-English translations are needed, and so the translation implementation will not be abstracted, everything will be written only with jp-to-en in mind. However, the overall structure (namespace, entrypoints, etc) will be prepared for possible future expansion.

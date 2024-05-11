@@ -13,6 +13,15 @@ namespace Maria.Services.Translation.Japanese.Edrdg
     {
         public List<string> Glosses { get; private set; }
 
+
+        public SenseElement()
+        {
+        }
+
+        public SenseElement(List<string> glosses)
+        {
+            Glosses = glosses;
+        }
         public SenseElement(XElement element)
         {
             Glosses = new List<string>();

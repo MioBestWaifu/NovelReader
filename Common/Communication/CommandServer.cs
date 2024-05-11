@@ -16,6 +16,7 @@ namespace Maria.Common.Communication
         public delegate Task<string> CommandReceived(Command command);
         public event CommandReceived OnCommandReceived;
         private HttpListener httpListener;
+        //Should be somewhere else.
         public static JsonSerializerOptions jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,

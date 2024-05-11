@@ -1,10 +1,13 @@
-﻿namespace Tester
+﻿using Maria.Common.Testing;
+
+namespace Tester
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            TranslationTester.StartJp(0);
+            TranslationTester.TranslateSamplesJp(5,2);
         }
     }
 }
