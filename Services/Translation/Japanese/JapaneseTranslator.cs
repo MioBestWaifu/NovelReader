@@ -31,7 +31,6 @@ namespace Maria.Services.Translation.Japanese
             Instance = new JapaneseTranslator();
             Instance.analyzer = new JapaneseAnalyzer();
             Instance.conversionTable = JapaneseDictionaryLoader.LoadConversionTable();
-            Console.WriteLine(Instance.conversionTable["眠る"].File);
         }
         
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 

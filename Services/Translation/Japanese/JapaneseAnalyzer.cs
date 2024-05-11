@@ -13,8 +13,10 @@ namespace Maria.Services.Translation.Japanese
 
         public JapaneseAnalyzer()
         {
-            /*var parameter = new MeCabParam();*/
-            tagger = MeCabTagger.Create();
+            //<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
+            var parameter = new MeCabParam();
+            parameter.DicDir = @"D:\Programs\Data\Unidic";
+            tagger = MeCabTagger.Create(parameter);
         }
 
         /// <summary>
@@ -28,16 +30,20 @@ namespace Maria.Services.Translation.Japanese
             var lexemes = new List<JapaneseLexeme>();
             foreach (var node in nodes)
             {
-                var features = node.Feature.Split(',');
-                try
+                if (node.Feature is not null)
                 {
-                    //Some interesting thins are being ignored here. Like, it says the conjugation form and type.
-                    var lexeme = new JapaneseLexeme(node.Surface, features[0], features[6]);
-                    lexemes.Add(lexeme);
-                } catch (Exception e)
-                {
-                    Console.WriteLine($"Error parsing node: {node.Surface} {node.Feature}");
-                    Console.WriteLine(e.Message);
+                    var features = node.Feature.Split(',');
+                    try
+                    {
+                        //Some interesting thins are being ignored here. Like, it says the conjugation form and type.
+                        var lexeme = new JapaneseLexeme(node.Surface, features[0], features[7]);
+                        lexemes.Add(lexeme);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error parsing node: {node.Surface} {node.Feature}");
+                        Console.WriteLine(e.Message);
+                    }
                 }
             }
             return lexemes;

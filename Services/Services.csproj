@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Services-dd882b60-c27e-4df7-8413-3bee00d132d6</UserSecretsId>
     <RootNamespace>Maria.Services</RootNamespace>
+    <MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
   </PropertyGroup>
 
   <ItemGroup>
