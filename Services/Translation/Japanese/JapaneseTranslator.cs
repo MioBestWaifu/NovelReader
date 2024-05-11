@@ -19,7 +19,7 @@ namespace Maria.Services.Translation.Japanese
     {
         private static string pathToData = @"D:\Programs\Data\JMdict_e\";
         //Remember to start it with an apropriate size
-        private ConcurrentDictionary<string, EdrdgEntry> conversionTable = [];
+        private ConcurrentDictionary<string, ConversionEntry> conversionTable = [];
         private JapaneseAnalyzer analyzer;
         public static JapaneseTranslator? Instance { get; private set; }
         private JapaneseTranslator() { }
@@ -29,6 +29,8 @@ namespace Maria.Services.Translation.Japanese
             if (Instance != null)
                 throw new Exception("Already initialized"); //Should be a custom exception
             Instance = new JapaneseTranslator();
+            Instance.analyzer = new JapaneseAnalyzer();
+            Instance.conversionTable = JapaneseDictionaryLoader.LoadConversionTable();
         }
         
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
@@ -36,34 +38,37 @@ namespace Maria.Services.Translation.Japanese
         //No need to be async now, may be later.
         public string Translate(Command command)
         {
-            if (conversionTable.TryGetValue(command.Options["term"],out EdrdgEntry? entry))
+            List<ConversionEntry> conversionEntries = new List<ConversionEntry>();
+            if (conversionTable.TryGetValue(command.Options["term"],out ConversionEntry? entry))
             {
-                //Cast to array because the client expects an array
-                return JsonSerializer.Serialize(new EdrdgEntry[] { entry },CommandServer.jsonOptions);
-            }
-            List<JapaneseLexeme> lexemes = analyzer.Analyze(command.Options["term"]);
-            if (lexemes.Count == 0)
-            {
-                Console.WriteLine("No lexemes found");
-                return "Fail";
-            }
-            GrammaticalCategory[] signicantCategories = new GrammaticalCategory[] { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb };
-            //These relations should be stored somewhere
-            List<EdrdgEntry> lexemeBasedEntries = new List<EdrdgEntry>();
-            foreach (var lexeme in lexemes.Where(x => signicantCategories.Contains(x.Category)))
-            {
-                if (conversionTable.TryGetValue(lexeme.BaseForm, out entry))
+               conversionEntries.Add(entry);
+            } else {
+                List<JapaneseLexeme> lexemes = analyzer.Analyze(command.Options["term"]);
+                if (lexemes.Count == 0)
                 {
-                    lexemeBasedEntries.Add(entry);
+                    Console.WriteLine("No lexemes found");
+                    return "Fail";
+                }
+                GrammaticalCategory[] signicantCategories = new GrammaticalCategory[] { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb };
+
+                //These relations should be stored somewhere
+                foreach (var lexeme in lexemes.Where(x => signicantCategories.Contains(x.Category)))
+                {
+                    if (conversionTable.TryGetValue(lexeme.BaseForm, out entry))
+                    {
+                        conversionEntries.Add(entry);
+                    }
                 }
             }
 
-            if (lexemeBasedEntries.Count > 0)
+            //Should be concurrent
+            List<EdrdgEntry> dictionaryEntries = new List<EdrdgEntry>();
+            foreach (var conversionEntry in conversionEntries)
             {
-                return JsonSerializer.Serialize(lexemeBasedEntries, CommandServer.jsonOptions);
+                dictionaryEntries.Add(JapaneseDictionaryLoader.LoadEntry(conversionEntry.File, conversionEntry.Offset));
             }
 
-            return "Fail";
+            return JsonSerializer.Serialize(dictionaryEntries,CommandServer.jsonOptions);
         }
 
         public static void Dispose()
