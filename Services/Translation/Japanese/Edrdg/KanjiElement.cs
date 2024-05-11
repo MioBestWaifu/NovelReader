@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -21,6 +22,17 @@ namespace Maria.Services.Translation.Japanese.Edrdg
         private string Info { get; set; } 
         //This is actually multiple tags. Should look in what to do about it later.
         private JapanesePriority Priority { get; set; }
+
+        public KanjiElement()
+        {
+
+        }
+
+        [JsonConstructor]
+        public KanjiElement(string kanji)
+        {
+            Kanji = kanji;
+        }
 
         public KanjiElement(XElement element)
         {
