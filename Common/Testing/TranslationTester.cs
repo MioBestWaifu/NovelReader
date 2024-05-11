@@ -55,5 +55,16 @@ namespace Maria.Common.Testing
                 Task.Delay(intervalInSeconds * 1000).Wait();
             }
         }
+
+        public static void CreateJpDictionary(int delayInSeconds = 0)
+        {
+            Task.Delay(delayInSeconds * 1000).Wait();
+            CommandClient commandClient = new CommandClient();
+            Command command = new Command();
+            command.Action = "create";
+            command.Module = "translation";
+            command.Submodule = "jp";
+            commandClient.SendCommand(command);
+        }   
     }
 }

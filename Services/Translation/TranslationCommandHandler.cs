@@ -42,6 +42,9 @@ namespace Maria.Services.Translation
                     return "Japanese translation stopped";
                 case "translate":
                     return await Task.Run(() => JapaneseTranslator.Instance?.Translate(command));
+                case "create":
+                    JapaneseDictionaryCreator.CreateDictionary();
+                    return "Sucess";
                 default:
                     return $"{command.Action} translation not implemented as an action";
             }
