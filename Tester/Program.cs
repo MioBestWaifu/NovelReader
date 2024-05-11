@@ -6,7 +6,7 @@ namespace Tester
     {
         static void Main(string[] args)
         {
-            TranslationTester.CreateJpDictionary(3);
+            TranslationTester.TranslateSamplesJp(10,3);
         }
     }
 }
