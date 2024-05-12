@@ -37,7 +37,7 @@ namespace Maria.Common.Testing
             Task.Delay(delayInSeconds * 1000).Wait();
             //The morphological analyzer is for whatever reason turning this into nemureru. Maybe its just it or its dictionary being shit.
             //Anyway, should look into it. 
-            string[] terms = [ "殺せない", "見ている"];
+            string[] terms = [ "眠れない"];
             CommandClient commandClient = new CommandClient();
             Command command = new Command();
             command.Action = "translate";
