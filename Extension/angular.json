@@ -35,7 +35,10 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/background.js",
+              "src/manifest.json",
+              "src/text_tracker.js"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.css",
@@ -57,7 +60,7 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all",
+              "outputHashing": "none",
               "optimization": true
             },
             "development": {

@@ -1,12 +1,7 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Compiled output
-/Build/polyfills.js
-/Build/favicon.ico
-/Build/main.js
-/Build/styles.css
-/Build/index.html
-/Build/runtime.js
+/Build/
 /tmp
 /out-tsc
 /bazel-out
