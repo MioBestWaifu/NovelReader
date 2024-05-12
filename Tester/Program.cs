@@ -7,7 +7,6 @@ namespace Tester
         static void Main(string[] args)
         {
             TranslationTester.StartJp(0);
-            TranslationTester.TranslateSamplesJp(5,2);
         }
     }
 }

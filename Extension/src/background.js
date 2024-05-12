@@ -39,7 +39,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.action.onClicked.addListener((tab) => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('translation_history.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
 });
 
 /* });
