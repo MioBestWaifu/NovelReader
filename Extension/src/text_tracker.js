@@ -5,7 +5,7 @@ let options = null;
 
 chrome.runtime.sendMessage({ type: 'getOptions' }, function (response) {
     console.log('getting options');
-    options = response;
+    options = JSON.parse(response);
     console.log('received options', options);
 });
 
