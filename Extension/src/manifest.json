@@ -3,6 +3,9 @@
     "name": "Maria-chan",
     "version": "0.4",
     "description": "Helper maid",
+    "icons": {
+      "32": "icons/maria32.png"
+    },
     "permissions": ["activeTab","tabs","storage"],
     "background": {
       "service_worker": "background.js"

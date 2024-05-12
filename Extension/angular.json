@@ -38,7 +38,8 @@
               "src/assets",
               "src/background.js",
               "src/manifest.json",
-              "src/text_tracker.js"
+              "src/text_tracker.js",
+              "src/icons"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.css",
