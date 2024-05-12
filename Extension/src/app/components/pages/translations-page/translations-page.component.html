@@ -1,4 +1,5 @@
-<p>Funcionou esse carai</p>
-@for(entry of common.allTranslations; track entry.entryId){
-    <p *ngFor="let kanji of entry.kanjiElements">{{kanji.kanji}}</p>
-}
+<div class="d-flex gap-4 flex-wrap">
+    @for(entry of translations; track entry.entryId){
+        <mrx-translation-card class="card" [entry]="entry"></mrx-translation-card>
+    }
+</div>

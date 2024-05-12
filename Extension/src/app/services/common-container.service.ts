@@ -10,9 +10,7 @@ export class CommonContainerService {
 
   constructor(comms:ExtensionCommunicationService) {
     comms.newTranslationsEvent.subscribe((translations:EdrdgEntry[]) => {
-      console.log("comms received");
       this.allTranslations = this.allTranslations.concat(translations);
-      console.log(this.allTranslations);
     });
   }
 }

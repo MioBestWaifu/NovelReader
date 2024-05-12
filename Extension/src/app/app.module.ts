@@ -6,13 +6,15 @@ import { AppComponent } from './app.component';
 import { OptionsPageComponent } from './components/pages/options-page/options-page.component';
 import { TranslationsPageComponent } from './components/pages/translations-page/translations-page.component';
 import { NavbarComponent } from './components/structure/navbar/navbar.component';
+import { TranslationCardComponent } from './components/translation-card/translation-card.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     OptionsPageComponent,
     TranslationsPageComponent,
-    NavbarComponent
+    NavbarComponent,
+    TranslationCardComponent
   ],
   imports: [
     BrowserModule,
