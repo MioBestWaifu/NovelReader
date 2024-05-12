@@ -33,7 +33,7 @@ To translate Japanese, the EDRDG database (mainly JMDICT) is used. However, the 
 
 Also, the EDRDG database is itself very large, so in the end it is likely that the whole translation module bundled in the program will contain only code to interface with the database, and the database itself will be downloaded upon user input.
 
-#### 0.4 Update
+#### 0.3 Update
 Due to the insufficiency of the default dictionary, specially in handling continuous forms of godan verbs, the unidic will be the one always used. The user will have to accept this large download to translate japanese.
 
 ### JAPANESE SERIES NAMES
