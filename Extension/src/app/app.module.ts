@@ -8,6 +8,8 @@ import { TranslationsPageComponent } from './components/pages/translations-page/
 import { NavbarComponent } from './components/structure/navbar/navbar.component';
 import { TranslationCardComponent } from './components/translation-card/translation-card.component';
 import { FormsModule } from '@angular/forms';
+import { CommandPageComponent } from './components/pages/command-page/command-page.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -15,12 +17,14 @@ import { FormsModule } from '@angular/forms';
     OptionsPageComponent,
     TranslationsPageComponent,
     NavbarComponent,
-    TranslationCardComponent
+    TranslationCardComponent,
+    CommandPageComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule
+    FormsModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
