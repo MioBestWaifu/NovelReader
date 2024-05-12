@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
     "name": "Maria-chan",
-    "version": "0.1",
+    "version": "0.4",
     "description": "Helper maid",
-    "permissions": ["activeTab","tabs"],
+    "permissions": ["activeTab","tabs","storage"],
     "background": {
       "service_worker": "background.js"
     },

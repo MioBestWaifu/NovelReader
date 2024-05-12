@@ -7,6 +7,7 @@ import { OptionsPageComponent } from './components/pages/options-page/options-pa
 import { TranslationsPageComponent } from './components/pages/translations-page/translations-page.component';
 import { NavbarComponent } from './components/structure/navbar/navbar.component';
 import { TranslationCardComponent } from './components/translation-card/translation-card.component';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { TranslationCardComponent } from './components/translation-card/translat
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
