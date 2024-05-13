@@ -1,14 +1,15 @@
 # Version History adn Roadmap
 This is a description of the major changes implemented in past versions, being implemented in the version under development, and planned for the future.
 
-## Current version: 0.4
-This version is to lay the basis for the Extension pages and a possible future web client. 
-
-- Create a options page to select what should be tracked and watched.
-- Create a translations page to record recent translations
-
+## Current version: 
 
 ## Past versions
+
+### 0.4
+- Creation of Extension options page to select what should be tracked and watched.
+- Creation of Extension translations page to record recent translations.
+- Creation of Extension command page to send commands to Services.
+
 
 ### 0.3
 - Creation of Tester project
@@ -30,6 +31,7 @@ This version is to lay the basis for the Extension pages and a possible future w
 - Japanese-to-english translation
     - Use JMDict fully. Many properties are ignored, but most should not be because they are important.
         - One of them determines if a entry is usually in kana. If it is, kana should be included in the search keys irrespective of kanji
+        - Alternatively, kana keys should be included anyways
     - Use Kanjidic
     - Use JMnedict
 - Integrate with Kavita
@@ -40,3 +42,4 @@ This version is to lay the basis for the Extension pages and a possible future w
 - Schedule 
     - Create tasks
     - Send reminders
+- Categorize processes and web pages for the purposes of analysis.
