@@ -1,0 +1,32 @@
+<!--This one is for the forms-->
+<div class="mb-5">
+    <div class="form-group">
+        <label for="action">Action</label>
+        <input type="text" id="action" class="form-control" [(ngModel)]="command.action">
+    </div>
+    
+    <div class="form-group">
+        <label for="module">Module</label>
+        <input type="text" id="module" class="form-control" [(ngModel)]="command.module">
+    </div>
+    
+    <div class="form-group">
+        <label for="submodule">Submodule</label>
+        <input type="text" id="submodule" class="form-control" [(ngModel)]="command.submodule">
+    </div>
+    
+    <!-- There should also be adding options but i dont want to do it now
+        <div class="form-group">
+        <label for="{{key}}">{{key}}</label>
+        <input type="text" id="{{key}}" class="form-control" [(ngModel)]="command.options[key]">
+    </div> -->
+    
+    <button class="btn btn-primary" (click)="sendCommand()">Send Command</button>
+</div>
+<!--This one is fo the buttons-->
+<div class="d-flex justify-content-around">
+    <button class="btn btn-primary" (click)="startTrackingProcessCommand()">Start Tracking Processes</button>
+    <button class="btn btn-primary" (click)="stopTrackingProcessCommand()">Stop Tracking Processes</button>
+    <button class="btn btn-primary" (click)="startTranslationJpCommand()">Start Translating JP-to-EN</button>
+    <button class="btn btn-primary" (click)="stopTranslationJpCommand()">Stop Translating JP-to-EN</button>
+</div>

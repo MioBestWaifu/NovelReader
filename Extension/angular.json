@@ -35,9 +35,14 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/background.js",
+              "src/manifest.json",
+              "src/text_tracker.js",
+              "src/icons"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -56,7 +61,15 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "none",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": false
+              }
             },
             "development": {
               "optimization": false,

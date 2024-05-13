@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Translation.Japanese
 {
+    //Should be on Recordkeeping. It may have japanese in the name, but it's function is dealing wih records.
     internal static class JapaneseDictionaryLoader
     {
         //TODO: Those constants shold all be centralized somewhere.

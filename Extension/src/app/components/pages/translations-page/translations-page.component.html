@@ -1,0 +1,5 @@
+<div class="d-flex gap-4 flex-wrap">
+    @for(entry of translations; track entry.entryId){
+        <mrx-translation-card class="card" [entry]="entry"></mrx-translation-card>
+    }
+</div>

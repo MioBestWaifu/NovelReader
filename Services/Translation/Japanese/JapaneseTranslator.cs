@@ -36,6 +36,8 @@ namespace Maria.Services.Translation.Japanese
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
         //command response interface and that will be done later.
         //No need to be async now, may be later.
+
+        //Glosses missing in Extension. Why?
         public string Translate(Command command)
         {
             List<ConversionEntry> conversionEntries = new List<ConversionEntry>();

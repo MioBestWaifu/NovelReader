@@ -9,6 +9,8 @@ namespace Maria.Services.Tracking
 {
     internal class TrackingCommandHandler : ICommandHandler
     {
+        // stop action returns "Sucess" even when nothing was running in the first place.
+        // Of course, thats what it was coded to do, but that's shit design.
         public async Task<string> HandleCommand(Command command)
         {
             int result;
