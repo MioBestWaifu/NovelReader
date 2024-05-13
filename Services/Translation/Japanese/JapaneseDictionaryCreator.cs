@@ -107,6 +107,7 @@ namespace Maria.Services.Translation.Japanese
             string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
             File.WriteAllText(pathToConversionTable, conversionEntriesJson);
 
+            //Because the conversion table may have multiple keys pointing to the same value, this is writing duplicated data.
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 string jmdictJson = JsonSerializer.Serialize(jmdictiesBrokenByFile[i], CommandServer.jsonOptions);
