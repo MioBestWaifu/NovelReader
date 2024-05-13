@@ -107,6 +107,7 @@ namespace Maria.Services.Translation.Japanese
             string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
             File.WriteAllText(pathToConversionTable, conversionEntriesJson);
 
+            
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 string jmdictJson = JsonSerializer.Serialize(jmdictiesBrokenByFile[i], CommandServer.jsonOptions);
