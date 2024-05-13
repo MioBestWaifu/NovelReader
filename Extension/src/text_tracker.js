@@ -5,8 +5,9 @@ let options = null;
 
 chrome.runtime.sendMessage({ type: 'getOptions' }, function (response) {
     console.log('getting options');
-    options = JSON.parse(response);
-    console.log('received options', options);
+    options = response;
+    console.log('received options', response);
+
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -15,7 +16,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         switch (message.type) {
             case 'options':
                 options = JSON.parse(message.text);
-                console.log('text racker received new options');
+                console.log('text tracker received new options');
                 console.log(options);
                 break;
         }
@@ -36,11 +37,16 @@ window.addEventListener('mouseup', function () {
     isMousePressed = false;
 });
 
+
 function captureSelectedText() {
     if (options.translateSelection) {
-        // Check for text selection
+
         var selectedText = window.getSelection().toString();
 
+        if(selectedText.trim() !== ""){
+            //This is done because in some readers (i.e Kavita) the selection is the document, not on the window
+            selectedText = document.getSelection().toString();
+        }
         // Print selected text if it is different from the previous sent, is not empty
         // and the user is not currently selecting text
         if (selectedText.trim() !== "" && selectedText !== previousText && !isMousePressed) {
