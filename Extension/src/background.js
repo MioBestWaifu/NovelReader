@@ -58,10 +58,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-
+let extensionTabId;
 
 chrome.action.onClicked.addListener((tab) => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+    if (extensionTabId != undefined) {
+        chrome.tabs.get(extensionTabId, function (tab) {
+            if (chrome.runtime.lastError) {
+                // The tab doesn't exist.
+                console.log('The tab has been removed.');
+                // Create a new tab.
+                chrome.tabs.create({ url: chrome.runtime.getURL('index.html') }).then((t) => {
+                    extensionTabId = t.id;
+                });
+            } else {
+                // The tab exists.
+                console.log('The tab still exists.');
+                chrome.tabs.update(extensionTabId, { active: true });
+            }
+        });
+    } else {
+        // Create a new tab.
+        chrome.tabs.create({ url: chrome.runtime.getURL('index.html') }).then((t) => {
+            extensionTabId = t.id;
+        });
+    }
 });
 
 /* });
@@ -69,7 +89,7 @@ chrome.action.onClicked.addListener((tab) => {
 // Function to send tab information to the other application
 function sendTabInfoToHost(tab) {
     // Extract title and URL from the tab
-    if (!options.trackPages){
+    if (!options.trackPages) {
         return;
     }
     console.log('Sending tab info to host');
