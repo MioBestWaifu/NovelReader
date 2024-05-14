@@ -9,6 +9,18 @@ getOptions().then(res => {
     console.log('Options: ', options);
 });
 
+//Should be customizable
+//Also, although this is session rules, the id should be removed first, just in case
+chrome.declarativeNetRequest.updateSessionRules(
+{addRules: [{
+    //Id needs to be greater than 0. Why? Why is javascript like this?
+    id: 1,
+    action: {type: "redirect", redirect: {url: "http://localhost:5000"}},
+    condition: {urlFilter: 'https://library.com',
+        resourceTypes: ['main_frame']
+    }
+}]}
+);
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Check if the tab has finished loading and is active
