@@ -1,7 +1,12 @@
 # Version History adn Roadmap
 This is a description of the major changes implemented in past versions, being implemented in the version under development, and planned for the future.
 
-## Current version: 
+## Current version: 0.5
+- Create the Analysis module, by categorizing processes and webpages, and reporting on them
+- Optmize translation
+- Optimize tracking records
+- Take environment variables, basis for future user personalization
+- General code revision in Services
 
 ## Past versions
 
