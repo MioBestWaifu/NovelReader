@@ -37,6 +37,7 @@ window.addEventListener('mouseup', function () {
     isMousePressed = false;
 });
 
+//There could be other shortcuts like the below. Could even be the main way to control Extension if we want to separate the bulky UI component
 let isCtrlPressed = false;
 let isRPressed = false;
 
