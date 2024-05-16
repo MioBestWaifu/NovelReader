@@ -1,4 +1,4 @@
-# Version History adn Roadmap
+# Version History and Roadmap
 This is a description of the major changes implemented in past versions, being implemented in the version under development, and planned for the future.
 
 ## Current version: 0.5
@@ -39,6 +39,8 @@ This is a description of the major changes implemented in past versions, being i
         - Alternatively, kana keys should be included anyways
     - Use Kanjidic
     - Use JMnedict
+    - Automatically tro to transalte a whole page or section.
+    - Maintain state of translation on session, integrated with cache, restoring the recent translation to the Extension if the Extension is reinitialized.
 - Integrate with Kavita
     - Download and install it on Command 
     - Launch it and read specific book on Command
