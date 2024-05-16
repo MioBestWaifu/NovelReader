@@ -10,9 +10,9 @@ getOptions().then(res => {
 });
 
 //Should be customizable
-//Also, although this is session rules, the id should be removed first, just in case
 chrome.declarativeNetRequest.updateSessionRules(
-{addRules: [{
+{removeRuleIds:[1],
+    addRules: [{
     //Id needs to be greater than 0. Why? Why is javascript like this?
     id: 1,
     action: {type: "redirect", redirect: {url: "http://localhost:5000"}},
