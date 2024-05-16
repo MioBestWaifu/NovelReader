@@ -37,17 +37,54 @@ window.addEventListener('mouseup', function () {
     isMousePressed = false;
 });
 
+let isCtrlPressed = false;
+let isRPressed = false;
+
+window.addEventListener('keydown', function (event) {
+    if (event.key === 'Control') {
+        isCtrlPressed = true;
+    } else if (event.key === 'Shift') {
+        isRPressed = true;
+    } else if (event.key === 'e' || event.key === 'E') {
+        if (isCtrlPressed && isRPressed) {
+            removeKavitaSelectionMenu();
+        }
+    }
+});
+
+window.addEventListener('keyup', function (event) {
+    if (event.key === 'Control') {
+        isCtrlPressed = false;
+    } else if (event.key === 'Shift') {
+        isRPressed = false;
+    }
+});
+
+//This exists because Kavita has a very annoying selection menu that pops up when you select text
+//invoked by a mouse up event. This is 
+function removeKavitaSelectionMenu() {
+    console.log("Trying to remove Kavita Selection Menu");
+    var bookContainerElement = document.querySelector('.book-container');
+    if (bookContainerElement) {
+        //Could theortically lead to a bunch of problems, because Kavita is built with Angular,
+        //but i think this keeps the reference to the node intact? Because the manipulation menu (to set color, direction, etc)
+        //still works. But the event listener is lost. Some javascript oddity I don't understand. Or maybe I didn't unsderstand the Kavita
+        //code. Who knows.
+        bookContainerElement.replaceWith(bookContainerElement.cloneNode(true));
+    }
+}
+
 
 function captureSelectedText() {
     if (options.translateSelection) {
 
         var selectedText = window.getSelection().toString();
 
-        if(selectedText.trim() !== ""){
-            //This is done because in some readers (i.e Kavita) the selection is the document, not on the window
+        if (selectedText.trim() === "") {
+            //This is done because in some readers (i.e Kavita) the selection is in the document, not in the window
             selectedText = document.getSelection().toString();
         }
-        // Print selected text if it is different from the previous sent, is not empty
+        // Capture selected text if it is different from the previous sent, is not empty
         // and the user is not currently selecting text
         if (selectedText.trim() !== "" && selectedText !== previousText && !isMousePressed) {
             console.log("Selected Text : " + selectedText);
