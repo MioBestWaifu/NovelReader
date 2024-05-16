@@ -6,7 +6,7 @@
     "icons": {
       "32": "icons/maria32.png"
     },
-    "permissions": ["activeTab","tabs","storage"],
+    "permissions": ["activeTab","tabs","storage","webRequest","declarativeNetRequest"],
     "background": {
       "service_worker": "background.js"
     },
