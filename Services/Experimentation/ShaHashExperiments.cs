@@ -1,5 +1,8 @@
-﻿using Maria.Services.Translation;
+﻿using Maria.Common.Communication;
+using Maria.Services.Translation;
 using Maria.Services.Translation.Japanese;
+using Maria.Services.Translation.Japanese.Edrdg;
+using MessagePack;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,12 +11,55 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Maria.Services.Experimentation
 {
     internal class ShaHashExperiments
     {
+
+        public static void JpKeysToTwoByteRange()
+        {
+            ConcurrentDictionary<string, ConversionEntry> pairs = JapaneseDictionaryLoader.LoadConversionTable();
+            List<string> keys = pairs.Keys.ToList();
+
+            SHA256 sha256 = SHA256.Create();
+            Dictionary<int, int> counts = new Dictionary<int, int>();
+
+            foreach (string key in keys)
+            {
+                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
+                int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
+
+                if (!counts.ContainsKey(number))
+                {
+                    counts[number] = 0;
+                }
+
+                counts[number]++;
+            }
+
+            int zeroCount = 0;
+            int moreThanSixCount = 0;
+
+            for (int i = 0; i < 65536; i++) // There are 65536 possible two-byte numbers
+            {
+                if (!counts.ContainsKey(i))
+                {
+                    zeroCount++;
+                }
+                else if (counts[i] > 6)
+                {
+                    moreThanSixCount++;
+                }
+            }
+
+            Console.WriteLine($"Numbers with 0 corresponding hashes: {zeroCount}");
+            Console.WriteLine($"Numbers with more than 6 corresponding hashes: {moreThanSixCount}");
+        }
+
+
         public static void JpKeysToMillionRange()
         {
             ConcurrentDictionary<string, ConversionEntry> pairs = JapaneseDictionaryLoader.LoadConversionTable();
@@ -98,5 +144,7 @@ namespace Maria.Services.Experimentation
 
             Console.WriteLine($"Total collisions: {totalCollisions}");
         }
+
+        
     }
 }

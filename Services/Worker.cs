@@ -1,5 +1,6 @@
 using Maria.Common.Communication;
 using Maria.Services.Communication;
+using Maria.Services.Experimentation;
 using Maria.Services.Recordkeeping;
 using Maria.Services.Recordkeeping.Records;
 using MessagePack;
@@ -19,7 +20,8 @@ namespace Maria.Services
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
             Writer.CreateInstance();
-            Task.Run(() => Writer.Instance.FlushAll(60));
+            Task.Run(() => Writer.Instance.FlushAll(600));
+            ShaHashExperiments.JpKeysToIndexAndOffset();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
