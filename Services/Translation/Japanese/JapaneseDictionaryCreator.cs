@@ -11,6 +11,8 @@ using System.Text.Json;
 using Maria.Common.Communication;
 using MessagePack;
 using System.Globalization;
+using System.Diagnostics.Metrics;
+using System.Security.Cryptography;
 
 namespace Maria.Services.Translation.Japanese
 {
@@ -106,6 +108,33 @@ namespace Maria.Services.Translation.Japanese
 
             return (conversionEntries, jmdictiesBrokenByFile);
         }
+
+        private static List<List<HashedEntry>> CreateHashedDictionary()
+        {
+            List<List<HashedEntry>> jmdictiesBrokenByIndex = new List<List<HashedEntry>>();
+
+            ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
+            Dictionary<int, List<EdrdgEntry>> jmdictIndexesDictionary = new Dictionary<int, List<EdrdgEntry>>();
+
+            for (int i = 0; i < 256; i++)
+            {
+                
+                jmdictiesBrokenByIndex.Add(new List<HashedEntry>());
+               
+            }
+
+            int file = 0;
+            SHA256 sha256 = SHA256.Create();
+            foreach (var entry in originalJMdict)
+            {
+                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
+                int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
+
+                jmdictiesBrokenByIndex[number/256].Add(new HashedEntry(entry.Key, entry.Value));
+            }
+
+            return jmdictiesBrokenByIndex;
+        }
         public static void CreateJsonDictionary()
         {
             Directory.CreateDirectory(pathToConvertedJmdict);
@@ -130,6 +159,17 @@ namespace Maria.Services.Translation.Japanese
             byte[] conversionEntriesMsgPack = MessagePackSerializer.Serialize(conversionEntries);
             File.WriteAllBytes(pathToData+"ConversionTable.bin", conversionEntriesMsgPack);
 
+            for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
+            {
+                byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
+                File.WriteAllBytes($@"{pathToConvertedJmdict}{i}.bin", jmdictMsgPack);
+            }
+        }
+
+        public static void CreateBinaryDictionaryFromHash()
+        {
+            Directory.CreateDirectory(pathToConvertedJmdict);
+            List<List<HashedEntry>> jmdictiesBrokenByFile = CreateHashedDictionary();
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
