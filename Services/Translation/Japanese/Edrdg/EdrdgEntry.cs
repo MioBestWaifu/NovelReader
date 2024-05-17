@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MessagePack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,17 @@ using System.Xml.Linq;
 
 namespace Maria.Services.Translation.Japanese.Edrdg
 {
-    internal class EdrdgEntry
+    //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
+    [MessagePackObject]
+    public class EdrdgEntry
     {
+        [Key(0)]
         public int EntryId { get; private set; }
+        [Key(1)]
         public List<KanjiElement>? KanjiElements { get; private set; }
+        [Key(2)]
         public List<ReadingElement> ReadingElements { get; private set; }
+        [Key(3)]
         //I am yet to find an entry with multiple sense tags, but it is suposed to be possible.
         public List<SenseElement> SenseElements { get; private set; }
 
@@ -21,6 +28,7 @@ namespace Maria.Services.Translation.Japanese.Edrdg
 
         }
         [JsonConstructor]
+        [SerializationConstructor]
         public EdrdgEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, List<SenseElement> senseElements)
         {
             EntryId = entryId;
