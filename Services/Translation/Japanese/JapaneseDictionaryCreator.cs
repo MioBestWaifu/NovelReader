@@ -24,8 +24,6 @@ namespace Maria.Services.Translation.Japanese
         private static string pathToEdrdg = pathToData+@"EDRDG\";
         private static string pathToOriginalJmdict = pathToEdrdg+ @"JMdict_e.xml";
         private static string pathToConvertedJmdict = pathToData+ @"JMdict\";
-        private static string pathToMessagePackData = pathToData+ @"MessagePack\";
-        private static string pathToConversionTable = pathToData+ @"ConversionTable.json";
 
         private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict()
         {
@@ -114,7 +112,7 @@ namespace Maria.Services.Translation.Japanese
             var (conversionEntries, jmdictiesBrokenByFile) = CreateDictionary();
 
             string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
-            File.WriteAllText(pathToConversionTable, conversionEntriesJson);
+            File.WriteAllText(pathToData+"ConversionTable.json", conversionEntriesJson);
 
             
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
@@ -126,16 +124,16 @@ namespace Maria.Services.Translation.Japanese
 
         public static void CreateMessagePackDictionary()
         {
-            Directory.CreateDirectory(pathToMessagePackData);
+            Directory.CreateDirectory(pathToConvertedJmdict);
             var (conversionEntries, jmdictiesBrokenByFile) = CreateDictionary();
 
             byte[] conversionEntriesMsgPack = MessagePackSerializer.Serialize(conversionEntries);
-            File.WriteAllBytes(pathToMessagePackData+"ConversionTable.bin", conversionEntriesMsgPack);
+            File.WriteAllBytes(pathToData+"ConversionTable.bin", conversionEntriesMsgPack);
 
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
-                File.WriteAllBytes($@"{pathToMessagePackData}{i}.bin", jmdictMsgPack);
+                File.WriteAllBytes($@"{pathToConvertedJmdict}{i}.bin", jmdictMsgPack);
             }
         }
     }
