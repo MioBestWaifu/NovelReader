@@ -43,7 +43,7 @@ namespace Maria.Services.Translation
                 case "translate":
                     return await Task.Run(() => JapaneseTranslator.Instance?.Translate(command));
                 case "create":
-                    JapaneseDictionaryCreator.CreateDictionary();
+                    JapaneseDictionaryCreator.CreateMessagePackDictionary();
                     return "Sucess";
                 default:
                     return $"{command.Action} translation not implemented as an action";

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MessagePack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,11 @@ namespace Maria.Services.Translation.Japanese.Edrdg
 {
     //A bunch of information contained in the sense tag has been ignored for simplicity's sake. Some of them ARE important 
     //for a full implementation, but they are not essential for a basic, working one and so will be left for later.
-    internal class SenseElement
+    //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
+    [MessagePackObject]
+    public class SenseElement
     {
+        [Key(0)]
         public List<string> Glosses { get; private set; }
 
 
@@ -20,6 +24,7 @@ namespace Maria.Services.Translation.Japanese.Edrdg
         }
 
         [JsonConstructor]
+        [SerializationConstructor]
         public SenseElement(List<string> glosses)
         {
             Glosses = glosses;

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Translation.Japanese.Edrdg
 {
-    internal enum JapanesePriority
+    //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
+    public enum JapanesePriority
     {
     }
 }

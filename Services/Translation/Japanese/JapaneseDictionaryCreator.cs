@@ -9,6 +9,8 @@ using System.Xml.Linq;
 using System.Xml;
 using System.Text.Json;
 using Maria.Common.Communication;
+using MessagePack;
+using System.Globalization;
 
 namespace Maria.Services.Translation.Japanese
 {
@@ -22,7 +24,6 @@ namespace Maria.Services.Translation.Japanese
         private static string pathToEdrdg = pathToData+@"EDRDG\";
         private static string pathToOriginalJmdict = pathToEdrdg+ @"JMdict_e.xml";
         private static string pathToConvertedJmdict = pathToData+ @"JMdict\";
-        private static string pathToConversionTable = pathToData+ @"ConversionTable.json";
 
         private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict()
         {
@@ -80,9 +81,8 @@ namespace Maria.Services.Translation.Japanese
             return toReturn;
         }
 
-        public static void CreateDictionary()
+        private static (List<ConversionEntry>, List<List<EdrdgEntry>>) CreateDictionary()
         {
-            Directory.CreateDirectory(pathToConvertedJmdict);
             List<ConversionEntry> conversionEntries = new List<ConversionEntry>();
             List<List<EdrdgEntry>> jmdictiesBrokenByFile = new List<List<EdrdgEntry>>();
 
@@ -91,7 +91,7 @@ namespace Maria.Services.Translation.Japanese
             int file = 0; int offset = 0;
             jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
             foreach (var entry in originalJMdict)
-            {   
+            {
                 if (offset >= 1000)
                 {
                     file++;
@@ -104,14 +104,36 @@ namespace Maria.Services.Translation.Japanese
                 offset++;
             }
 
+            return (conversionEntries, jmdictiesBrokenByFile);
+        }
+        public static void CreateJsonDictionary()
+        {
+            Directory.CreateDirectory(pathToConvertedJmdict);
+            var (conversionEntries, jmdictiesBrokenByFile) = CreateDictionary();
+
             string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
-            File.WriteAllText(pathToConversionTable, conversionEntriesJson);
+            File.WriteAllText(pathToData+"ConversionTable.json", conversionEntriesJson);
 
             
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 string jmdictJson = JsonSerializer.Serialize(jmdictiesBrokenByFile[i], CommandServer.jsonOptions);
                 File.WriteAllText(pathToConvertedJmdict + i + ".json", jmdictJson);
+            }
+        }
+
+        public static void CreateMessagePackDictionary()
+        {
+            Directory.CreateDirectory(pathToConvertedJmdict);
+            var (conversionEntries, jmdictiesBrokenByFile) = CreateDictionary();
+
+            byte[] conversionEntriesMsgPack = MessagePackSerializer.Serialize(conversionEntries);
+            File.WriteAllBytes(pathToData+"ConversionTable.bin", conversionEntriesMsgPack);
+
+            for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
+            {
+                byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
+                File.WriteAllBytes($@"{pathToConvertedJmdict}{i}.bin", jmdictMsgPack);
             }
         }
     }
