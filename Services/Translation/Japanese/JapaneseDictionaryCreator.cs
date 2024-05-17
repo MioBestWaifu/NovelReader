@@ -109,17 +109,21 @@ namespace Maria.Services.Translation.Japanese
             return (conversionEntries, jmdictiesBrokenByFile);
         }
 
-        private static List<List<HashedEntry>> CreateHashedDictionary()
+        //Yest, thats a lot of lists. No, it is not a mistake. It represents file> content > index.
+        private static List<List<List<HashedEntry>>> CreateHashedDictionary()
         {
-            List<List<HashedEntry>> jmdictiesBrokenByIndex = new List<List<HashedEntry>>();
+            List<List<List<HashedEntry>>> jmdictiesBrokenByIndex = new List<List<List<HashedEntry>>>();
 
             ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
-            Dictionary<int, List<EdrdgEntry>> jmdictIndexesDictionary = new Dictionary<int, List<EdrdgEntry>>();
 
             for (int i = 0; i < 256; i++)
             {
                 
-                jmdictiesBrokenByIndex.Add(new List<HashedEntry>());
+                jmdictiesBrokenByIndex.Add(new List<List<HashedEntry>>());
+                for (int j = 0; j< 256; j++)
+                {
+                    jmdictiesBrokenByIndex[i].Add(new List<HashedEntry>());
+                }
                
             }
 
@@ -130,7 +134,7 @@ namespace Maria.Services.Translation.Japanese
                 byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
                 int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
 
-                jmdictiesBrokenByIndex[number/256].Add(new HashedEntry(entry.Key, entry.Value));
+                jmdictiesBrokenByIndex[number / 256][number%256].Add(new HashedEntry(entry.Key, entry.Value));
             }
 
             return jmdictiesBrokenByIndex;
@@ -169,7 +173,7 @@ namespace Maria.Services.Translation.Japanese
         public static void CreateBinaryDictionaryFromHash()
         {
             Directory.CreateDirectory(pathToConvertedJmdict);
-            List<List<HashedEntry>> jmdictiesBrokenByFile = CreateHashedDictionary();
+            List<List<List<HashedEntry>>> jmdictiesBrokenByFile = CreateHashedDictionary();
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);

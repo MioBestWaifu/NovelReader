@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using System.Xml.Linq;
 
 namespace Maria.Services.Translation.Japanese
 {
-   
+
     internal class JapaneseTranslator
     {
         private static string pathToData = @"D:\Programs\Data\JMdict_e\";
@@ -32,45 +33,54 @@ namespace Maria.Services.Translation.Japanese
             Instance.analyzer = new JapaneseAnalyzer();
             Instance.conversionTable = JapaneseDictionaryLoader.LoadConversionTable();
         }
-        
+
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
         //command response interface and that will be done later.
         //No need to be async now, may be later.
-
-        //Glosses missing in Extension. Why?
         public string Translate(Command command)
         {
-            List<ConversionEntry> conversionEntries = new List<ConversionEntry>();
-            if (conversionTable.TryGetValue(command.Options["term"],out ConversionEntry? entry))
+            if (!command.Options.TryGetValue("term", out string term))
             {
-               conversionEntries.Add(entry);
-            } else {
-                List<JapaneseLexeme> lexemes = analyzer.Analyze(command.Options["term"]);
-                if (lexemes.Count == 0)
-                {
-                    Console.WriteLine("No lexemes found");
-                    return "Fail";
-                }
-                GrammaticalCategory[] signicantCategories = new GrammaticalCategory[] { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb };
+                return "No term to translate";
+            }
+            SHA256 sha256 = SHA256.Create();
+
+            //Here there could be a check on the size of term to send it to Analyzer straight away
+            byte[] termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(term));
+            int termIndex = BitConverter.ToUInt16(termHash, 0);
+            List<HashedEntry> possibleEntries = JapaneseDictionaryLoader.LoadPossibleEntries(termIndex);
+
+            //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list (rarely >6)
+            //it doesn't matter.
+            HashedEntry? match = possibleEntries.Find(x => x.Key == term);
+            List<EdrdgEntry> dictionaryEntries = new List<EdrdgEntry>();
+
+            if (match is not null)
+            {
+                dictionaryEntries.Add(match.Value);
+            }
+            else
+            {
+                List<JapaneseLexeme> lexemes = analyzer.Analyze(term);
+                GrammaticalCategory[] signicantCategories = { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb };
 
                 //These relations should be stored somewhere
+                //Also, this is not efficient. This block could be started in parallel from the previous one, and its results used
+                //if no mataches are found. Besides, it should be Parallel.ForEach.
                 foreach (var lexeme in lexemes.Where(x => signicantCategories.Contains(x.Category)))
                 {
-                    if (conversionTable.TryGetValue(lexeme.BaseForm, out entry))
+                    termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(lexeme.BaseForm));
+                    termIndex = BitConverter.ToUInt16(termHash, 0);
+                    possibleEntries = JapaneseDictionaryLoader.LoadPossibleEntries(termIndex);
+                    match = possibleEntries.Find(x => x.Key == lexeme.BaseForm);
+                    if (match is not null)
                     {
-                        conversionEntries.Add(entry);
+                        dictionaryEntries.Add(match.Value);
                     }
                 }
             }
 
-            //Should be concurrent
-            List<EdrdgEntry> dictionaryEntries = new List<EdrdgEntry>();
-            foreach (var conversionEntry in conversionEntries)
-            {
-                dictionaryEntries.Add(JapaneseDictionaryLoader.LoadEntry(conversionEntry.File, conversionEntry.Offset));
-            }
-
-            return JsonSerializer.Serialize(dictionaryEntries,CommandServer.jsonOptions);
+            return JsonSerializer.Serialize(dictionaryEntries, CommandServer.jsonOptions);
         }
 
         public static void Dispose()

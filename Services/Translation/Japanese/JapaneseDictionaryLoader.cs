@@ -35,10 +35,11 @@ namespace Maria.Services.Translation.Japanese
         }
         
         //Should determine the source (jmdict, names dict) once those other databases are implemented.
-        public static EdrdgEntry LoadEntry(int file, int offset)
+        public static List<HashedEntry> LoadPossibleEntries(int index)
         {
+            int file = Math.DivRem(index, 256, out int offset);
             byte[] data = File.ReadAllBytes($"{pathToConvertedJmdict}{file}.bin");
-            return MessagePackSerializer.Deserialize<List<EdrdgEntry>>(data)![offset];
+            return MessagePackSerializer.Deserialize<List<List<HashedEntry>>>(data)![offset];
         }
     }
 }
