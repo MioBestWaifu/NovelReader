@@ -19,8 +19,6 @@ namespace Maria.Services.Translation.Japanese
     internal class JapaneseTranslator
     {
         private static string pathToData = @"D:\Programs\Data\JMdict_e\";
-        //Remember to start it with an apropriate size
-        private ConcurrentDictionary<string, ConversionEntry> conversionTable = [];
         private JapaneseAnalyzer analyzer;
         public static JapaneseTranslator? Instance { get; private set; }
         private JapaneseTranslator() { }
@@ -31,7 +29,6 @@ namespace Maria.Services.Translation.Japanese
                 throw new Exception("Already initialized"); //Should be a custom exception
             Instance = new JapaneseTranslator();
             Instance.analyzer = new JapaneseAnalyzer();
-            Instance.conversionTable = JapaneseDictionaryLoader.LoadConversionTable();
         }
 
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
@@ -48,11 +45,11 @@ namespace Maria.Services.Translation.Japanese
             //Here there could be a check on the size of term to send it to Analyzer straight away
             byte[] termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(term));
             int termIndex = BitConverter.ToUInt16(termHash, 0);
-            List<HashedEntry> possibleEntries = JapaneseDictionaryLoader.LoadPossibleEntries(termIndex);
+            List<ConversionEntry> possibleEntries = JapaneseDictionaryLoader.LoadPossibleEntries(termIndex);
 
             //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list (rarely >6)
             //it doesn't matter.
-            HashedEntry? match = possibleEntries.Find(x => x.Key == term);
+            ConversionEntry? match = possibleEntries.Find(x => x.Key == term);
             List<EdrdgEntry> dictionaryEntries = new List<EdrdgEntry>();
 
             if (match is not null)

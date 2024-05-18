@@ -83,46 +83,20 @@ namespace Maria.Services.Translation.Japanese
             return toReturn;
         }
 
-        private static (List<ConversionEntry>, List<List<EdrdgEntry>>) CreateDictionary()
+        //Yes, thats a lot of lists. No, it is not a better to use other structure. It represents file > content > index.
+        private static List<List<List<ConversionEntry>>> CreateHashes()
         {
-            List<ConversionEntry> conversionEntries = new List<ConversionEntry>();
-            List<List<EdrdgEntry>> jmdictiesBrokenByFile = new List<List<EdrdgEntry>>();
-
-            ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
-
-            int file = 0; int offset = 0;
-            jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
-            foreach (var entry in originalJMdict)
-            {
-                if (offset >= 1000)
-                {
-                    file++;
-                    offset = 0;
-                    jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
-                    continue;
-                }
-                conversionEntries.Add(new ConversionEntry(entry.Key, file, offset));
-                jmdictiesBrokenByFile[file].Add(entry.Value);
-                offset++;
-            }
-
-            return (conversionEntries, jmdictiesBrokenByFile);
-        }
-
-        //Yest, thats a lot of lists. No, it is not a mistake. It represents file> content > index.
-        private static List<List<List<HashedEntry>>> CreateHashedDictionary()
-        {
-            List<List<List<HashedEntry>>> jmdictiesBrokenByIndex = new List<List<List<HashedEntry>>>();
+            List<List<List<ConversionEntry>>> jmdictiesBrokenByIndex = new List<List<List<ConversionEntry>>>();
 
             ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
 
             for (int i = 0; i < 256; i++)
             {
                 
-                jmdictiesBrokenByIndex.Add(new List<List<HashedEntry>>());
+                jmdictiesBrokenByIndex.Add(new List<List<ConversionEntry>>());
                 for (int j = 0; j< 256; j++)
                 {
-                    jmdictiesBrokenByIndex[i].Add(new List<HashedEntry>());
+                    jmdictiesBrokenByIndex[i].Add(new List<ConversionEntry>());
                 }
                
             }
@@ -134,46 +108,16 @@ namespace Maria.Services.Translation.Japanese
                 byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
                 int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
 
-                jmdictiesBrokenByIndex[number / 256][number%256].Add(new HashedEntry(entry.Key, entry.Value));
+                jmdictiesBrokenByIndex[number / 256][number%256].Add(new ConversionEntry(entry.Key, entry.Value));
             }
 
             return jmdictiesBrokenByIndex;
         }
-        public static void CreateJsonDictionary()
+
+        public static void CreateDictionary()
         {
             Directory.CreateDirectory(pathToConvertedJmdict);
-            var (conversionEntries, jmdictiesBrokenByFile) = CreateDictionary();
-
-            string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
-            File.WriteAllText(pathToData+"ConversionTable.json", conversionEntriesJson);
-
-            
-            for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
-            {
-                string jmdictJson = JsonSerializer.Serialize(jmdictiesBrokenByFile[i], CommandServer.jsonOptions);
-                File.WriteAllText(pathToConvertedJmdict + i + ".json", jmdictJson);
-            }
-        }
-
-        public static void CreateMessagePackDictionary()
-        {
-            Directory.CreateDirectory(pathToConvertedJmdict);
-            var (conversionEntries, jmdictiesBrokenByFile) = CreateDictionary();
-
-            byte[] conversionEntriesMsgPack = MessagePackSerializer.Serialize(conversionEntries);
-            File.WriteAllBytes(pathToData+"ConversionTable.bin", conversionEntriesMsgPack);
-
-            for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
-            {
-                byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
-                File.WriteAllBytes($@"{pathToConvertedJmdict}{i}.bin", jmdictMsgPack);
-            }
-        }
-
-        public static void CreateBinaryDictionaryFromHash()
-        {
-            Directory.CreateDirectory(pathToConvertedJmdict);
-            List<List<List<HashedEntry>>> jmdictiesBrokenByFile = CreateHashedDictionary();
+            List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes();
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);

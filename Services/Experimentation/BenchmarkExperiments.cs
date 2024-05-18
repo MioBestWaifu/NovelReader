@@ -45,25 +45,5 @@ namespace Maria.Services.Experimentation
             }
             Console.WriteLine($"JSON: {times.Average()} ms");
         }
-
-        public static void AverageHashingTime()
-        {
-            ConcurrentDictionary<string, ConversionEntry> pairs = JapaneseDictionaryLoader.LoadConversionTable();
-            List<string> keys = pairs.Keys.ToList();
-
-            SHA256 sha256 = SHA256.Create();
-            List<double> times = new List<double>();
-
-            foreach (string key in keys)
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
-                stopwatch.Stop();
-                times.Add(stopwatch.Elapsed.TotalMilliseconds);
-            }
-
-            Console.WriteLine($"Hashing: {times.Average()} ms");
-        }
     }
 }
