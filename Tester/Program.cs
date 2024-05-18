@@ -7,9 +7,8 @@ namespace Tester
         static void Main(string[] args)
         {
             TranslationTester.StartJp(2);
-            TranslationTester.TranslateSamplesJp(10,1);
+            TranslationTester.TranslateSamplesJp(1, 1);
         }
 
-        
     }
 }
