@@ -22,10 +22,6 @@ namespace Maria.Services.Translation.Japanese
     /// </summary>
     internal static class JapaneseDictionaryCreator
     {
-        private static string pathToData = @"Data\Japanese\";
-        private static string pathToEdrdg = pathToData+@"EDRDG\";
-        private static string pathToOriginalJmdict = pathToEdrdg+ @"JMdict_e.xml";
-        private static string pathToConvertedJmdict = pathToData+ @"JMdict\";
 
         private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict()
         {
@@ -33,7 +29,7 @@ namespace Maria.Services.Translation.Japanese
             settings.MaxCharactersFromEntities = 0;
             settings.MaxCharactersInDocument = 0;
             settings.DtdProcessing = DtdProcessing.Parse;
-            XmlReader reader = XmlReader.Create(pathToOriginalJmdict, settings);
+            XmlReader reader = XmlReader.Create(Constants.Paths.ToEdrdg+ "JMdict_e.xml", settings);
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
             int argumentExisting = 0;
@@ -116,12 +112,12 @@ namespace Maria.Services.Translation.Japanese
 
         public static void CreateDictionary()
         {
-            Directory.CreateDirectory(pathToConvertedJmdict);
+            Directory.CreateDirectory(Constants.Paths.ToConvertedDictionary);
             List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes();
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
-                File.WriteAllBytes($@"{pathToConvertedJmdict}{i}.bin", jmdictMsgPack);
+                File.WriteAllBytes($@"{Constants.Paths.ToConvertedDictionary}{i}.bin", jmdictMsgPack);
             }
         }
     }

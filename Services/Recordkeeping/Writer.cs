@@ -14,8 +14,6 @@ namespace Maria.Services.Recordkeeping
     internal class Writer
     {
         public static Writer Instance { get; private set; }
-        //Should be customizable
-        public string BasePath { get; set; } = @"D:\Programs\maria-chan\Tests\";
 
         //Could use a concurrent collection. A Bag will do, because the order is only important in Analysis and it can sor that out.
         private List<TrackingRecord> browserBuffer = new List<TrackingRecord>();
@@ -69,8 +67,8 @@ namespace Maria.Services.Recordkeeping
                  * implementation they seem unimportant since the multiple flushes in a day are only for keeping files relatively small.
                  */
                 DateTime now = DateTime.Now;
-                string browserPath = @$"{BasePath}\browser\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.bin";
-                string processPath = @$"{BasePath}\process\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.bin";
+                string browserPath = @$"{Constants.Paths.ToTracking}\browser\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.bin";
+                string processPath = @$"{Constants.Paths.ToTracking}\process\{now.Year}\{now.Month}\{now.Day}\{now.Hour}-{now.Minute}-{now.Second}.bin";
 
                 Directory.CreateDirectory(Path.GetDirectoryName(browserPath));
                 Directory.CreateDirectory(Path.GetDirectoryName(processPath));

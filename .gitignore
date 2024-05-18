@@ -401,3 +401,4 @@ FodyWeavers.xsd
 *.sln.iml
 Extension/vue.min.js
 Extension/Chromium/vue.min.js
+/Services/paths.dev.json

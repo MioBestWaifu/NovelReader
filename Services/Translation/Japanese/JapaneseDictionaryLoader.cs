@@ -15,16 +15,12 @@ namespace Maria.Services.Translation.Japanese
     //Should be on Recordkeeping. It may have japanese in the name, but it's function is dealing wih records.
     internal static class JapaneseDictionaryLoader
     {
-        //TODO: Those constants shold all be centralized somewhere.
-        private static string pathToData = @"Data\Japanese\";
-        private static string pathToConvertedJmdict = pathToData + @"JMdict\";
-
         
         //Should determine the source (jmdict, names dict) once those other databases are implemented.
         public static List<ConversionEntry> LoadPossibleEntries(int index)
         {
             int file = Math.DivRem(index, 256, out int offset);
-            byte[] data = File.ReadAllBytes($"{pathToConvertedJmdict}{file}.bin");
+            byte[] data = File.ReadAllBytes($"{Constants.Paths.ToConvertedDictionary}{file}.bin");
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
     }

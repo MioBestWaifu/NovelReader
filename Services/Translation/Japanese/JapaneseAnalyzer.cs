@@ -15,7 +15,7 @@ namespace Maria.Services.Translation.Japanese
         {
             //<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
             var parameter = new MeCabParam();
-            parameter.DicDir = @"D:\Programs\Data\Unidic";
+            parameter.DicDir = Constants.Paths.ToUnidic;
             tagger = MeCabTagger.Create(parameter);
         }
 
@@ -51,33 +51,21 @@ namespace Maria.Services.Translation.Japanese
 
         public static GrammaticalCategory ParseToCategory(string category)
         {
-            switch (category)
+            return category switch
             {
-                case "名詞":
-                    return GrammaticalCategory.Noun;
-                case "動詞":
-                    return GrammaticalCategory.Verb;
-                case "形容詞":
-                    return GrammaticalCategory.Adjective;
-                case "副詞":
-                    return GrammaticalCategory.Adverb;
-                case "助詞":
-                    return GrammaticalCategory.Particle;
-                case "助動詞":
-                    return GrammaticalCategory.AuxiliaryVerb;
-                case "接続詞":
-                    return GrammaticalCategory.Conjunction;
-                case "感動詞":
-                    return GrammaticalCategory.Interjection;
-                case "記号":
-                    return GrammaticalCategory.Symbol;
-                case "フィラー":
-                    return GrammaticalCategory.Filler;
-                case "その他":
-                    return GrammaticalCategory.Other;
-                default:
-                    return GrammaticalCategory.Unknown;
-            }
+                "名詞" => GrammaticalCategory.Noun,
+                "動詞" => GrammaticalCategory.Verb,
+                "形容詞" => GrammaticalCategory.Adjective,
+                "副詞" => GrammaticalCategory.Adverb,
+                "助詞" => GrammaticalCategory.Particle,
+                "助動詞" => GrammaticalCategory.AuxiliaryVerb,
+                "接続詞" => GrammaticalCategory.Conjunction,
+                "感動詞" => GrammaticalCategory.Interjection,
+                "記号" => GrammaticalCategory.Symbol,
+                "フィラー" => GrammaticalCategory.Filler,
+                "その他" => GrammaticalCategory.Other,
+                _ => GrammaticalCategory.Unknown,
+            };
         }
     }
 }

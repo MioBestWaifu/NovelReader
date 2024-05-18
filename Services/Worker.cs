@@ -13,9 +13,10 @@ namespace Maria.Services
         private readonly CommandServer commandServer;
         private readonly Interpreter interpreter;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IHostEnvironment environment)
         {
             _logger = logger;
+            Constants.Initialize(environment.IsDevelopment());
             commandServer = new CommandServer();
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
