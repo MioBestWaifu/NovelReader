@@ -21,8 +21,10 @@ It was ultimately decided against SQLite. The reason is that it is very slow to 
 
 The solution then, is to parse the EDRDG database into more compact files and a conversion table referencing those files from the word-keys. Thus, only a table saying "word x - file y entry z" would be in memory. Some caching would also help. Then the address is determined, file Y is loaded into memory, entry Z is retrieved and file Y is unloaded (cache scheme yet to be determined). For single-word searches, or searches where all keys are in the same file, this is perfectly feasible. Tests with JSON's with 1000 entries indicate that the reading and deserialization time is in the range of 45-100ms, averaging around 60 ms (serialization was not optimized using small vairable property names). For multi-search queries this time would pile up and be a problem, but this is a problem for another version, and Maria is not suposed to translate whole sentences.  
   
-
 As of now, JSON will be used for that purpose. However, it may be beneficial, both to storage and to reading times, to use a binary serialization protocol. This will be looked at in the future.
+
+#### 0.5 update
+Storage was transitioned to binary with MessagePack.  
 ## TRANSLATION
 
 As of now, only Japanese-to-English translations are needed, and so the translation implementation will not be abstracted, everything will be written only with jp-to-en in mind. However, the overall structure (namespace, entrypoints, etc) will be prepared for possible future expansion.
@@ -48,11 +50,11 @@ One way to reduce memory usage is by not keeping a conversion table at all and h
 Another thing, this time to make storage more efficient, is that a two-step storage may be used because in the hashing scheme there would be no ConversionEntry to avoid data duplication. To avoid it in that case, the converison table could point to a file conatining only a pointer to another file containing the entries.
 
 #### 0.5 update
+Hashing was implemented to store and find translations. Memory usage has been dramatically reduced (160mb to around 25). There is a possible leak because the memory usage only goes up as translation pile, even if slowly and ignoring dead objects, but the bulk is in strings and that may just be the dotnet runtime keeping things around for optimization purposes. Lookup time was not compared, but is likely faster on average, due to the following benchmarks:
+
 In a first interation (presumably becaquse the OS does not immediately dispose of the file), reading and deserializing binary is twice as fast as JSON (12ms vs 25ms) and in subsequent iterations it is about 4.6 times as fast (3ms vs 14ms).  
 
-The average time to get the SHA256 of the keys in the JMDict conversion table is 0.0007ms, which is to say: negligible. By comparison, Dictionary (the class, not the thing) access time is around 45ms.  
-
-When using the first two bytes of a SHA256 hash of the keys in the JMDict conversion table to generate a single number for both file and offset, 1007 numbers in the range have no equivalent hashes, while 8635 have more than six. Still, a 14% bad-match rate seems good.
+The average time to get the SHA256 of the keys in the JMDict conversion table is 0.0007ms, which is to say: negligible. By comparison, Dictionary (the class, not the thing) access time for the same would be around 45ms.  
 
 ### CUSTOM READER AND AUTOMATIC TRANSLATION
 To avoid having to build from scratch something already built and usable, i chose to integrate Maria with Kavita for the purposes of reading novels and the like. However, Kavita has a few annoying features that i am as of 0.4 (May 15th, 2024) unable to block with Extension. The worst is that if you select something in the epub reader, a menu drops in the top of the screen. This should theorically be stopabble, because it is a event registered in the DOM, Extension shoul be able to acess the DOM and remove it, but i still have not found a way to do so.  
