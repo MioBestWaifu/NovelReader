@@ -29,6 +29,9 @@ namespace Maria.Services.Tracking
                 case "stop":
                     Stop();
                     return 200;
+                case "mock":
+                    CreateMocks(command);
+                    return 200;
                 default:
                     return 400;
             }
@@ -48,6 +51,11 @@ namespace Maria.Services.Tracking
         public abstract bool Validate(Command command);
 
         public abstract Task<int> Register(Command command);
+
+        public virtual void CreateMocks(Command command)
+        {
+            //Do nothing
+        }   
 
         public virtual void Start()
         {
