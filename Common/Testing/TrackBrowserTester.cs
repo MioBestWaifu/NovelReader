@@ -51,5 +51,20 @@ namespace Maria.Common.Testing
                 Task.Delay(intervalInSeconds * 1000).Wait();
             }
         }
+
+        public static async void Mock(int intervalInSeconds, int hour)
+        {
+            Task.Delay(intervalInSeconds * 1000).Wait();
+            CommandClient commandClient = new CommandClient();
+            Command command = new Command();
+            command.Action = "mock";
+            command.Module = "tracking";
+            command.Submodule = "browser";
+            command.Options = new Dictionary<string, string>
+            {
+                { "hour", hour.ToString()}
+            };
+            commandClient.SendCommand(command);
+        }
     }
 }

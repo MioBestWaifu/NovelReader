@@ -1,6 +1,7 @@
 ﻿using Maria.Common.Communication.Commanding;
 using Maria.Services.Recordkeeping;
 using Maria.Services.Recordkeeping.Records;
+using MessagePack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +53,28 @@ namespace Maria.Services.Tracking
         public override bool Validate(Command command)
         {
             return true;
+        }
+
+        public override void CreateMocks(Command command)
+        {
+            int hour = Int32.Parse(command.Options["hour"]);
+            string[] possibleUrls = { "youtube.com", "facebook.com", "twitter.com", "twitch.tv" };
+            List<TrackingRecord> records = new List<TrackingRecord>();
+            Random random = new Random();
+
+            for (int i = 0; i < 25; i++)
+            {
+                TrackingRecord record = new TrackingRecord();
+                record.Name = possibleUrls[random.Next(possibleUrls.Length)];
+                int minute = random.Next(0, 60);
+                int second = random.Next(0, 60);
+                record.Time = new TimeSpan(hour, minute, second).ToString(@"hh\:mm\:ss");
+                records.Add(record);
+            }
+            Directory.CreateDirectory($@"{Constants.Paths.ToTracking}\browser\{DateTime.Now.Year}\{DateTime.Now.Month}\{DateTime.Now.Day}");
+
+            byte[] data = MessagePackSerializer.Serialize(records);
+            File.WriteAllBytes($@"{Constants.Paths.ToTracking}\browser\{DateTime.Now.Year}\{DateTime.Now.Month}\{DateTime.Now.Day}\{hour}-{random.Next(10)}.bin", data);
         }
     }
 }

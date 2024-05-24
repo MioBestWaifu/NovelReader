@@ -1,4 +1,5 @@
 using Maria.Common.Communication;
+using Maria.Services.Analysis;
 using Maria.Services.Communication;
 using Maria.Services.Experimentation;
 using Maria.Services.Recordkeeping;
@@ -21,7 +22,6 @@ namespace Maria.Services
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
             Writer.CreateInstance();
-            Task.Run(() => Writer.Instance.FlushAll(600));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
