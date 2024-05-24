@@ -1,5 +1,6 @@
 ﻿using Maria.Common.Communication;
 using Maria.Services.Translation.Japanese.Edrdg;
+using MessagePack;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,30 +15,13 @@ namespace Maria.Services.Translation.Japanese
     //Should be on Recordkeeping. It may have japanese in the name, but it's function is dealing wih records.
     internal static class JapaneseDictionaryLoader
     {
-        //TODO: Those constants shold all be centralized somewhere.
-        private static string pathToData = @"Data\Japanese\";
-        private static string pathToEdrdg = pathToData + @"EDRDG\";
-        private static string pathToOriginalJmdict = pathToEdrdg + @"JMdict_e.xml";
-        private static string pathToConvertedJmdict = pathToData + @"JMdict\";
-        private static string pathToConversionTable = pathToData + @"ConversionTable.json";
-
-        public static ConcurrentDictionary<string, ConversionEntry> LoadConversionTable()
-        {
-            string json = File.ReadAllText(pathToConversionTable);
-            List<ConversionEntry> conversionEntries = JsonSerializer.Deserialize<List<ConversionEntry>>(json,CommandServer.jsonOptions)!;
-            ConcurrentDictionary<string, ConversionEntry> toReturn = new ConcurrentDictionary<string, ConversionEntry>();
-            Parallel.ForEach(conversionEntries, entry =>
-            {
-                toReturn.TryAdd(entry.Key, entry);
-            });
-            return toReturn;
-        }
         
-        //Should determine the source (jmdict, names dict) once those othe databases are implemented.
-        public static EdrdgEntry LoadEntry(int file, int offset)
+        //Should determine the source (jmdict, names dict) once those other databases are implemented.
+        public static List<ConversionEntry> LoadPossibleEntries(int index)
         {
-            string json = File.ReadAllText($"{pathToConvertedJmdict}{file}.json");
-            return JsonSerializer.Deserialize<List<EdrdgEntry>>(json, CommandServer.jsonOptions)![offset];
+            int file = Math.DivRem(index, 256, out int offset);
+            byte[] data = File.ReadAllBytes($"{Constants.Paths.ToConvertedDictionary}{file}.bin");
+            return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
     }
 }

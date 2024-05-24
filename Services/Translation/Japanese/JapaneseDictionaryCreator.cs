@@ -9,6 +9,10 @@ using System.Xml.Linq;
 using System.Xml;
 using System.Text.Json;
 using Maria.Common.Communication;
+using MessagePack;
+using System.Globalization;
+using System.Diagnostics.Metrics;
+using System.Security.Cryptography;
 
 namespace Maria.Services.Translation.Japanese
 {
@@ -18,11 +22,6 @@ namespace Maria.Services.Translation.Japanese
     /// </summary>
     internal static class JapaneseDictionaryCreator
     {
-        private static string pathToData = @"Data\Japanese\";
-        private static string pathToEdrdg = pathToData+@"EDRDG\";
-        private static string pathToOriginalJmdict = pathToEdrdg+ @"JMdict_e.xml";
-        private static string pathToConvertedJmdict = pathToData+ @"JMdict\";
-        private static string pathToConversionTable = pathToData+ @"ConversionTable.json";
 
         private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict()
         {
@@ -30,7 +29,7 @@ namespace Maria.Services.Translation.Japanese
             settings.MaxCharactersFromEntities = 0;
             settings.MaxCharactersInDocument = 0;
             settings.DtdProcessing = DtdProcessing.Parse;
-            XmlReader reader = XmlReader.Create(pathToOriginalJmdict, settings);
+            XmlReader reader = XmlReader.Create(Constants.Paths.ToEdrdg+ "JMdict_e.xml", settings);
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
             int argumentExisting = 0;
@@ -80,38 +79,45 @@ namespace Maria.Services.Translation.Japanese
             return toReturn;
         }
 
-        public static void CreateDictionary()
+        //Yes, thats a lot of lists. No, it is not a better to use other structure. It represents file > content > index.
+        private static List<List<List<ConversionEntry>>> CreateHashes()
         {
-            Directory.CreateDirectory(pathToConvertedJmdict);
-            List<ConversionEntry> conversionEntries = new List<ConversionEntry>();
-            List<List<EdrdgEntry>> jmdictiesBrokenByFile = new List<List<EdrdgEntry>>();
+            List<List<List<ConversionEntry>>> jmdictiesBrokenByIndex = new List<List<List<ConversionEntry>>>();
 
             ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
 
-            int file = 0; int offset = 0;
-            jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
-            foreach (var entry in originalJMdict)
-            {   
-                if (offset >= 1000)
+            for (int i = 0; i < 256; i++)
+            {
+                
+                jmdictiesBrokenByIndex.Add(new List<List<ConversionEntry>>());
+                for (int j = 0; j< 256; j++)
                 {
-                    file++;
-                    offset = 0;
-                    jmdictiesBrokenByFile.Add(new List<EdrdgEntry>());
-                    continue;
+                    jmdictiesBrokenByIndex[i].Add(new List<ConversionEntry>());
                 }
-                conversionEntries.Add(new ConversionEntry(entry.Key, file, offset));
-                jmdictiesBrokenByFile[file].Add(entry.Value);
-                offset++;
+               
             }
 
-            string conversionEntriesJson = JsonSerializer.Serialize(conversionEntries, CommandServer.jsonOptions);
-            File.WriteAllText(pathToConversionTable, conversionEntriesJson);
+            int file = 0;
+            SHA256 sha256 = SHA256.Create();
+            foreach (var entry in originalJMdict)
+            {
+                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
+                int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
 
-            
+                jmdictiesBrokenByIndex[number / 256][number%256].Add(new ConversionEntry(entry.Key, entry.Value));
+            }
+
+            return jmdictiesBrokenByIndex;
+        }
+
+        public static void CreateDictionary()
+        {
+            Directory.CreateDirectory(Constants.Paths.ToConvertedDictionary);
+            List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes();
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
-                string jmdictJson = JsonSerializer.Serialize(jmdictiesBrokenByFile[i], CommandServer.jsonOptions);
-                File.WriteAllText(pathToConvertedJmdict + i + ".json", jmdictJson);
+                byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
+                File.WriteAllBytes($@"{Constants.Paths.ToConvertedDictionary}{i}.bin", jmdictMsgPack);
             }
         }
     }

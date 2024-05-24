@@ -1,28 +1,26 @@
-﻿using System;
+﻿using Maria.Services.Translation.Japanese.Edrdg;
+using MessagePack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Maria.Services.Translation
 {
-    internal class ConversionEntry
+    [MessagePackObject]
+    public class ConversionEntry
     {
-        public string Key { get; private set; }
-        public int File { get; private set; }
-        public int Offset { get; private set; }
-        //For optimzation in the future.
-        [JsonIgnore]
-        public int Used { get; private set; }
+        [Key(0)]
+        public string Key { get; set; }
+        [Key(1)]
+        public EdrdgEntry Value { get; set; }
 
-        public ConversionEntry(string key, int file, int offset)
+        [SerializationConstructor]
+        public ConversionEntry(string key, EdrdgEntry value)
         {
             Key = key;
-            File = file;
-            Offset = offset;
-            Used = 0;
+            Value = value;
         }
-
     }
 }

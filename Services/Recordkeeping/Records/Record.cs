@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Maria.Services.Recordkeeping.Records
 {
-    internal abstract class Record
+    public abstract class Record
     {
     }
 }

@@ -1,6 +1,10 @@
 using Maria.Common.Communication;
+using Maria.Services.Analysis;
 using Maria.Services.Communication;
+using Maria.Services.Experimentation;
 using Maria.Services.Recordkeeping;
+using Maria.Services.Recordkeeping.Records;
+using MessagePack;
 
 namespace Maria.Services
 {
@@ -10,9 +14,10 @@ namespace Maria.Services
         private readonly CommandServer commandServer;
         private readonly Interpreter interpreter;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IHostEnvironment environment)
         {
             _logger = logger;
+            Constants.Initialize(environment.IsDevelopment());
             commandServer = new CommandServer();
             interpreter = new Interpreter();
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
@@ -27,8 +32,6 @@ namespace Maria.Services
                 {
                     //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                //await Task.Delay(60000, stoppingToken);
-                //await Writer.Instance.FlushAll();
             }
         }
     }
