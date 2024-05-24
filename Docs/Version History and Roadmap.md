@@ -2,13 +2,13 @@
 This is a description of the major changes implemented in past versions, being implemented in the version under development, and planned for the future.
 
 ## Current version: 0.5
-- Create the Analysis module, by categorizing processes and webpages, and reporting on them
-- Optmize translation
-- Optimize tracking records
-- Take environment variables, basis for future user personalization
-- General code revision in Services
 
 ## Past versions
+
+### 0.5
+- Translation storage and access optimized by using MessagePack
+- Tracking storage optimized by using MessagePack and consolidating daily files
+- Taking enviroment variable for the various paths and options
 
 ### 0.4
 - Creation of Extension options page to select what should be tracked and watched.

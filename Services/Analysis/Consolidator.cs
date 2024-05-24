@@ -49,7 +49,7 @@ namespace Maria.Services.Analysis
                 }
             }
 
-            //Directory.Delete(inputPath, true);
+            Directory.Delete(inputPath, true);
             File.WriteAllBytes(outputPath, MessagePackSerializer.Serialize(minuteCounts));
         }
     }
