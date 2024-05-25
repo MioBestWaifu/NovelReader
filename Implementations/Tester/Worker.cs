@@ -6,7 +6,7 @@ using Maria.Services.Recordkeeping;
 using Maria.Services.Recordkeeping.Records;
 using MessagePack;
 
-namespace Maria.Services
+namespace Maria.Tester
 {
     internal class Worker : BackgroundService
     {

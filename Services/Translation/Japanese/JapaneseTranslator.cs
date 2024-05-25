@@ -1,6 +1,7 @@
 ﻿using Maria.Common.Communication;
 using Maria.Common.Communication.Commanding;
-using Maria.Services.Translation.Japanese.Edrdg;
+using Maria.Translation;
+using Maria.Translation.Japanese.Edrdg;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Maria.Services.Translation.Japanese
+namespace Maria.Translation.Japanese
 {
 
     internal class JapaneseTranslator

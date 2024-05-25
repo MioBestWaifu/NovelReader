@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services
+namespace Maria.Tester
 {
-    
+
     internal class Paths
     {
         public string ToEdrdg { get; private set; }

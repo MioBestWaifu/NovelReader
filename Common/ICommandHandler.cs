@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services
+namespace Maria.Common
 {
-    internal interface ICommandHandler
+    public interface ICommandHandler
     {
         //To return a message, or an object as JSON.
         public Task<string> HandleCommand(Command command);

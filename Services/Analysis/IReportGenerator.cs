@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Analysis
+namespace Maria.Analysis
 {
     internal interface IReportGenerator
     {

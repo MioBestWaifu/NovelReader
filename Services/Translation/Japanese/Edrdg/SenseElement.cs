@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Maria.Services.Translation.Japanese.Edrdg
+namespace Maria.Translation.Japanese.Edrdg
 {
     //A bunch of information contained in the sense tag has been ignored for simplicity's sake. Some of them ARE important 
     //for a full implementation, but they are not essential for a basic, working one and so will be left for later.

@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Maria.Services.Translation.Japanese.Edrdg
+namespace Maria.Translation.Japanese.Edrdg
 {
     /// <summary>
     /// From the k_ele tag.

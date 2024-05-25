@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Tracking
+namespace Maria.Tracking
 {
     internal abstract class Tracker
     {
@@ -55,7 +55,7 @@ namespace Maria.Services.Tracking
         public virtual void CreateMocks(Command command)
         {
             //Do nothing
-        }   
+        }
 
         public virtual void Start()
         {

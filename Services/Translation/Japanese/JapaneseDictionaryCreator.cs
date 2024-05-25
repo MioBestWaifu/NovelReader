@@ -1,5 +1,4 @@
-﻿using Maria.Services.Translation.Japanese.Edrdg;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +12,10 @@ using MessagePack;
 using System.Globalization;
 using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
+using Maria.Translation;
+using Maria.Translation.Japanese.Edrdg;
 
-namespace Maria.Services.Translation.Japanese
+namespace Maria.Translation.Japanese
 {
     /// <summary>
     /// Takes the EDRDG database and creates files with it to be read by Maria. It is not supposed to be run in the final product.
@@ -29,7 +30,7 @@ namespace Maria.Services.Translation.Japanese
             settings.MaxCharactersFromEntities = 0;
             settings.MaxCharactersInDocument = 0;
             settings.DtdProcessing = DtdProcessing.Parse;
-            XmlReader reader = XmlReader.Create(Constants.Paths.ToEdrdg+ "JMdict_e.xml", settings);
+            XmlReader reader = XmlReader.Create(Constants.Paths.ToEdrdg + "JMdict_e.xml", settings);
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
             int argumentExisting = 0;
@@ -88,13 +89,13 @@ namespace Maria.Services.Translation.Japanese
 
             for (int i = 0; i < 256; i++)
             {
-                
+
                 jmdictiesBrokenByIndex.Add(new List<List<ConversionEntry>>());
-                for (int j = 0; j< 256; j++)
+                for (int j = 0; j < 256; j++)
                 {
                     jmdictiesBrokenByIndex[i].Add(new List<ConversionEntry>());
                 }
-               
+
             }
 
             int file = 0;
@@ -104,7 +105,7 @@ namespace Maria.Services.Translation.Japanese
                 byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
                 int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
 
-                jmdictiesBrokenByIndex[number / 256][number%256].Add(new ConversionEntry(entry.Key, entry.Value));
+                jmdictiesBrokenByIndex[number / 256][number % 256].Add(new ConversionEntry(entry.Key, entry.Value));
             }
 
             return jmdictiesBrokenByIndex;

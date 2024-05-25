@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Recordkeeping
+namespace Maria.Common
 {
     //Designed to be a singleton
     internal class Writer
@@ -26,7 +26,7 @@ namespace Maria.Services.Recordkeeping
         {
             //This is a singleton
         }
-        
+
 
         public async Task AddBrowserRecord(TrackingRecord record)
         {

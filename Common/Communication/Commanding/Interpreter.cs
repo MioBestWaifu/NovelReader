@@ -1,5 +1,4 @@
-﻿using Maria.Common.Communication.Commanding;
-using Maria.Services.Tracking;
+﻿using Maria.Services.Tracking;
 using Maria.Services.Translation;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Communication
+namespace Maria.Common.Communication.Commanding
 {
     internal class Interpreter
     {
@@ -21,7 +20,7 @@ namespace Maria.Services.Communication
                 { "translation", new TranslationCommandHandler()}
             };
         }
-        public async Task<string> ProcessCommand (Command command)
+        public async Task<string> ProcessCommand(Command command)
         {
             Console.WriteLine($"Command: {command}");
             bool hasHandlerRegistered = handlers.TryGetValue(command.Module, out ICommandHandler? handler);
@@ -38,7 +37,7 @@ namespace Maria.Services.Communication
         }
 
         public void RegisterHandler(ICommandHandler handler, string module)
-        { 
+        {
             handlers.Add(module, handler);
         }
     }

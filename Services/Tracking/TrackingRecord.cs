@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Recordkeeping.Records
+namespace Maria.Tracking
 {
     [MessagePackObject]
     public class TrackingRecord : Record

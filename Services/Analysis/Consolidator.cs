@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Analysis
+namespace Maria.Analysis
 {
     internal class Consolidator
     {
@@ -19,7 +19,7 @@ namespace Maria.Services.Analysis
         public static void ConsilidateRecords(string inputPath, string outputPath)
         {
             List<string> files = new List<string>(Directory.GetFiles(inputPath));
-            
+
             List<TrackingRecord> records = new List<TrackingRecord>();
             foreach (string file in files)
             {
@@ -31,7 +31,7 @@ namespace Maria.Services.Analysis
 
             Dictionary<string, double> minuteCounts = new Dictionary<string, double>();
 
-            for (int i = 0; i < records.Count-1; i++)
+            for (int i = 0; i < records.Count - 1; i++)
             {
                 TrackingRecord record = records[i];
                 TimeSpan time = TimeSpan.Parse(record.Time);

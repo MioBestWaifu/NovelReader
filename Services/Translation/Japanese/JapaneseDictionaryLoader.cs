@@ -1,5 +1,6 @@
 ﻿using Maria.Common.Communication;
 using Maria.Services.Translation.Japanese.Edrdg;
+using Maria.Translation;
 using MessagePack;
 using System;
 using System.Collections.Concurrent;
@@ -10,12 +11,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Translation.Japanese
+namespace Maria.Translation.Japanese
 {
     //Should be on Recordkeeping. It may have japanese in the name, but it's function is dealing wih records.
     internal static class JapaneseDictionaryLoader
     {
-        
+
         //Should determine the source (jmdict, names dict) once those other databases are implemented.
         public static List<ConversionEntry> LoadPossibleEntries(int index)
         {

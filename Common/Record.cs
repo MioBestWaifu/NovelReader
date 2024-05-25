@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Recordkeeping.Records
+namespace Maria.Common
 {
     public abstract class Record
     {

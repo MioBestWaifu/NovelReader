@@ -1,7 +1,7 @@
 ﻿using Maria.Common.Communication;
 using Maria.Services.Translation;
 using Maria.Services.Translation.Japanese;
-using Maria.Services.Translation.Japanese.Edrdg;
+using Maria.Translation.Japanese.Edrdg;
 using MessagePack;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Maria.Services.Experimentation
+namespace Maria.Tester.Experimentation
 {
     internal static class BenchmarkExperiments
     {

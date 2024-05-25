@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Services-dd882b60-c27e-4df7-8413-3bee00d132d6</UserSecretsId>
-    <RootNamespace>Maria.Services</RootNamespace>
+    <RootNamespace>Maria.Tester</RootNamespace>
     <MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
   </PropertyGroup>
 
@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Services\Analysis\Analysis.csproj" />
+    <ProjectReference Include="..\..\Services\Tracking\Tracking.csproj" />
+    <ProjectReference Include="..\..\Services\Translation\Translation.csproj" />
   </ItemGroup>
 </Project>

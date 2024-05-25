@@ -1,12 +1,12 @@
 ﻿using Maria.Common.Communication.Commanding;
-using Maria.Services.Translation.Japanese;
+using Maria.Translation.Japanese;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Services.Translation
+namespace Maria.Translation
 {
     internal class TranslationCommandHandler : ICommandHandler
     {
