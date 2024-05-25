@@ -1,4 +1,5 @@
 ﻿using Maria.Common.Communication.Commanding;
+using Maria.Common.Recordkeeping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +17,6 @@ namespace Maria.Common.Communication
         public delegate Task<string> CommandReceived(Command command);
         public event CommandReceived OnCommandReceived;
         private HttpListener httpListener;
-        //Should be somewhere else.
-        public static JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            IncludeFields = true
-        };
 
         public CommandServer()
         {
@@ -56,7 +50,7 @@ namespace Maria.Common.Communication
                 }
             }
 
-            Command command = JsonSerializer.Deserialize<Command>(requestBody, jsonOptions);
+            Command command = Serializer.DeserializeJson<Command>(requestBody);
 
             //May be a regular string, may be a regular json, anyways the header is not important now.
             string response = await OnCommandReceived?.Invoke(command);

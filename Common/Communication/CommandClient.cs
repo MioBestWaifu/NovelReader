@@ -1,10 +1,5 @@
 ﻿using Maria.Common.Communication.Commanding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+using Maria.Common.Recordkeeping;
 
 namespace Maria.Common.Communication
 {
@@ -24,7 +19,7 @@ namespace Maria.Common.Communication
 
         public void SendCommand(Command command)
         {
-            httpClient.PostAsync($"/{command.Module}", new StringContent(JsonSerializer.Serialize(command))).Wait();
+            httpClient.PostAsync($"/{command.Module}", new StringContent(Serializer.SerializeToJson(command))).Wait();
         }
     }
 }
