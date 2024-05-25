@@ -1,15 +1,6 @@
-﻿using Maria.Services.Recordkeeping.Records;
-using MessagePack;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Maria.Analysis
-{
-    internal class Consolidator
+﻿using Maria.Common.Recordkeeping;
+namespace Maria.Tracking;
+    public class Consolidator
     {
         /// <summary>
         /// Consolidates the records in the path (expected to be created by Writer) into a minute count of the day
@@ -23,7 +14,7 @@ namespace Maria.Analysis
             List<TrackingRecord> records = new List<TrackingRecord>();
             foreach (string file in files)
             {
-                records.AddRange(MessagePackSerializer.Deserialize<List<TrackingRecord>>(File.ReadAllBytes(file)));
+                records.AddRange(Serializer.DeserializeBytes<List<TrackingRecord>>(File.ReadAllBytes(file)));
             }
 
             //It is necessary because there is zero guarantee that the records are in order
@@ -50,7 +41,7 @@ namespace Maria.Analysis
             }
 
             Directory.Delete(inputPath, true);
-            File.WriteAllBytes(outputPath, MessagePackSerializer.Serialize(minuteCounts));
+            File.WriteAllBytes(outputPath, Serializer.SerializeToBytes(minuteCounts));
         }
     }
 }
