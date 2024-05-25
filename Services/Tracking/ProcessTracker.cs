@@ -1,16 +1,10 @@
 ﻿using Maria.Common.Communication.Commanding;
-using Maria.Services.Recordkeeping;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Maria.Tracking
 {
-    internal class ProcessTracker : Tracker
+    public class ProcessTracker : Tracker
     {
         [DllImport("user32.dll")]
         private static extern nint GetForegroundWindow();
@@ -44,10 +38,11 @@ namespace Maria.Tracking
             //This is a singleton
         }
 
+        //Commented due to pending design decision on who should be responsible for saving the records
         public override async Task<int> Register(Command command)
         {
             //Duplicate code with BrowserTracker
-            try
+            /*try
             {
                 TrackingRecord record = new TrackingRecord();
                 //not always true, may be window, depends on the process
@@ -61,8 +56,8 @@ namespace Maria.Tracking
             {
                 Console.WriteLine(e.Message);
                 return 500;
-            }
-
+            }*/
+            return 501;
         }
 
         public override bool Validate(Command command)
