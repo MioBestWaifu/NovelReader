@@ -1,10 +1,6 @@
 using Maria.Common.Communication;
-using Maria.Services.Analysis;
-using Maria.Services.Communication;
-using Maria.Services.Experimentation;
-using Maria.Services.Recordkeeping;
-using Maria.Services.Recordkeeping.Records;
-using MessagePack;
+using Maria.Translation;
+using Maria.Translation.Japanese;
 
 namespace Maria.Tester
 {
@@ -20,8 +16,11 @@ namespace Maria.Tester
             Constants.Initialize(environment.IsDevelopment());
             commandServer = new CommandServer();
             interpreter = new Interpreter();
+            JapaneseTranslator.PathToDictionary = Constants.Paths.ToConvertedDictionary;
+            JapaneseTranslator.PathToUnidic = Constants.Paths.ToUnidic;
+            JapaneseTranslator.Initialize();
+            interpreter.RegisterHandler(new TranslationCommandHandler(), "translation");
             commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
-            Writer.CreateInstance();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

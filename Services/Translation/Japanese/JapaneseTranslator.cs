@@ -7,7 +7,7 @@ using System.Text;
 namespace Maria.Translation.Japanese
 {
 
-    internal class JapaneseTranslator
+    public class JapaneseTranslator
     {
         private JapaneseAnalyzer analyzer;
         public static JapaneseTranslator? Instance { get; private set; }
