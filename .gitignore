@@ -4,7 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 Tests/
-Services/Data/
+*.bin
+*.dev.json
 
 # User-specific files
 *.rsuser
@@ -402,3 +403,4 @@ FodyWeavers.xsd
 Extension/vue.min.js
 Extension/Chromium/vue.min.js
 /Services/paths.dev.json
+/Services/Translation/EDRDG/JMdict_e.xml
