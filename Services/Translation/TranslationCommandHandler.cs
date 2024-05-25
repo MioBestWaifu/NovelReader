@@ -1,14 +1,10 @@
-﻿using Maria.Common.Communication.Commanding;
+﻿using Maria.Common.Communication;
+using Maria.Common.Communication.Commanding;
 using Maria.Translation.Japanese;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Maria.Translation
 {
-    internal class TranslationCommandHandler : ICommandHandler
+    public class TranslationCommandHandler : ICommandHandler
     {
         public async Task<string> HandleCommand(Command command)
         {
@@ -43,7 +39,7 @@ namespace Maria.Translation
                 case "translate":
                     return await Task.Run(() => JapaneseTranslator.Instance?.Translate(command));
                 case "create":
-                    JapaneseDictionaryCreator.CreateDictionary();
+                    //JapaneseDictionaryCreator.CreateDictionary();
                     return "Sucess";
                 default:
                     return $"{command.Action} translation not implemented as an action";

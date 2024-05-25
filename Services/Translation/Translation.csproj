@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Maria.Translation</RootNamespace>
+	<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,10 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MeCab.DotNet" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>

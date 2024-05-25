@@ -1,10 +1,5 @@
 ﻿using MessagePack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Maria.Translation.Japanese.Edrdg
@@ -13,8 +8,6 @@ namespace Maria.Translation.Japanese.Edrdg
     /// From the k_ele tag.
     /// </summary>
     /// 
-
-    //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
     [MessagePackObject]
     public class KanjiElement
     {
