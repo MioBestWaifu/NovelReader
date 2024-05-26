@@ -1,11 +1,7 @@
-﻿using Maria.Common.Communication.Commanding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Maria.Commons.Communication;
+using Maria.Commons.Communication.Commanding;
 
-namespace Maria.Services.Tracking
+namespace Maria.Tracking
 {
     internal class TrackingCommandHandler : ICommandHandler
     {
@@ -14,7 +10,7 @@ namespace Maria.Services.Tracking
         public async Task<string> HandleCommand(Command command)
         {
             int result;
-            switch(command.Submodule)
+            switch (command.Submodule)
             {
                 case "browser":
                     result = await new BrowserTracker().Process(command);
@@ -26,7 +22,7 @@ namespace Maria.Services.Tracking
                     return "Invalid action";
             }
 
-            switch(result)
+            switch (result)
             {
                 case 200:
                     return "Success";

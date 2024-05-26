@@ -1,20 +1,12 @@
-﻿using Maria.Services.Translation.Japanese.Edrdg;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml;
-using System.Text.Json;
-using Maria.Common.Communication;
 using MessagePack;
-using System.Globalization;
-using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
+using Maria.Translation.Japanese.Edrdg;
 
-namespace Maria.Services.Translation.Japanese
+namespace Maria.Translation.Japanese
 {
     /// <summary>
     /// Takes the EDRDG database and creates files with it to be read by Maria. It is not supposed to be run in the final product.
@@ -23,13 +15,13 @@ namespace Maria.Services.Translation.Japanese
     internal static class JapaneseDictionaryCreator
     {
 
-        private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict()
+        private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict(string pathToJmdict)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.MaxCharactersFromEntities = 0;
             settings.MaxCharactersInDocument = 0;
             settings.DtdProcessing = DtdProcessing.Parse;
-            XmlReader reader = XmlReader.Create(Constants.Paths.ToEdrdg+ "JMdict_e.xml", settings);
+            XmlReader reader = XmlReader.Create(pathToJmdict, settings);
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
             int argumentExisting = 0;
@@ -80,21 +72,21 @@ namespace Maria.Services.Translation.Japanese
         }
 
         //Yes, thats a lot of lists. No, it is not a better to use other structure. It represents file > content > index.
-        private static List<List<List<ConversionEntry>>> CreateHashes()
+        private static List<List<List<ConversionEntry>>> CreateHashes(string pathToJmdict)
         {
             List<List<List<ConversionEntry>>> jmdictiesBrokenByIndex = new List<List<List<ConversionEntry>>>();
 
-            ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict();
+            ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict(pathToJmdict);
 
             for (int i = 0; i < 256; i++)
             {
-                
+
                 jmdictiesBrokenByIndex.Add(new List<List<ConversionEntry>>());
-                for (int j = 0; j< 256; j++)
+                for (int j = 0; j < 256; j++)
                 {
                     jmdictiesBrokenByIndex[i].Add(new List<ConversionEntry>());
                 }
-               
+
             }
 
             int file = 0;
@@ -104,20 +96,21 @@ namespace Maria.Services.Translation.Japanese
                 byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
                 int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
 
-                jmdictiesBrokenByIndex[number / 256][number%256].Add(new ConversionEntry(entry.Key, entry.Value));
+                jmdictiesBrokenByIndex[number / 256][number % 256].Add(new ConversionEntry(entry.Key, entry.Value));
             }
 
             return jmdictiesBrokenByIndex;
         }
 
-        public static void CreateDictionary()
+        //pathToOutput should be a directory and expects a trailing slash. I should note, force and check this everywhere.
+        public static void CreateDictionary(string pathToJmdict, string pathToOutput)
         {
-            Directory.CreateDirectory(Constants.Paths.ToConvertedDictionary);
-            List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes();
+            Directory.CreateDirectory(pathToOutput);
+            List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes(pathToJmdict);
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);
-                File.WriteAllBytes($@"{Constants.Paths.ToConvertedDictionary}{i}.bin", jmdictMsgPack);
+                File.WriteAllBytes($@"{pathToOutput}{i}.bin", jmdictMsgPack);
             }
         }
     }

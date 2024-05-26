@@ -1,9 +1,14 @@
 # Version History and Roadmap
 This is a description of the major changes implemented in past versions, being implemented in the version under development, and planned for the future.
 
-## Current version: 0.5
+## Current version: 0.7
+- Build an Epub reader capable of handling japanese light novels in Readers.
+- Integrate said reader with Translation in NovelReader.
 
 ## Past versions
+### 0.6
+  - Reorganized the architecture into a three-tiered structure: Commons, Services, and Implementations.
+  - Created the Readers and NovelReader Implementations.
 
 ### 0.5
 - Translation storage and access optimized by using MessagePack

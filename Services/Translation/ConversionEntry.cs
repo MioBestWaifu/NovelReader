@@ -1,12 +1,7 @@
-﻿using Maria.Services.Translation.Japanese.Edrdg;
+﻿using Maria.Translation.Japanese.Edrdg;
 using MessagePack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Maria.Services.Translation
+namespace Maria.Translation
 {
     [MessagePackObject]
     public class ConversionEntry

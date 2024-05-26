@@ -1,37 +1,35 @@
-﻿using Maria.Common.Communication.Commanding;
-using Maria.Services.Recordkeeping;
-using Maria.Services.Recordkeeping.Records;
-using System;
-using System.Collections.Generic;
+﻿using Maria.Commons.Communication.Commanding;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Maria.Services.Tracking
+namespace Maria.Tracking
 {
-    internal class ProcessTracker : Tracker
+    public class ProcessTracker : Tracker
     {
         [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        private static extern nint GetForegroundWindow();
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int GetWindowText(IntPtr hWnd, IntPtr lpString, int nMaxCount);
+        private static extern int GetWindowText(nint hWnd, nint lpString, int nMaxCount);
 
         [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        private static extern uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
 
-        private static IntPtr previousForegroundWindow = IntPtr.Zero;
+        private static nint previousForegroundWindow = nint.Zero;
 
         private static Thread scannerThread;
 
-        public static ProcessTracker Instance { get { 
+        public static ProcessTracker Instance
+        {
+            get
+            {
                 return instance ??= new ProcessTracker();
-            } 
-            private set { 
+            }
+            private set
+            {
                 instance = value;
-            } }
+            }
+        }
 
         private static ProcessTracker instance;
 
@@ -40,10 +38,11 @@ namespace Maria.Services.Tracking
             //This is a singleton
         }
 
+        //Commented due to pending design decision on who should be responsible for saving the records
         public override async Task<int> Register(Command command)
         {
             //Duplicate code with BrowserTracker
-            try
+            /*try
             {
                 TrackingRecord record = new TrackingRecord();
                 //not always true, may be window, depends on the process
@@ -57,8 +56,8 @@ namespace Maria.Services.Tracking
             {
                 Console.WriteLine(e.Message);
                 return 500;
-            }
-
+            }*/
+            return 501;
         }
 
         public override bool Validate(Command command)
@@ -68,7 +67,7 @@ namespace Maria.Services.Tracking
 
         public void ScanAndRegister()
         {
-            IntPtr foregroundWindow = GetForegroundWindow();
+            nint foregroundWindow = GetForegroundWindow();
 
             if (foregroundWindow != previousForegroundWindow)
             {
@@ -83,14 +82,17 @@ namespace Maria.Services.Tracking
                     if (string.IsNullOrEmpty(title))
                     {
                         command.Options.Add("name", "workarea");
-                    } else
+                    }
+                    else
                     {
                         command.Options.Add("name", title);
                     }
-                } else if (processName == "applicationframehost")
+                }
+                else if (processName == "applicationframehost")
                 {
                     command.Options.Add("name", title);
-                } else
+                }
+                else
                 {
                     command.Options.Add("name", processName);
                 }
@@ -98,17 +100,17 @@ namespace Maria.Services.Tracking
             }
         }
 
-        private string GetWindowTitle(IntPtr hWnd)
+        private string GetWindowTitle(nint hWnd)
         {
             const int nChars = 256;
-            IntPtr buffer = Marshal.AllocHGlobal(nChars * 2); // 2 bytes per character for Unicode
+            nint buffer = Marshal.AllocHGlobal(nChars * 2); // 2 bytes per character for Unicode
             GetWindowText(hWnd, buffer, nChars);
             string title = Marshal.PtrToStringUni(buffer);
             Marshal.FreeHGlobal(buffer);
             return title;
         }
 
-        private string GetProcessName(IntPtr hWnd)
+        private string GetProcessName(nint hWnd)
         {
             GetWindowThreadProcessId(hWnd, out uint processId);
             Process process = System.Diagnostics.Process.GetProcessById((int)processId);

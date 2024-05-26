@@ -1,14 +1,6 @@
-﻿using Maria.Common.Communication.Commanding;
-using Maria.Services.Recordkeeping;
-using Maria.Services.Recordkeeping.Records;
-using MessagePack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Maria.Commons.Communication.Commanding;
 
-namespace Maria.Services.Tracking
+namespace Maria.Tracking
 {
     internal class BrowserTracker : Tracker
     {
@@ -18,11 +10,11 @@ namespace Maria.Services.Tracking
             Running = true;
         }
 
-
+        //Commented due to pending design decision on who should be responsible for saving the records
         public override async Task<int> Register(Command command)
         {
             //Duplicate code with ProcessTracker
-            try
+            /*try
             {
                 TrackingRecord record = new TrackingRecord();
                 //I should register all the options expected somewhere. Also, validate should check if they are there
@@ -42,11 +34,14 @@ namespace Maria.Services.Tracking
                 }
                 await Writer.Instance.AddBrowserRecord(record);
                 return 200;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 return 500;
-            }
+            }*/
+
+            return 501;
 
         }
 
@@ -55,9 +50,10 @@ namespace Maria.Services.Tracking
             return true;
         }
 
+        //Same as above
         public override void CreateMocks(Command command)
         {
-            int hour = Int32.Parse(command.Options["hour"]);
+            /*int hour = int.Parse(command.Options["hour"]);
             string[] possibleUrls = { "youtube.com", "facebook.com", "twitter.com", "twitch.tv" };
             List<TrackingRecord> records = new List<TrackingRecord>();
             Random random = new Random();
@@ -74,7 +70,7 @@ namespace Maria.Services.Tracking
             Directory.CreateDirectory($@"{Constants.Paths.ToTracking}\browser\{DateTime.Now.Year}\{DateTime.Now.Month}\{DateTime.Now.Day}");
 
             byte[] data = MessagePackSerializer.Serialize(records);
-            File.WriteAllBytes($@"{Constants.Paths.ToTracking}\browser\{DateTime.Now.Year}\{DateTime.Now.Month}\{DateTime.Now.Day}\{hour}-{random.Next(10)}.bin", data);
+            File.WriteAllBytes($@"{Constants.Paths.ToTracking}\browser\{DateTime.Now.Year}\{DateTime.Now.Month}\{DateTime.Now.Day}\{hour}-{random.Next(10)}.bin", data);*/
         }
     }
 }

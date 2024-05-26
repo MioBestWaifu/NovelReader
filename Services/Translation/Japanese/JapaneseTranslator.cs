@@ -1,34 +1,34 @@
-﻿using Maria.Common.Communication;
-using Maria.Common.Communication.Commanding;
-using Maria.Services.Translation.Japanese.Edrdg;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using Maria.Commons.Communication.Commanding;
+using Maria.Commons.Recordkeeping;
+using Maria.Translation.Japanese.Edrdg;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 
-namespace Maria.Services.Translation.Japanese
+namespace Maria.Translation.Japanese
 {
 
-    internal class JapaneseTranslator
+    public class JapaneseTranslator
     {
-        private static string pathToData = @"D:\Programs\Data\JMdict_e\";
         private JapaneseAnalyzer analyzer;
         public static JapaneseTranslator? Instance { get; private set; }
-        private JapaneseTranslator() { }
+        //Demands that this be set before starting to translate. Shall be rethinked or noted or warned as exception raised. Also, expects to be path to a folder with a trailing slash. Sould also be noted or checked.
+        public static string PathToDictionary { get { 
+                return pathToDictionary;
+            } set {
+                pathToDictionary = value;
+                JapaneseDictionaryLoader.pathToDictionary = value;
+            } 
+        }
+        private static string pathToDictionary;
+
+        //Same as above
+        public static string PathToUnidic { get; set; }
 
         public static void Initialize()
         {
             if (Instance != null)
                 throw new Exception("Already initialized"); //Should be a custom exception
-            Instance = new JapaneseTranslator();
-            Instance.analyzer = new JapaneseAnalyzer();
+            Instance.analyzer = new JapaneseAnalyzer(PathToUnidic);
         }
 
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
@@ -77,7 +77,7 @@ namespace Maria.Services.Translation.Japanese
                 }
             }
 
-            return JsonSerializer.Serialize(dictionaryEntries, CommandServer.jsonOptions);
+            return Serializer.SerializeToJson(dictionaryEntries);
         }
 
         public static void Dispose()

@@ -1,21 +1,16 @@
 ﻿using MeCab;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Maria.Services.Translation.Japanese
+namespace Maria.Translation.Japanese
 {
     internal class JapaneseAnalyzer
     {
-        MeCabTagger tagger;
+        readonly MeCabTagger tagger;
 
-        public JapaneseAnalyzer()
+        public JapaneseAnalyzer(string pathToUnidic)
         {
             //<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
             var parameter = new MeCabParam();
-            parameter.DicDir = Constants.Paths.ToUnidic;
+            parameter.DicDir = pathToUnidic;
             tagger = MeCabTagger.Create(parameter);
         }
 

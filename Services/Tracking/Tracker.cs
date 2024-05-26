@@ -1,13 +1,8 @@
-﻿using Maria.Common.Communication.Commanding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Maria.Commons.Communication.Commanding;
 
-namespace Maria.Services.Tracking
+namespace Maria.Tracking
 {
-    internal abstract class Tracker
+    public abstract class Tracker
     {
         public bool Running { get; protected set; }
 
@@ -55,7 +50,7 @@ namespace Maria.Services.Tracking
         public virtual void CreateMocks(Command command)
         {
             //Do nothing
-        }   
+        }
 
         public virtual void Start()
         {
