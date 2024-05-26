@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Common\Commons.csproj" />
     <ProjectReference Include="..\..\Services\Analysis\Analysis.csproj" />
     <ProjectReference Include="..\..\Services\Tracking\Tracking.csproj" />
     <ProjectReference Include="..\..\Services\Translation\Translation.csproj" />

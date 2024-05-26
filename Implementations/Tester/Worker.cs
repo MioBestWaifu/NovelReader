@@ -1,4 +1,4 @@
-using Maria.Common.Communication;
+using Maria.Commons.Communication;
 using Maria.Translation;
 using Maria.Translation.Japanese;
 

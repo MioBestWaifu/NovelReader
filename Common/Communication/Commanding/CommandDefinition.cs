@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Communication.Commanding
+namespace Maria.Commons.Communication.Commanding
 {
     public class CommandDefinition
     {

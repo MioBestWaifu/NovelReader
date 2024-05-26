@@ -1,5 +1,5 @@
-﻿using Maria.Common.Communication.Commanding;
-using Maria.Common.Recordkeeping;
+﻿using Maria.Commons.Communication.Commanding;
+using Maria.Commons.Recordkeeping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Communication
+namespace Maria.Commons.Communication
 {
     //This is also inadequate. The delegate should return a message. The server should be stoppable and resumable. 
     //It is not made for the finished application.

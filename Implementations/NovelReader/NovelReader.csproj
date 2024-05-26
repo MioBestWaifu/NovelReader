@@ -64,7 +64,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Common\Common.csproj" />
+      <ProjectReference Include="..\..\Common\Commons.csproj" />
       <ProjectReference Include="..\Readers\Readers.csproj" />
     </ItemGroup>
 

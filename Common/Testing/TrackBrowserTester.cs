@@ -1,12 +1,12 @@
-﻿using Maria.Common.Communication;
-using Maria.Common.Communication.Commanding;
+﻿using Maria.Commons.Communication;
+using Maria.Commons.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Testing
+namespace Maria.Commons.Testing
 {
     public class TrackBrowserTester
     {
@@ -32,7 +32,7 @@ namespace Maria.Common.Testing
             commandClient.SendCommand(command);
         }
 
-        public static async void Add(string url, string title,int amount, int startDelay = 0, int intervalInSeconds = 0)
+        public static async void Add(string url, string title, int amount, int startDelay = 0, int intervalInSeconds = 0)
         {
             Task.Delay(startDelay * 1000).Wait();
             CommandClient commandClient = new CommandClient();

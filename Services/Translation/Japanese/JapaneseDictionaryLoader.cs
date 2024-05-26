@@ -1,4 +1,4 @@
-﻿using Maria.Common.Recordkeeping;
+﻿using Maria.Commons.Recordkeeping;
 
 namespace Maria.Translation.Japanese
 {

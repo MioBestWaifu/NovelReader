@@ -1,4 +1,4 @@
-﻿using Maria.Common.Communication.Commanding;
+﻿using Maria.Commons.Communication.Commanding;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 

@@ -1,12 +1,12 @@
-﻿using Maria.Common.Communication;
-using Maria.Common.Communication.Commanding;
+﻿using Maria.Commons.Communication;
+using Maria.Commons.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Testing
+namespace Maria.Commons.Testing
 {
     public class TranslationTester
     {
@@ -32,7 +32,7 @@ namespace Maria.Common.Testing
             commandClient.SendCommand(command);
         }
 
-        public static void TranslateSamplesJp(int delayInSeconds = 10,int intervalInSeconds = 0)
+        public static void TranslateSamplesJp(int delayInSeconds = 10, int intervalInSeconds = 0)
         {
             Task.Delay(delayInSeconds * 1000).Wait();
             //The morphological analyzer is for whatever reason turning this into nemureru. Maybe its just it or its dictionary being shit.
@@ -67,6 +67,6 @@ namespace Maria.Common.Testing
             command.Module = "translation";
             command.Submodule = "jp";
             commandClient.SendCommand(command);
-        }   
+        }
     }
 }

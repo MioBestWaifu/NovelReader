@@ -1,12 +1,13 @@
 ﻿using MessagePack;
 using System.Text.Json;
 
-namespace Maria.Common.Recordkeeping
+namespace Maria.Commons.Recordkeeping
 {
     //Its purpose is to maintain uniform serialization across the various projects
     public static class Serializer
     {
-        public static JsonSerializerOptions JsonOptions { get; private set; } = new JsonSerializerOptions(){
+        public static JsonSerializerOptions JsonOptions { get; private set; } = new JsonSerializerOptions()
+        {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             IncludeFields = true

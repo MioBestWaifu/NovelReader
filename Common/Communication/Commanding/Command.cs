@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Communication.Commanding
+namespace Maria.Commons.Communication.Commanding
 {
     public class Command
     {

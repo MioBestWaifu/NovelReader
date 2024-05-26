@@ -1,5 +1,5 @@
-﻿using Maria.Common.Communication.Commanding;
-using Maria.Common.Recordkeeping;
+﻿using Maria.Commons.Communication.Commanding;
+using Maria.Commons.Recordkeeping;
 using Maria.Translation.Japanese.Edrdg;
 using System.Security.Cryptography;
 using System.Text;

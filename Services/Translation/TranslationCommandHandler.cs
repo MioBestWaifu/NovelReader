@@ -1,5 +1,5 @@
-﻿using Maria.Common.Communication;
-using Maria.Common.Communication.Commanding;
+﻿using Maria.Commons.Communication;
+using Maria.Commons.Communication.Commanding;
 using Maria.Translation.Japanese;
 
 namespace Maria.Translation

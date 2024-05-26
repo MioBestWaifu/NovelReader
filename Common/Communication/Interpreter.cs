@@ -1,6 +1,6 @@
-﻿using Maria.Common.Communication.Commanding;
+﻿using Maria.Commons.Communication.Commanding;
 
-namespace Maria.Common.Communication
+namespace Maria.Commons.Communication
 {
     public class Interpreter
     {

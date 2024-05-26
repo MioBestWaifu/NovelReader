@@ -7,7 +7,7 @@ This is a description of the major changes implemented in past versions, being i
 
 ## Past versions
 ### 0.6
-  - Reorganized the architecture into a three-tiered structure: Common, Services, and Implementations.
+  - Reorganized the architecture into a three-tiered structure: Commons, Services, and Implementations.
   - Created the Readers and NovelReader Implementations.
 
 ### 0.5

@@ -1,12 +1,12 @@
-﻿using Maria.Common.Communication;
-using Maria.Common.Communication.Commanding;
+﻿using Maria.Commons.Communication;
+using Maria.Commons.Communication.Commanding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Common.Testing
+namespace Maria.Commons.Testing
 {
     public class TrackProcessTester
     {

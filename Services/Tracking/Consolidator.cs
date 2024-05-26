@@ -1,5 +1,5 @@
-﻿using Maria.Common.Recordkeeping;
-namespace Maria.Tracking 
+﻿using Maria.Commons.Recordkeeping;
+namespace Maria.Tracking
 {
     public class Consolidator
     {
