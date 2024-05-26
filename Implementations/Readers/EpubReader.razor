@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using System.Diagnostics
+
+<div>
+    <InputFile OnChange="LoadEpub">  </InputFile>
+</div
+
+@if (chapters != null && chapters.Count > 0)
+{
+    <div>
+        <button @onclick="PreviousPage" disabled="@(!canGoBack)">Previous</button>
+        <button @onclick="NextPage" disabled="@(!canGoForward)">Next</button>
+    </div>
+    <div>
+        @if (currentChapterIndex >= 0 && currentChapterIndex < chapters.Count)
+        {
+            <div>@(new MarkupString(chapters[currentChapterIndex].Content))</div>
+        }
+    </div>
+}
+
+@code {
+    private List<EpubLocalTextContentFile> chapters;
+    private int currentChapterIndex = 0;
+    private bool canGoBack => currentChapterIndex > 0;
+    private bool canGoForward => currentChapterIndex < chapters.Count - 1;
+
+    private async Task LoadEpub(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        try
+        {
+            using (var stream = file.OpenReadStream(maxAllowedSize: 50000000))
+            {
+
+                byte[] buffer = new byte[1024];
+                await stream.ReadAsync(buffer, 0, buffer.Length);
+                Debug.WriteLine($"First 1024 bytes: {BitConverter.ToString(buffer)}");
+
+                var epubBook = await VersOne.Epub.EpubReader.ReadBookAsync(stream);
+                chapters = epubBook.ReadingOrder.ToList();
+                currentChapterIndex = 0;
+                StateHasChanged();
+
+            }
+        }catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            Debug.WriteLine(ex.StackTrace);
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (canGoBack)
+        {
+            currentChapterIndex--;
+            StateHasChanged();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (canGoForward)
+        {
+            currentChapterIndex++;
+            StateHasChanged();
+        }
+    }
+}
