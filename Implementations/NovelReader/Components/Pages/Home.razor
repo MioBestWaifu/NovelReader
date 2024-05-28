@@ -2,43 +2,8 @@
 @using System.Diagnostics
 @page "/"
 
-<button @onclick="Start">Start</button>
-<button @onclick="Translate">Translate</button>
 
 
 @code {
-    void Start()
-    {
-        try
-        {
-            JapaneseTranslator.PathToDictionary = @"D:\Programs\Maria-chan\Services\Translation\JMDict\";
-            JapaneseTranslator.PathToUnidic = @"D:\Programs\Data\Unidic";
-            JapaneseTranslator.Initialize();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-            Debug.WriteLine(ex.StackTrace);
-        }
-    }
-
-    void Translate()
-    {
-        try
-        {
-            string x = JapaneseTranslator.Instance.Translate(new Command()
-                {
-                    Options =
-            {
-                {"term","消えた"}
-            }
-                });
-            Debug.WriteLine(x);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-            Debug.WriteLine(ex.StackTrace);
-        }
-    }
+    
 }

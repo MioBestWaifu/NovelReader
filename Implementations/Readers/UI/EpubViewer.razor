@@ -1,0 +1,25 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using System.Diagnostics
+
+
+@code {
+    [Parameter]
+    public string PathToFile { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        Debug.WriteLine("PathToFile: " + PathToFile);
+
+        //Load the epub
+        //Format and translate
+            //Break the chpter into lines
+            //Break lines into sentences using common separators
+            //Break sentences into lexeme nodes using the Analyzer
+            //Translate significant nodes
+            //Join auxiliary nodes to the ones they are modifying
+            //Rebuild the lines and display them
+ 
+
+        return Task.CompletedTask;
+    }
+}
