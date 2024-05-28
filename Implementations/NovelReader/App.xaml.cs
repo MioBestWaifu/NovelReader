@@ -1,4 +1,6 @@
-﻿namespace Maria.NovelReader
+﻿using System.Diagnostics;
+
+namespace Maria.NovelReader
 {
     public partial class App : Application
     {
