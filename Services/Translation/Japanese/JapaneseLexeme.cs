@@ -1,7 +1,7 @@
 ﻿
 namespace Maria.Translation.Japanese
 {
-    internal class JapaneseLexeme
+    public class JapaneseLexeme
     {
         public string Surface { get; private set; }
         public string BaseForm { get; private set; }

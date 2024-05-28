@@ -2,7 +2,7 @@
 
 namespace Maria.Translation.Japanese
 {
-    internal class JapaneseAnalyzer
+    public class JapaneseAnalyzer
     {
         readonly MeCabTagger tagger;
 
@@ -58,6 +58,7 @@ namespace Maria.Translation.Japanese
                 "感動詞" => GrammaticalCategory.Interjection,
                 "記号" => GrammaticalCategory.Symbol,
                 "フィラー" => GrammaticalCategory.Filler,
+                "代名詞" => GrammaticalCategory.Pronoun,
                 "その他" => GrammaticalCategory.Other,
                 _ => GrammaticalCategory.Unknown,
             };

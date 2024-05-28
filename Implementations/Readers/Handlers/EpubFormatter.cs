@@ -1,7 +1,13 @@
-﻿using System;
+﻿using Maria.Commons.Recordkeeping;
+using Maria.Translation.Japanese;
+using Maria.Translation.Japanese.Edrdg;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -11,6 +17,14 @@ namespace Maria.Readers.Handlers
     //Also, thats a lot of stuff. Maybe it should be split into multiple classes.
     internal static class EpubFormatter
     {
+
+        //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
+        //include any other separators that might be missing
+        //Why two fields? Class regex as above is faste for regexing, list is faster for comparing.
+        private static readonly List<string> separatorsAsList = new List<string> { ",", "!", "?", "、", "。", "．", "「", "」", "『", "』", "…", "．", "！", "？", "：", "；", "（", "）", "(", ")", "'", "\"", "“", "”" };
+
+        private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
+
 
         public async static Task<string> FindStandardsFile(string originalXml)
         {
@@ -78,6 +92,61 @@ namespace Maria.Readers.Handlers
             string orginalXhtml = await new StreamReader(chapter.FileReference.Open()).ReadToEndAsync();
 
             List<string> lines = await BreakXhtmlToLines(orginalXhtml);
+
+            //Doing this to make parallel processing easier. The work done on the lines may be heavy, so it is necessary.
+            ConcurrentDictionary<int, string> indexedStringLines = new ConcurrentDictionary<int, string>();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                indexedStringLines.TryAdd(i, lines[i]);
+            }
+
+            ConcurrentDictionary<int, List<Node>> indexedNodeLines = new ConcurrentDictionary<int, List<Node>>();
+
+            Parallel.ForEach(indexedStringLines, (line) =>
+            {
+
+                //Breaking lines into sentences for smoother morphological analysis
+                string[] sentences = Regex.Split(line.Value, separatorsRegex);
+                List<Node> nodes = new List<Node>();
+                for (int i = 0, n = sentences.Length; i < n; i++)
+                {
+                    //Should never be zero, i think. If it happens, will cause a bug. Purposefully not cheking so it breaks if it happens.
+
+                    if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
+                    {
+                        //This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
+                        nodes.Add(new Node() { Text = sentences[i] });
+                        continue;
+                    }
+
+                    List<JapaneseLexeme> lexemes = JapaneseTranslator.Instance!.analyzer.Analyze(sentences[i]);
+                    foreach (var lexeme in lexemes)
+                    {
+                        Node node = new Node();
+                        node.Text = lexeme.Surface;
+                        nodes.Add(node);
+                        try
+                        {
+                            //Presumes will return only one entry because it already went through the Analyzer
+                            node.edrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(JapaneseTranslator.Instance!.Translate(lexeme.BaseForm))![0];
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
+                            Debug.WriteLine(e.Message);
+                        }
+                    }
+                }
+
+                indexedNodeLines.TryAdd(line.Key, nodes);
+            });
+
+            for (int i = 0; i < indexedNodeLines.Count; i++)
+            {
+                chapter.Lines.Add(indexedNodeLines[i]);
+            }
+
             return true;
         }
 
@@ -114,7 +183,7 @@ namespace Maria.Readers.Handlers
         private static string GetParagraphText(XElement paragraph, XNamespace xhtmlNs, XNamespace epubNs)
         {
             // Use a StringBuilder for efficiency
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             foreach (var node in paragraph.Nodes())
             {

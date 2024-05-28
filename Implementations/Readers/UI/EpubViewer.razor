@@ -1,4 +1,5 @@
 ﻿@using Maria.Readers.Handlers
+@using Maria.Translation.Japanese
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
 
@@ -8,6 +9,14 @@
     public string PathToFile { get; set; }
 
     private Epub? book;
+
+    protected override Task OnInitializedAsync()
+    {
+        JapaneseTranslator.PathToUnidic = "D:\\Programs\\Data\\Unidic";
+        JapaneseTranslator.PathToDictionary = "D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\";
+        JapaneseTranslator.Initialize();
+        return base.OnInitializedAsync();
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -47,6 +56,7 @@
 
     private async void LoadChapter(int chapter)
     {
+        //Formatter.Load does not seem like good naming
         await EpubFormatter.LoadChapter(book.TableOfContents[chapter].Item2);
     }
 }

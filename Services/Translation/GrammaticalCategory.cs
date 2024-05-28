@@ -1,8 +1,9 @@
 ﻿namespace Maria.Translation
 {
-    internal enum GrammaticalCategory
+    public enum GrammaticalCategory
     {
         Noun,
+        Pronoun,
         Verb,
         Adjective,
         Adverb,

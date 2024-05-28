@@ -9,7 +9,8 @@ namespace Maria.Translation.Japanese
 
     public class JapaneseTranslator
     {
-        private JapaneseAnalyzer analyzer;
+        //Lazy hack, should be a singleton
+        public JapaneseAnalyzer analyzer;
         public static JapaneseTranslator? Instance { get; private set; }
         //Demands that this be set before starting to translate. Shall be rethinked or noted or warned as exception raised. Also, expects to be path to a folder with a trailing slash. Sould also be noted or checked.
         public static string PathToDictionary { get { 
@@ -79,6 +80,14 @@ namespace Maria.Translation.Japanese
             }
 
             return Serializer.SerializeToJson(dictionaryEntries);
+        }
+
+        public string Translate(string term)
+        {
+            return Translate(new Command()
+            {
+                Options = { { "term", term } }
+            });    
         }
 
         public static void Dispose()
