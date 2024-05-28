@@ -13,6 +13,6 @@ namespace Maria.Readers.Handlers
         /// At translation time, the surface form of the node. After that, the surface form joined to nearby insignificant textual elements.
         /// </summary>
         public string Text { get; set; } = "";
-        public EdrdgEntry? edrdgEntry { get; set; }
+        public EdrdgEntry? EdrdgEntry { get; set; }
     }
 }

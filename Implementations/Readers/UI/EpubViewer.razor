@@ -1,20 +1,55 @@
 ﻿@using Maria.Readers.Handlers
 @using Maria.Translation.Japanese
+@using Maria.Translation.Japanese.Edrdg
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
 
+<div style="width:100vw">
+    @if (Book is not null)
+    {
+        <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
+        @foreach (List<Node> line in Book?.TableOfContents[CurrentChapter].Item2.Lines!)
+        {
+            <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
+                @foreach (Node node in line)
+                {
+                    <p @onclick="() => ShowPopup(node.EdrdgEntry)">@node.Text</p>
+                }
+            </div>
+        }
+    }
+</div>
 
+@if (showPopup)
+{
+    <div style="position:fixed;top:0;left:0">
+            <TranslationCard Entry="selectedEdrdgEntry" />
+            <button @onclick="ClosePopup">Close</button>
+    </div>
+}
 @code {
     [Parameter]
     public string PathToFile { get; set; }
 
-    private Epub? book;
+    private Epub? Book { get; set; } = null;
+
+    private int CurrentChapter { get; set; } = 0;
+
+    private bool showPopup = false;
+    private EdrdgEntry selectedEdrdgEntry;
 
     protected override Task OnInitializedAsync()
     {
         JapaneseTranslator.PathToUnidic = "D:\\Programs\\Data\\Unidic";
         JapaneseTranslator.PathToDictionary = "D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\";
-        JapaneseTranslator.Initialize();
+        try
+        {
+            JapaneseTranslator.Initialize();
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+        }
         return base.OnInitializedAsync();
     }
 
@@ -22,16 +57,9 @@
     {
         Debug.WriteLine("PathToFile: " + PathToFile);
 
-        book = await EpubLoader.LoadEpub(PathToFile);
-        LoadChapter(11);
-        //Load the epub
-        //Format and translate
-            //Break the chpter into lines
-            //Break lines into sentences using common separators
-            //Break sentences into lexeme nodes using the Analyzer
-            //Translate significant nodes
-            //Join auxiliary nodes to the ones they are modifying
-            //Rebuild the lines and display them
+        Book = await EpubLoader.LoadEpub(PathToFile);
+        await LoadChapter(11);
+        CurrentChapter = 11;
     }
 
     private void NextPage()
@@ -54,9 +82,26 @@
         //Move to the previous chapter
     }
 
-    private async void LoadChapter(int chapter)
+    private async Task LoadChapter(int chapter)
     {
         //Formatter.Load does not seem like good naming
-        await EpubFormatter.LoadChapter(book.TableOfContents[chapter].Item2);
+        await EpubFormatter.LoadChapter(Book.TableOfContents[chapter].Item2);
+    }
+
+    private void ShowPopup(EdrdgEntry edrdgEntry)
+    {
+        //Necessary because not everything has a translation for various reasons
+        if (edrdgEntry is null)
+        {
+            return;
+        }
+        selectedEdrdgEntry = edrdgEntry;
+        showPopup = true;
+    }
+
+    private void ClosePopup()
+    {
+        showPopup = false;
+        selectedEdrdgEntry = null;
     }
 }

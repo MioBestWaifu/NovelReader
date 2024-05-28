@@ -132,12 +132,35 @@ namespace Maria.Readers.Handlers
                             try
                             {
                                 //Presumes will return only one entry because it already went through the Analyzer
-                                node.edrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(JapaneseTranslator.Instance!.Translate(lexeme.BaseForm,true))![0];
+                                node.EdrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(JapaneseTranslator.Instance!.Translate(lexeme.BaseForm,true))![0];
                             }
                             catch (Exception e)
                             {
+                                /*
+                                 * One of the nodes that gets errored here is some hiragana MeCab turns into 踏ん反る. The JMDict
+                                 * does not contain an entry for that, and other EDRDG-based translators cannot find it either, so not my fault.
+                                 * Sometimes the same happens with other verbs written in hiragana that are found in ohter EDRDG-Based dictionaries, so that is my propably fault,
+                                 * most likely because the dictionary-building process only uses one key and is overall very faulty and simple.
+                                 * Also, there is a possibility that the Analyzer is fucking some things up by converting hiragana to kanji. 
+                                 * I do not understand fucks of Mecab inner workings, so it might actually do a good job of
+                                 * determining the correct kanjification when many kanji words have the same reading. But if it
+                                 * doesn't, then it may screw the translation over. Dont know what to do about it if true, 
+                                 * because even though it is the idea that at some point all possible keys to a word will be in the conversion table,
+                                 * it may be flexed even in hiragana and Mecab will be needed to deal with that. Maybe this is configurable but I dont know.
+                                 * 
+                                 * Another kind of common error is for weird ass fantasy names (testing this with Tensai Oujo to Tensei Reijou no Mahoukakumei) 
+                                 * and other things (mostly) written in katakana that the Translator cannot make sense of. It is not suposed to either.
+                                 * Those should: A) be inserted into the dictionary from a custom database or 
+                                 * B) be parsed to hiragana or C) be ignored.
+                                 * 
+                                 * There is also a weird one. Translator fails to find 私. Likely my shitty code to blame,
+                                 * but i could swear there would be an entry for it. Maybe the problem is that it is a
+                                 * one-kanji word and therefore better handled with Kanjidic than JMDict? Probably would help as well.
+                                 * 
+                                 * Anyways, not fixing any of that now, this version is intended for the display parts only.
+                                 * 
+                                 */
                                 Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
-                                Debug.WriteLine(e.Message);
                             }
                         }
                     }

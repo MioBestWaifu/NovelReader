@@ -1,0 +1,50 @@
+﻿@using Maria.Translation.Japanese
+@using Maria.Translation.Japanese.Edrdg
+@implements IDisposable
+
+<div class="mrx-card-wrapper card-body d-flex flex-column gap-3">
+    <p>This is the translation card</p>
+    <div class="mrx-kanjis">
+        <p class="mrx-no-margin-bottom">@kanjisJoined</p>
+    </div>
+    <div class="mrx-readings">
+        <p class="mrx-no-margin-bottom">@readingsJoined</p>
+    </div>
+    <div class="mrx-senses">
+        <ol class="list-unstyled">
+            @foreach (var (sense, index) in Entry.SenseElements.Select((value, i) => (value, i)))
+            {
+                <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
+            }
+        </ol>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EdrdgEntry Entry { get; set; }
+
+    private string kanjisJoined = string.Empty;
+    private string readingsJoined = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (Entry != null)
+        {
+            kanjisJoined = Entry.KanjiElements != null
+                ? string.Join(", ", Entry.KanjiElements.Select(k => k.Kanji))
+                : string.Empty;
+
+            readingsJoined = Entry.ReadingElements != null
+                ? string.Join(", ", Entry.ReadingElements.Select(r => r.Reading))
+                : string.Empty;
+        }
+    }
+
+    public void Dispose()
+    {
+        // Implement any necessary cleanup here
+    }
+}

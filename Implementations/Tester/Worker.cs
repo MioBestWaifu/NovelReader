@@ -25,7 +25,7 @@ namespace Maria.Tester
             {
                 Options =
                 {
-                    {"term","君が消えた" }
+                    {"term","踏ん反る" }
                 }
             }));
         }
