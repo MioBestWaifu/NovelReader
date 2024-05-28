@@ -1,4 +1,4 @@
-using Maria.Commons.Communication;
+﻿using Maria.Commons.Communication;
 using Maria.Translation;
 using Maria.Translation.Japanese;
 
@@ -19,8 +19,15 @@ namespace Maria.Tester
             JapaneseTranslator.PathToDictionary = Constants.Paths.ToConvertedDictionary;
             JapaneseTranslator.PathToUnidic = Constants.Paths.ToUnidic;
             JapaneseTranslator.Initialize();
-            interpreter.RegisterHandler(new TranslationCommandHandler(), "translation");
-            commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));
+            /*interpreter.RegisterHandler(new TranslationCommandHandler(), "translation");
+            commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));*/
+            Console.WriteLine(JapaneseTranslator.Instance.Translate(new Commons.Communication.Commanding.Command()
+            {
+                Options =
+                {
+                    {"term","君が消えた" }
+                }
+            }));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -1,13 +1,8 @@
 ﻿using Maria.Commons.Communication;
-using Maria.Services.Translation;
-using Maria.Services.Translation.Japanese;
+using Maria.Commons.Recordkeeping;
 using Maria.Translation.Japanese.Edrdg;
 using MessagePack;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Numerics;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace Maria.Tester.Experimentation
@@ -39,7 +34,7 @@ namespace Maria.Tester.Experimentation
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 string data = File.ReadAllText($"{pathToConvertedJmdict}{i}.json");
-                var x = JsonSerializer.Deserialize<List<EdrdgEntry>>(data, CommandServer.jsonOptions)!;
+                var x = Serializer.DeserializeJson<List<EdrdgEntry>>(data)!;
                 stopwatch.Stop();
                 times.Add(stopwatch.ElapsedMilliseconds);
             }

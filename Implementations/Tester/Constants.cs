@@ -1,4 +1,5 @@
 ﻿using Maria.Commons.Communication;
+using Maria.Commons.Recordkeeping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +17,11 @@ namespace Maria.Tester
         {
             if (isDevelopment)
             {
-                Paths = JsonSerializer.Deserialize<Paths>(File.ReadAllText("paths.dev.json"), CommandServer.jsonOptions)!;
+                Paths = Serializer.DeserializeJson<Paths>(File.ReadAllText("paths.dev.json"))!;
             }
             else
             {
-                Paths = JsonSerializer.Deserialize<Paths>(File.ReadAllText("paths.json"), CommandServer.jsonOptions)!;
+                Paths = Serializer.DeserializeJson<Paths>(File.ReadAllText("paths.json"))!;
             }
         }
     }
