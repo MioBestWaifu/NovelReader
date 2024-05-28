@@ -20,7 +20,7 @@ namespace Maria.Readers.Handlers
 
         //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
         //include any other separators that might be missing
-        //Why two fields? Class regex as above is faste for regexing, list is faster for comparing.
+        //Why two fields? Class regex as above is fast for regexing, list is faster for comparing.
         private static readonly List<string> separatorsAsList = new List<string> { ",", "!", "?", "、", "。", "．", "「", "」", "『", "』", "…", "．", "！", "？", "：", "；", "（", "）", "(", ")", "'", "\"", "“", "”" };
 
         private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
@@ -103,6 +103,7 @@ namespace Maria.Readers.Handlers
 
             ConcurrentDictionary<int, List<Node>> indexedNodeLines = new ConcurrentDictionary<int, List<Node>>();
 
+            //This is suposedly efficient because it distributes work well, but isn't really because the order of iteration is obviously random but the order the lines are ready is obviously important. One solution would be to use a regular for and create Tasks for each line, achieving parallelism and order. Will do that later.
             Parallel.ForEach(indexedStringLines, (line) =>
             {
 
@@ -111,7 +112,7 @@ namespace Maria.Readers.Handlers
                 List<Node> nodes = new List<Node>();
                 for (int i = 0, n = sentences.Length; i < n; i++)
                 {
-                    //Should never be zero, i think. If it happens, will cause a bug. Purposefully not cheking so it breaks if it happens.
+                    //Should never be zero, i think. If it happens, will cause a bug. Purposefully not checking to see if breaks.
 
                     if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
                     {
@@ -126,15 +127,18 @@ namespace Maria.Readers.Handlers
                         Node node = new Node();
                         node.Text = lexeme.Surface;
                         nodes.Add(node);
-                        try
+                        if (JapaneseAnalyzer.signicantCategories.Contains(lexeme.Category))
                         {
-                            //Presumes will return only one entry because it already went through the Analyzer
-                            node.edrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(JapaneseTranslator.Instance!.Translate(lexeme.BaseForm))![0];
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
-                            Debug.WriteLine(e.Message);
+                            try
+                            {
+                                //Presumes will return only one entry because it already went through the Analyzer
+                                node.edrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(JapaneseTranslator.Instance!.Translate(lexeme.BaseForm,true))![0];
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
+                                Debug.WriteLine(e.Message);
+                            }
                         }
                     }
                 }

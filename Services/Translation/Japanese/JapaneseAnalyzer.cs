@@ -6,6 +6,8 @@ namespace Maria.Translation.Japanese
     {
         readonly MeCabTagger tagger;
 
+        public static readonly GrammaticalCategory[] signicantCategories = { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb , GrammaticalCategory.Pronoun};
+
         public JapaneseAnalyzer(string pathToUnidic)
         {
             //<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>

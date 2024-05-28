@@ -36,7 +36,7 @@ namespace Maria.Translation.Japanese
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
         //command response interface and that will be done later.
         //No need to be async now, may be later.
-        public string Translate(Command command)
+        public string Translate(Command command, bool skipAnalyzer = false)
         {
             if (!command.Options.TryGetValue("term", out string term))
             {
@@ -58,15 +58,15 @@ namespace Maria.Translation.Japanese
             {
                 dictionaryEntries.Add(match.Value);
             }
-            else
+            //Because now Translator and Analyzer can be used separately. The correct thing to to is separe it entirel and make the manager run the analyzer if the above fails.
+            else if (!skipAnalyzer)
             {
                 List<JapaneseLexeme> lexemes = analyzer.Analyze(term);
-                GrammaticalCategory[] signicantCategories = { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb };
 
                 //These relations should be stored somewhere
                 //Also, this is not efficient. This block could be started in parallel from the previous one, and its results used
                 //if no mataches are found. Besides, it should be Parallel.ForEach.
-                foreach (var lexeme in lexemes.Where(x => signicantCategories.Contains(x.Category)))
+                foreach (var lexeme in lexemes.Where(x => JapaneseAnalyzer.signicantCategories.Contains(x.Category)))
                 {
                     termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(lexeme.BaseForm));
                     termIndex = BitConverter.ToUInt16(termHash, 0);
@@ -82,12 +82,12 @@ namespace Maria.Translation.Japanese
             return Serializer.SerializeToJson(dictionaryEntries);
         }
 
-        public string Translate(string term)
+        public string Translate(string term, bool skipAnalyzer = false)
         {
             return Translate(new Command()
             {
                 Options = { { "term", term } }
-            });    
+            }, skipAnalyzer);    
         }
 
         public static void Dispose()
