@@ -65,6 +65,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Commons\Commons.csproj" />
+      <ProjectReference Include="..\..\Services\Translation\Translation.csproj" />
       <ProjectReference Include="..\Readers\Readers.csproj" />
     </ItemGroup>
 

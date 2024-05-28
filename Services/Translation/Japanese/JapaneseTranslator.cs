@@ -28,6 +28,7 @@ namespace Maria.Translation.Japanese
         {
             if (Instance != null)
                 throw new Exception("Already initialized"); //Should be a custom exception
+            Instance = new JapaneseTranslator();
             Instance.analyzer = new JapaneseAnalyzer(PathToUnidic);
         }
 
