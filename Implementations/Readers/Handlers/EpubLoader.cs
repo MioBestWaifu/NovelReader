@@ -12,7 +12,7 @@ namespace Maria.Readers.Handlers
     {
         /// <summary>
         /// Does not actually load the content of the Epub, but rather references and indexes the files in a organized fashion.
-        /// The only contents that are loaded are the metadata of the table of contents.
+        /// The only contents that are loaded are the metadata and the table of contents.
         /// </summary>
         /// <param name="path"></param>
         public async static Task<Epub> LoadEpub(string path)

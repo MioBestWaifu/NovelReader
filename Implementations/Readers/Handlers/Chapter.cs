@@ -11,7 +11,7 @@ namespace Maria.Readers.Handlers
     {
         public string Title { get; set; } = "";
         public ZipArchiveEntry FileReference { get; private set; }
-
+        public List<List<Node>> Lines { get;} = [];
         public Chapter (ZipArchiveEntry fileReference)
         {
             FileReference = fileReference;

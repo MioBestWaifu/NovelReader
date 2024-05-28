@@ -7,12 +7,14 @@
     [Parameter]
     public string PathToFile { get; set; }
 
-    protected override Task OnParametersSetAsync()
+    private Epub? book;
+
+    protected override async Task OnParametersSetAsync()
     {
         Debug.WriteLine("PathToFile: " + PathToFile);
 
-        EpubLoader.LoadEpub(PathToFile);
-
+        book = await EpubLoader.LoadEpub(PathToFile);
+        LoadChapter(11);
         //Load the epub
         //Format and translate
             //Break the chpter into lines
@@ -21,8 +23,30 @@
             //Translate significant nodes
             //Join auxiliary nodes to the ones they are modifying
             //Rebuild the lines and display them
- 
+    }
 
-        return Task.CompletedTask;
+    private void NextPage()
+    {
+        //Move to the next page
+    }
+
+    private void PreviousPage()
+    {
+        //Move to the previous page
+    }
+
+    private void NextChapter()
+    {
+        //Move to the next chapter
+    }
+
+    private void PreviousChapter()
+    {
+        //Move to the previous chapter
+    }
+
+    private async void LoadChapter(int chapter)
+    {
+        await EpubFormatter.LoadChapter(book.TableOfContents[chapter].Item2);
     }
 }

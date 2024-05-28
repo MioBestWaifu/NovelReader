@@ -22,4 +22,9 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Commons\Commons.csproj" />
+    <ProjectReference Include="..\..\Services\Translation\Translation.csproj" />
+  </ItemGroup>
+
 </Project>
