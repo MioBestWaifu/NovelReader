@@ -173,7 +173,7 @@ namespace Maria.Readers.Handlers
             {
                 chapter.Lines.Add(indexedNodeLines[i]);
             }
-
+            chapter.Loaded = true;
             return true;
         }
 
