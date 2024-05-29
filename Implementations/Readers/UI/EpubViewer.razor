@@ -6,9 +6,9 @@
 @using Microsoft.JSInterop
 
 <!--Weird path because this is a library, it is suposed to be used in other projects and this is the way to access files in other projects, it does not get automatically sorted out-->
-<script src="_content/Readers/get-dimensions.js"></script>
+<script src="_content/Readers/interop.js"></script>
 
-<div style="width:100vw" @onclick="HandleClickOnContent">
+<div id="viewer" style="width:94vw;margin:auto" @onclick="HandleClickOnContent" @onkeydown="HandleKeyPress" tabindex="0">
     @if (Initialized)
     {
         <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
@@ -63,6 +63,7 @@
         }
         return base.OnInitializedAsync();
     }
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -192,6 +193,25 @@
         else
         {
             NextPage();
+        }
+        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically? 
+        StateHasChanged();
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        switch(e.Key)
+        {
+            case "Escape":
+                if(showPopup)
+                    ClosePopup();
+                break;
+            case "ArrowLeft":
+                PreviousPage();
+                break;
+            case "ArrowRight":
+                NextPage();
+                break;
         }
         //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically? 
         StateHasChanged();

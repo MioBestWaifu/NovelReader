@@ -5,6 +5,7 @@ This file is to register todo's, thoughts, plans, considerations and motivations
 
 1. ~~Turn these txts into MD's~~
 2. Register the Command API, noting the options available and expected from each command. 
+3. Make chapter loading in Readers sequential and dynamic, ie, parse and translate the lines in order and update the view every time a line is ready.
 
 ## LARGE DATASETS AND STORAGE
 

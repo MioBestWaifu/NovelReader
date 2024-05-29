@@ -5,3 +5,7 @@ window.getWindowWidth = function () {
 window.getWindowHeight = function () {
     return window.innerHeight;
 };
+
+window.setFocusToElement = function(id) {
+    document.getElementById(id).focus();
+}
