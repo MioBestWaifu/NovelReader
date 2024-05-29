@@ -17,7 +17,7 @@
             <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
                 @foreach (Node node in line)
                 {
-                    <p @onclick="() => ShowPopup(node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
+                    <p @onclick="e => ShowPopup(e,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
                 }
             </div>
         }
@@ -45,6 +45,9 @@
     private int CurrentPage { get; set; } = 0;
 
     private bool Initialized { get; set; } = false;
+
+    private double previousElementX = 0;
+    private double previousElementY = 0;
 
     private bool showPopup = false;
     private EdrdgEntry selectedEdrdgEntry;
@@ -165,7 +168,7 @@
         return pages;
     }
 
-    private void ShowPopup(EdrdgEntry edrdgEntry)
+    private async void ShowPopup(MouseEventArgs e,EdrdgEntry edrdgEntry)
     {
         //Necessary because not everything has a translation for various reasons
         if (edrdgEntry is null)
@@ -173,7 +176,14 @@
             return;
         }
         selectedEdrdgEntry = edrdgEntry;
+        if(showPopup)
+        {
+            await RemovePreviousElementBackgroundColor();
+        }
         showPopup = true;
+        await JS.InvokeVoidAsync("setElementBackgroundColor",e.ClientX,e.ClientY,"aquamarine");
+        previousElementX = e.ClientX;
+        previousElementY = e.ClientY;
     }
 
     private async void HandleClickOnContent(MouseEventArgs e)
@@ -198,6 +208,13 @@
         StateHasChanged();
     }
 
+    private async Task RemovePreviousElementBackgroundColor()
+    {
+        await JS.InvokeVoidAsync("removeElementBackgroundColor",previousElementX,previousElementY);
+        previousElementX = -1;
+        previousElementY = -1;
+    }
+
     private void HandleKeyPress(KeyboardEventArgs e)
     {
         switch(e.Key)
@@ -217,10 +234,11 @@
         StateHasChanged();
     }
 
-    private void ClosePopup()
+    private async void ClosePopup()
     {
         showPopup = false;
         selectedEdrdgEntry = null;
+        await RemovePreviousElementBackgroundColor();
     }
 
 }

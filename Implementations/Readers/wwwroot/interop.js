@@ -9,3 +9,11 @@ window.getWindowHeight = function () {
 window.setFocusToElement = function(id) {
     document.getElementById(id).focus();
 }
+
+window.setElementBackgroundColor = function (x, y, color) {
+    document.elementFromPoint(x, y).style.backgroundColor = color;
+}
+
+window.removeElementBackgroundColor = function (x, y) {
+    document.elementFromPoint(x, y).style.backgroundColor = '';
+}
