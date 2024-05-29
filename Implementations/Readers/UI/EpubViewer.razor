@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
 
-<div style="width:100vw">
+<div style="width:100vw" @onclick="HandleClickOnContent">
     @if (Book is not null)
     {
         <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
@@ -13,7 +13,7 @@
             <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
                 @foreach (Node node in line)
                 {
-                    <p @onclick="() => ShowPopup(node.EdrdgEntry)">@node.Text</p>
+                    <p @onclick="() => ShowPopup(node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
                 }
             </div>
         }
@@ -23,8 +23,7 @@
 @if (showPopup)
 {
     <div style="position:fixed;top:0;left:0">
-            <TranslationCard Entry="selectedEdrdgEntry" />
-            <button @onclick="ClosePopup">Close</button>
+            <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup"/>
     </div>
 }
 @code {
@@ -99,9 +98,21 @@
         showPopup = true;
     }
 
+    private void HandleClickOnContent(MouseEventArgs e)
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+            return;
+        }
+
+        //This will be used to move pages/chapters
+    }
+
     private void ClosePopup()
     {
         showPopup = false;
         selectedEdrdgEntry = null;
     }
+
 }

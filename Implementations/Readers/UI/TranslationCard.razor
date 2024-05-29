@@ -2,27 +2,33 @@
 @using Maria.Translation.Japanese.Edrdg
 @implements IDisposable
 
-<div class="mrx-card-wrapper card-body d-flex flex-column gap-3">
-    <p>This is the translation card</p>
-    <div class="mrx-kanjis">
-        <p class="mrx-no-margin-bottom">@kanjisJoined</p>
-    </div>
-    <div class="mrx-readings">
-        <p class="mrx-no-margin-bottom">@readingsJoined</p>
-    </div>
-    <div class="mrx-senses">
-        <ol class="list-unstyled">
-            @foreach (var (sense, index) in Entry.SenseElements.Select((value, i) => (value, i)))
-            {
-                <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
-            }
-        </ol>
+<div class="card" style="height:35vh;overflow-y:auto;max-width:40vw">
+    <div class="card-body d-flex flex-column gap-3">
+        <p>This is the translation card</p>
+        <div>
+            <p style="margin-bottom:0">@kanjisJoined</p>
+        </div>
+        <div>
+            <p style="margin-bottom:0">@readingsJoined</p>
+        </div>
+        <div>
+            <ol class="list-unstyled">
+                @foreach (var (sense, index) in Entry.SenseElements.Select((value, i) => (value, i)))
+                {
+                    <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
+                }
+            </ol>
+        </div>
+        <button @onclick="Close">Close</button>
     </div>
 </div>
 
 @code {
     [Parameter]
     public EdrdgEntry Entry { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
 
     private string kanjisJoined = string.Empty;
     private string readingsJoined = string.Empty;
@@ -41,6 +47,11 @@
                 ? string.Join(", ", Entry.ReadingElements.Select(r => r.Reading))
                 : string.Empty;
         }
+    }
+
+    public async void Close()
+    {
+        await OnClose.InvokeAsync();
     }
 
     public void Dispose()

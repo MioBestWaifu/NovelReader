@@ -69,6 +69,10 @@ h1:focus {
     display: none;
 }
 
+.top-row{
+    display: none !important;
+}
+
 @supports (-webkit-touch-callout: none) {
     .status-bar-safe-area {
         display: flex;
