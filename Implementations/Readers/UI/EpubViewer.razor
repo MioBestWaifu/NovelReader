@@ -61,16 +61,6 @@
 
     protected override Task OnInitializedAsync()
     {
-        JapaneseTranslator.PathToUnidic = "D:\\Programs\\Data\\Unidic";
-        JapaneseTranslator.PathToDictionary = "D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\";
-        try
-        {
-            JapaneseTranslator.Initialize();
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine(e.Message);
-        }
         Pages = [[[new Node()]]];
         Initialized = true;
         return base.OnInitializedAsync();

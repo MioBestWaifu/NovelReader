@@ -30,6 +30,9 @@ namespace Maria.Readers.Logic
 
         private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
 
+        //I think neither load anything on the construction, so no waste of memory.
+        private static JapaneseAnalyzer analyzer = new JapaneseAnalyzer("D:\\Programs\\Data\\Unidic");
+        private static JapaneseTranslator translator = new JapaneseTranslator("D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\");
 
         public async static Task<string> FindStandardsFile(string originalXml)
         {
@@ -144,6 +147,7 @@ namespace Maria.Readers.Logic
         }
         private static List<Node> ParseTextNode(XElement originalElement)
         {
+            
             string line = GetParagraphText(originalElement);
             if(line == string.Empty)
             {
@@ -163,7 +167,7 @@ namespace Maria.Readers.Logic
                     continue;
                 }
 
-                List<JapaneseLexeme> lexemes = JapaneseTranslator.Instance!.analyzer.Analyze(sentences[i]);
+                List<JapaneseLexeme> lexemes = analyzer.Analyze(sentences[i]);
                 foreach (var lexeme in lexemes)
                 {
                     TextNode node = new TextNode();
@@ -173,8 +177,8 @@ namespace Maria.Readers.Logic
                     {
                         try
                         {
-                            //Presumes will return only one entry because it already went through the Analyzer
-                            node.EdrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(JapaneseTranslator.Instance!.Translate(lexeme.BaseForm, true))![0];
+                            //Only one entry because i dont want to deal with multiple entries in the UI now.
+                            node.EdrdgEntry = Serializer.DeserializeJson<List<EdrdgEntry>>(translator.Translate(lexeme.BaseForm))![0];
                         }
                         catch (Exception e)
                         {

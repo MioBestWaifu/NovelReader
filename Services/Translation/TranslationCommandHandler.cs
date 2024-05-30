@@ -26,7 +26,7 @@ namespace Maria.Translation
                 case "start":
                     try
                     {
-                        await Task.Run(JapaneseTranslator.Initialize);
+                        //await Task.Run(JapaneseTranslator.Initialize);
                         return "Japanese translation started";
                     }
                     catch (Exception e)
@@ -34,10 +34,10 @@ namespace Maria.Translation
                         return $"Error starting Japanese translation: {e.Message}";
                     }
                 case "stop":
-                    JapaneseTranslator.Dispose();
+                    //JapaneseTranslator.Dispose();
                     return "Japanese translation stopped";
                 case "translate":
-                    return await Task.Run(() => JapaneseTranslator.Instance?.Translate(command));
+                    //return await Task.Run(() => JapaneseTranslator.Instance?.Translate(command));
                 case "create":
                     //JapaneseDictionaryCreator.CreateDictionary();
                     return "Sucess";

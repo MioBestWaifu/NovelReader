@@ -2,11 +2,16 @@
 
 namespace Maria.Translation.Japanese
 {
-    internal static class JapaneseDictionaryLoader
+    internal class JapaneseDictionaryLoader
     {
-        public static string pathToDictionary; 
+        private string pathToDictionary; 
+
+        public JapaneseDictionaryLoader(string pathToDictionary)
+        {
+            this.pathToDictionary = pathToDictionary;
+        }
         //Should determine the source (jmdict, names dict) once those other databases are implemented.
-        public static List<ConversionEntry> LoadPossibleEntries(int index)
+        public List<ConversionEntry> LoadPossibleEntries(int index)
         {
             int file = Math.DivRem(index, 256, out int offset);
             byte[] data = File.ReadAllBytes($"{pathToDictionary}{file}.bin");
