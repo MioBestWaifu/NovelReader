@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
 @using Microsoft.JSInterop
+@using System.Xml.Linq
 
 <!--Weird path because this is a library, it is suposed to be used in other projects and this is the way to access files in other projects, it does not get automatically sorted out-->
 <script src="_content/Readers/interop.js"></script>
@@ -12,18 +13,19 @@
         @foreach (List<Node> line in Pages[CurrentPage])
         {
             <!--Images are their own single-node line-->
-            @if(line[0] is TextNode){
-            <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
-                @foreach (TextNode node in line)
-                {
-                    <p @onclick="e => ShowPopup(e,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
-                }
-            </div>
-            } 
-            else
+            @if (line[0] is TextNode)
+            {
+                <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
+                    @foreach (TextNode node in line)
+                    {
+                        <p @onclick="e => ShowPopup(e,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
+                    }
+                </div>
+            }
+            else if (line[0] is ImageNode)
             {
                 ImageNode imageNode = (ImageNode)line[0];
-                <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") style="max-width:100%"/>
+                <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") style="max-width:100%" />
             }
         }
     }
@@ -32,7 +34,7 @@
 @if (showPopup)
 {
     <div style="position:fixed;top:0;left:0">
-            <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup"/>
+        <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
     </div>
 }
 @code {
@@ -69,6 +71,8 @@
         {
             Debug.WriteLine(e.Message);
         }
+        Pages = [[[new Node()]]];
+        Initialized = true;
         return base.OnInitializedAsync();
     }
 
@@ -79,14 +83,12 @@
 
         Book = await EpubLoader.LoadEpub(PathToFile);
         CurrentChapter = 11;
-        Task.Run(() => LoadChapter(11)).ContinueWith(t =>
-    {
-        InvokeAsync(() =>
+        Task.Run(async () =>
         {
-            Initialized = true;
-            StateHasChanged(); // Notify Blazor to re-render the component
+            //Await the interop file to load
+            await Task.Delay(3000);
+            await LoadChapter(11);
         });
-    });
     }
 
     private void NextPage()
@@ -124,7 +126,7 @@
 
     private void PreviousChapter()
     {
-        if(CurrentChapter>0)
+        if (CurrentChapter > 0)
         {
             CurrentChapter--;
             Task.Run(() => LoadChapter(CurrentChapter));
@@ -134,15 +136,64 @@
     private async Task LoadChapter(int index)
     {
         Chapter chapter = Book.TableOfContents[index].Item2;
+        CurrentPage = 0;
         if (!chapter.Loaded)
         {
-            //Formatter.Load does not seem like good naming
-            await EpubFormatter.LoadChapter(chapter);
+            List<XElement> lines = await EpubFormatter.BreakChapterToLines(chapter);
+            Pages = await PreparePages(lines);
+            for (int i = 0; i < lines.Count; i++)
+            {
+                int currentIndex = i; // Capture the current index
+                EpubFormatter.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                {
+                    Debug.WriteLine("Parsing line " + currentIndex);
+                    List<Node> line = parseLineTask.Result;
+                    PushLineToPages(currentIndex, line);
+                    InvokeAsync(() =>
+                    {
+                        StateHasChanged(); // Notify Blazor to re-render the component
+                    });
+                });
+            }
         }
 
-        Pages = await BreakChapterToPages(chapter);
-        CurrentPage = 0;
+        else
+        {
+            Pages = await BreakChapterToPages(chapter);
+        }
     }
+
+    private void PushLineToPages(int index, List<Node> line)
+    {
+        int linesPerPage = Pages[CurrentPage].Count;
+        int pageIndex = Math.DivRem(index, linesPerPage, out int lineIndex);
+        Pages[pageIndex][lineIndex] = line;
+    }
+    private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
+    {
+
+        int lineHeight = 30;
+        int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
+        int linesPerPage = windowHeight / lineHeight;
+
+        List<List<List<Node>>> pages = new List<List<List<Node>>>();
+
+        int totalLines = lines.Count;
+        int totalPages = (totalLines + linesPerPage - 1) / linesPerPage; // Calculate total pages
+
+        for (int i = 0; i < totalPages; i++)
+        {
+            List<List<Node>> page = new List<List<Node>>(linesPerPage); // Create a new page with linesPerPage lines
+            for (int j = 0; j < linesPerPage; j++)
+            {
+                page.Add([new Node(){}]); // Add an empty line to the page
+            }
+            pages.Add(page); // Add the page to the pages
+        }
+
+        return pages;
+    }
+
 
     private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
     {
@@ -173,7 +224,7 @@
         return pages;
     }
 
-    private async void ShowPopup(MouseEventArgs e,EdrdgEntry edrdgEntry)
+    private async void ShowPopup(MouseEventArgs e, EdrdgEntry edrdgEntry)
     {
         //Necessary because not everything has a translation for various reasons
         if (edrdgEntry is null)
@@ -181,12 +232,12 @@
             return;
         }
         selectedEdrdgEntry = edrdgEntry;
-        if(showPopup)
+        if (showPopup)
         {
             await RemovePreviousElementBackgroundColor();
         }
         showPopup = true;
-        await JS.InvokeVoidAsync("setElementBackgroundColor",e.ClientX,e.ClientY,"aquamarine");
+        await JS.InvokeVoidAsync("setElementBackgroundColor", e.ClientX, e.ClientY, "aquamarine");
         previousElementX = e.ClientX;
         previousElementY = e.ClientY;
     }
@@ -201,7 +252,7 @@
 
         int windowWidth = await JS.InvokeAsync<int>("getWindowHeight");
 
-        if (e.ClientX < windowWidth/2)
+        if (e.ClientX < windowWidth / 2)
         {
             PreviousPage();
         }
@@ -209,23 +260,23 @@
         {
             NextPage();
         }
-        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically? 
+        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
         StateHasChanged();
     }
 
     private async Task RemovePreviousElementBackgroundColor()
     {
-        await JS.InvokeVoidAsync("removeElementBackgroundColor",previousElementX,previousElementY);
+        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementX, previousElementY);
         previousElementX = -1;
         previousElementY = -1;
     }
 
     private void HandleKeyPress(KeyboardEventArgs e)
     {
-        switch(e.Key)
+        switch (e.Key)
         {
             case "Escape":
-                if(showPopup)
+                if (showPopup)
                     ClosePopup();
                 break;
             case "ArrowLeft":
@@ -235,7 +286,7 @@
                 NextPage();
                 break;
         }
-        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically? 
+        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
         StateHasChanged();
     }
 

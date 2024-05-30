@@ -131,6 +131,17 @@ namespace Maria.Readers.Logic
             return true;
         }
 
+        public static Task<List<Node>> ParseLine(Chapter chapter,XElement line)
+        {
+            if (line.Name == xhtmlNs + "p")
+            {
+                return Task.FromResult(ParseTextNode(line));
+            }
+            else //(line.Name == xhtmlNs + "img")
+            {
+                return Task.FromResult(ParseImageNode(chapter, line));
+            }
+        }
         private static List<Node> ParseTextNode(XElement originalElement)
         {
             string line = GetParagraphText(originalElement);
@@ -191,7 +202,7 @@ namespace Maria.Readers.Logic
                              * Anyways, not fixing any of that now, this version is intended for the display parts only.
                              * 
                              */
-                            Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
+                            //Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
                         }
                     }
                 }
@@ -228,6 +239,13 @@ namespace Maria.Readers.Logic
             List<XElement> lines = doc.Descendants().Where(n => n.Name == xhtmlNs + "p" || n.Name == xhtmlNs + "img").ToList();
 
             return Task.FromResult(lines);
+        }
+
+        public static async Task<List<XElement>> BreakChapterToLines(Chapter chapter)
+        {
+            string orginalXhtml = await new StreamReader(chapter.FileReference.Open()).ReadToEndAsync();
+
+            return await BreakXhtmlToLines(orginalXhtml);
         }
 
         private static string GetParagraphText(XElement paragraph)
