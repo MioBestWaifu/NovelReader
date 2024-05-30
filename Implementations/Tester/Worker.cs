@@ -16,7 +16,16 @@ namespace Maria.Tester
             Constants.Initialize(environment.IsDevelopment());
             commandServer = new CommandServer();
             interpreter = new Interpreter();
-            new JapaneseTranslator("D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\").Translate("私");
+            //new JapaneseTranslator("D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\");
+            JapaneseAnalyzer analyzer = new JapaneseAnalyzer("D:\\Programs\\Data\\Unidic");
+            analyzer.Analyze("高い");
+            analyzer.Analyze("速く");
+            analyzer.Analyze("そして");
+            analyzer.Analyze("が");
+            analyzer.Analyze("です");
+            analyzer.Analyze("ああ");
+            analyzer.Analyze("ええと");
+            analyzer.Analyze("こんにちは");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

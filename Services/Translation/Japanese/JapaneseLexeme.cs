@@ -7,11 +7,23 @@ namespace Maria.Translation.Japanese
         public string BaseForm { get; private set; }
         public GrammaticalCategory Category { get; private set; }
 
-        public JapaneseLexeme(string surface, string category, string baseForm)
+        public JapaneseLexeme(string surface, string[] features)
         {
             Surface = surface;
-            BaseForm = baseForm;
-            Category = JapaneseAnalyzer.ParseToCategory(category);
+            Category = JapaneseAnalyzer.ParseToCategory(features[0]);
+            switch (Category)
+            {
+                case GrammaticalCategory.Noun:
+                    BaseForm = features[8];
+                    break;
+                case GrammaticalCategory.Pronoun:
+                    BaseForm = features[8];
+                    break;
+                    //Not sure this works 100% of the cases
+                default:
+                    BaseForm = features[7];
+                    break;
+            }
         }
     }
 }

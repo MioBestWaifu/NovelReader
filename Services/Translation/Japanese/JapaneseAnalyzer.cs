@@ -33,7 +33,7 @@ namespace Maria.Translation.Japanese
                     try
                     {
                         //Some interesting thins are being ignored here. Like, it says the conjugation form and type.
-                        var lexeme = new JapaneseLexeme(node.Surface, features[0], features[7]);
+                        var lexeme = new JapaneseLexeme(node.Surface, features);
                         lexemes.Add(lexeme);
                     }
                     catch (Exception e)
