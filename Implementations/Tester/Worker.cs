@@ -16,18 +16,7 @@ namespace Maria.Tester
             Constants.Initialize(environment.IsDevelopment());
             commandServer = new CommandServer();
             interpreter = new Interpreter();
-            JapaneseTranslator.PathToDictionary = Constants.Paths.ToConvertedDictionary;
-            JapaneseTranslator.PathToUnidic = Constants.Paths.ToUnidic;
-            JapaneseTranslator.Initialize();
-            /*interpreter.RegisterHandler(new TranslationCommandHandler(), "translation");
-            commandServer.OnCommandReceived += (command) => Task.Run(() => interpreter.ProcessCommand(command));*/
-            Console.WriteLine(JapaneseTranslator.Instance.Translate(new Commons.Communication.Commanding.Command()
-            {
-                Options =
-                {
-                    {"term","踏ん反る" }
-                }
-            }));
+            new JapaneseTranslator("D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\").Translate("私");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

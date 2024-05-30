@@ -206,7 +206,7 @@ namespace Maria.Readers.Logic
                              * Anyways, not fixing any of that now, this version is intended for the display parts only.
                              * 
                              */
-                            //Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
+                            Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
                         }
                     }
                 }

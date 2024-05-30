@@ -10,8 +10,10 @@
     @if (Initialized)
     {
         <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
-        @foreach (List<Node> line in Pages[CurrentPage])
+        <!--Not a foreach because the dynamic modifications in loading would break it-->
+        @for (int i = 0; i < Pages[CurrentPage].Count; i++)
         {
+            var line  = Pages[CurrentPage][i];
             <!--Images are their own single-node line-->
             @if (line[0] is TextNode)
             {
@@ -61,8 +63,6 @@
 
     protected override Task OnInitializedAsync()
     {
-        Pages = [[[new Node()]]];
-        Initialized = true;
         return base.OnInitializedAsync();
     }
 
@@ -131,6 +131,11 @@
         {
             List<XElement> lines = await EpubFormatter.BreakChapterToLines(chapter);
             Pages = await PreparePages(lines);
+            //For the first loading
+            if (!Initialized)
+            {
+                Initialized = true;
+            }
             for (int i = 0; i < lines.Count; i++)
             {
                 int currentIndex = i; // Capture the current index
