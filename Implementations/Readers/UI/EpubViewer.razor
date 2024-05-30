@@ -1,7 +1,4 @@
-﻿@using Maria.Readers.Handlers
-@using Maria.Translation.Japanese
-@using Maria.Translation.Japanese.Edrdg
-@using Microsoft.AspNetCore.Components.Forms
+﻿@using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
 @using Microsoft.JSInterop
 
@@ -14,12 +11,20 @@
         <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
         @foreach (List<Node> line in Pages[CurrentPage])
         {
+            <!--Images are their own single-node line-->
+            @if(line[0] is TextNode){
             <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
-                @foreach (Node node in line)
+                @foreach (TextNode node in line)
                 {
                     <p @onclick="e => ShowPopup(e,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
                 }
             </div>
+            } 
+            else
+            {
+                ImageNode imageNode = (ImageNode)line[0];
+                <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") style="max-width:100%"/>
+            }
         }
     }
 </div>

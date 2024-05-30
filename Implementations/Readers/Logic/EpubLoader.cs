@@ -5,8 +5,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Maria.Readers.Logic.Structure;
 
-namespace Maria.Readers.Handlers
+namespace Maria.Readers.Logic
 {
     internal static class EpubLoader
     {
@@ -29,12 +30,12 @@ namespace Maria.Readers.Handlers
             }
 
             string containerXml = await new StreamReader(namedEntries["META-INF/container.xml"].Open()).ReadToEndAsync();
-            
+
             string standardOpfPath = await EpubFormatter.FindStandardsFile(containerXml);
             string standardOpf = await new StreamReader(namedEntries[standardOpfPath].Open()).ReadToEndAsync();
             string standardOpfFolderPath = string.Join("/", standardOpfPath.Split('/').Reverse().Skip(1).Reverse());
 
-            List<string> contentPaths = EpubFormatter.ListChapters(standardOpfFolderPath,standardOpf);
+            List<string> contentPaths = EpubFormatter.ListChapters(standardOpfFolderPath, standardOpf);
 
             foreach (string itemPath in contentPaths)
             {

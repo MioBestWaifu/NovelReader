@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maria.Readers.Handlers
+namespace Maria.Readers.Logic.Structure
 {
-    internal class Page
+    internal class ImageNode : Node
     {
+        public string Type { get; set; } = "";
     }
 }
