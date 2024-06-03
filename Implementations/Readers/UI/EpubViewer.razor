@@ -66,18 +66,17 @@
         return base.OnInitializedAsync();
     }
 
-
     protected override async Task OnParametersSetAsync()
     {
         Debug.WriteLine("PathToFile: " + PathToFile);
 
         Book = await EpubLoader.LoadEpub(PathToFile);
-        CurrentChapter = 11;
+        CurrentChapter = 2;
         Task.Run(async () =>
         {
             //Await the interop file to load
             await Task.Delay(3000);
-            await LoadChapter(11);
+            await LoadChapter(CurrentChapter);
         });
     }
 

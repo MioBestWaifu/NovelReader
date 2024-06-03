@@ -33,14 +33,12 @@ namespace Maria.Readers.Logic
 
             string standardOpfPath = await EpubFormatter.FindStandardsFile(containerXml);
             string standardOpf = await new StreamReader(namedEntries[standardOpfPath].Open()).ReadToEndAsync();
-            string standardOpfFolderPath = string.Join("/", standardOpfPath.Split('/').Reverse().Skip(1).Reverse());
 
-            List<string> contentPaths = EpubFormatter.ListChapters(standardOpfFolderPath, standardOpf);
+            List<(string, ZipArchiveEntry)> contents = EpubFormatter.ListChapters(namedEntries[standardOpfPath], standardOpf);
 
-            foreach (string itemPath in contentPaths)
+            foreach (var pair in contents)
             {
-                ZipArchiveEntry entry = namedEntries[itemPath];
-                epub.TableOfContents.Add((itemPath, new Chapter(entry)));
+                epub.TableOfContents.Add((pair.Item1, new Chapter(pair.Item2)));
             }
 
             return epub;

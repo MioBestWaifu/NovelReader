@@ -23,6 +23,8 @@ namespace Maria.Readers.Logic
 
         private static XNamespace xhtmlNs = "http://www.w3.org/1999/xhtml";
         private static XNamespace epubNs = "http://www.idpf.org/2007/ops";
+        private static XNamespace opfNs = "http://www.idpf.org/2007/opf";
+        private static XNamespace ncxNs = "http://www.daisy.org/z3986/2005/ncx/";
         //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
         //include any other separators that might be missing
         //Why two fields? Class regex as above is fast for regexing, list is faster for comparing.
@@ -52,17 +54,149 @@ namespace Maria.Readers.Logic
         }
 
 
-        public static List<string> ListChapters(string pathToStandards, string originalXml)
+        public static List<(string, ZipArchiveEntry)> ListChapters(ZipArchiveEntry standardsEntry, string standardsXml)
         {
-            // Parse the original XHTML content as an XML document
-            XDocument doc = XDocument.Parse(originalXml);
+            XDocument doc = XDocument.Parse(standardsXml);
 
+            // Get the package element
+            XElement packageElement = doc.Root;
+
+            XAttribute versionAttribute = packageElement.Attribute("version");
+
+            string version = versionAttribute?.Value;
+
+            try
+            {
+                if (version == "3.0")
+                {
+                    return ListChaptersFromNav(standardsEntry,doc);
+                }
+                else if (version == "2.0")
+                {
+                    return ListChaptersFromToc(standardsEntry);
+                }
+                else
+                {
+                    throw new Exception("Unsupported EPUB version");
+                }
+            }
+            //The Zip access does not throw a exception if the file is not found, the ListChapters methods do.
+            //This should happen if the for whatever reason there is no nav or toc file, or it is not found.
+            catch (FileNotFoundException e)
+            {
+                return ListChaptersFromSpine(standardsEntry, doc);
+            }
+        }
+
+
+        //For EPUB 3 
+        private static List<(string, ZipArchiveEntry)> ListChaptersFromNav(ZipArchiveEntry standardsEntry, XDocument standardsDoc)
+        {
+            // Get the manifest element using the namespace
+            XElement manifest = standardsDoc.Root.Element(opfNs + "manifest");
+
+            // Find the item with properties="nav"
+            XElement navItem = manifest.Elements(opfNs + "item")
+                .FirstOrDefault(item => (string)item.Attribute("properties") == "nav");
+
+            // Get the href attribute of the nav item
+            string navPath = navItem?.Attribute("href")?.Value;
+
+            ZipArchiveEntry navEntry = Utils.GetRelativeEntry(standardsEntry, navPath);
+
+            if (navEntry is null)
+            {
+                throw new FileNotFoundException("Nav file not found");
+            }
+
+            //Because the read has to be async and i dont want to make this method async
+            var navTask = new StreamReader(navEntry.Open()).ReadToEndAsync();
+            navTask.Wait();
+            string navXml = navTask.Result;
+
+            //ns = "http://www.w3.org/1999/xhtml";
+            XDocument navDoc = XDocument.Parse(navXml);
+            List<(string, ZipArchiveEntry)> contents = new List<(string, ZipArchiveEntry)>();
+
+            // Get the nav element with epub:type="toc"
+            XElement tocNav = navDoc.Descendants(xhtmlNs + "nav")
+                .FirstOrDefault(nav => (string)nav.Attribute(epubNs + "type") == "toc");
+
+            // Get the ol element within the nav
+            XElement ol = tocNav?.Element(xhtmlNs + "ol");
+
+            // Get all li elements within the ol
+            IEnumerable<XElement> lis = ol?.Elements(xhtmlNs + "li");
+
+            // For each li, get the href and text of the a element
+            foreach (XElement li in lis)
+            {
+                XElement a = li.Element(xhtmlNs + "a");
+                string href = a?.Attribute("href")?.Value;
+                //The split is because the href in the nav file may contain a fragment identifier
+                ZipArchiveEntry entry = Utils.GetRelativeEntry(navEntry, href.Split('#')[0]);
+                string text = a?.Value;
+                contents.Add((text, entry));
+            }
+
+            return contents;
+
+        }
+        //For EPUB 2
+        //untested
+        private static List<(string, ZipArchiveEntry)> ListChaptersFromToc(ZipArchiveEntry standardsEntry)
+        {
+
+            // Get the toc.ncx entry
+            ZipArchiveEntry tocNcxEntry = Utils.GetRelativeEntry(standardsEntry, "toc.ncx");
+
+            if (tocNcxEntry is null)
+            {
+                throw new FileNotFoundException("toc.ncx file not found");
+            }
+
+            // Read the toc.ncx content
+            var tocNcxTask = new StreamReader(tocNcxEntry.Open()).ReadToEndAsync();
+            tocNcxTask.Wait();
+            string tocNcxXml = tocNcxTask.Result;
+
+            // Parse the toc.ncx content as an XML document
+            XDocument tocNcxDoc = XDocument.Parse(tocNcxXml);
+
+            // Get the navMap element
+            XElement navMap = tocNcxDoc.Root.Element(ncxNs + "navMap");
+
+            // Get all navPoint elements
+            IEnumerable<XElement> navPoints = navMap.Elements(ncxNs + "navPoint");
+
+            // Initialize the list of chapters
+            List<(string, ZipArchiveEntry)> chapters = new List<(string, ZipArchiveEntry)>();
+
+            // For each navPoint, get the text and content src
+            foreach (XElement navPoint in navPoints)
+            {
+                string text = navPoint.Element(ncxNs + "navLabel").Element(ncxNs + "text").Value;
+                string src = navPoint.Element(ncxNs + "content").Attribute("src").Value;
+
+                // Get the ZipArchiveEntry for the chapter file
+                ZipArchiveEntry entry = Utils.GetRelativeEntry(standardsEntry, src);
+
+                // Add the chapter to the list
+                chapters.Add((text, entry));
+            }
+
+            return chapters;
+        }
+
+        //Fallback
+        private static List<(string, ZipArchiveEntry)> ListChaptersFromSpine(ZipArchiveEntry standardsEntry, XDocument standardsDoc)
+        {
             // Define the OPF namespace
             XNamespace ns = "http://www.idpf.org/2007/opf";
 
             // Get the manifest and spine elements using the namespace
-            XElement manifest = doc.Root.Element(ns + "manifest");
-            XElement spine = doc.Root.Element(ns + "spine");
+            XElement manifest = standardsDoc.Root.Element(ns + "manifest");
+            XElement spine = standardsDoc.Root.Element(ns + "spine");
 
             // Get all itemrefs in the spine
             var itemrefs = spine.Elements(ns + "itemref");
@@ -75,18 +209,19 @@ namespace Maria.Readers.Logic
                 );
 
             // Collect hrefs of the items in the spine
-            List<string> contentPaths = new List<string>();
+            List<(string,ZipArchiveEntry)> contents = new List<(string,ZipArchiveEntry)>();
             foreach (var itemref in itemrefs)
             {
                 string idref = itemref.Attribute("idref").Value;
                 if (manifestItems.TryGetValue(idref, out string href))
                 {
                     //Presumes the contents are in the same directory as the standards file. Are they always? Dont know. If it is found that often they wont be, then more elaborate work is needed.
-                    contentPaths.Add(pathToStandards + "/" + href);
+                    ZipArchiveEntry entry = Utils.GetRelativeEntry(standardsEntry, href);
+                    contents.Add((entry.FullName,entry));
                 }
             }
 
-            return contentPaths;
+            return contents;
         }
 
         /// <summary>
