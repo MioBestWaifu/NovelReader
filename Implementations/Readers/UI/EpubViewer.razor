@@ -13,7 +13,7 @@
         <!--Not a foreach because the dynamic modifications in loading would break it-->
         @for (int i = 0; i < Pages[CurrentPage].Count; i++)
         {
-            var line  = Pages[CurrentPage][i];
+            var line = Pages[CurrentPage][i];
             <!--Images are their own single-node line-->
             @if (line[0] is TextNode)
             {
@@ -71,12 +71,13 @@
         Debug.WriteLine("PathToFile: " + PathToFile);
 
         Book = await EpubLoader.LoadEpub(PathToFile);
-        CurrentChapter = 2;
+        CurrentChapter = 1;
         Task.Run(async () =>
         {
             //Await the interop file to load
             await Task.Delay(3000);
             await LoadChapter(CurrentChapter);
+
         });
     }
 
@@ -126,34 +127,53 @@
     {
         Chapter chapter = Book.TableOfContents[index].Item2;
         CurrentPage = 0;
-        if (!chapter.Loaded)
+        //To keep track of if the user went to another chapter while the current one was loading
+        int thisTaskChapterIndex = CurrentChapter;
+        List<Task> children = new List<Task>();
+
+        if (chapter.LoadStatus == LoadingStatus.Unloaded)
         {
             List<XElement> lines = await EpubFormatter.BreakChapterToLines(chapter);
             Pages = await PreparePages(lines);
+            chapter.PrepareLines(lines.Count);
             //For the first loading
             if (!Initialized)
             {
                 Initialized = true;
             }
+            chapter.LoadStatus = LoadingStatus.Loading;
             for (int i = 0; i < lines.Count; i++)
             {
                 int currentIndex = i; // Capture the current index
-                EpubFormatter.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                children.Add(EpubFormatter.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
                 {
                     Debug.WriteLine("Parsing line " + currentIndex);
                     List<Node> line = parseLineTask.Result;
-                    PushLineToPages(currentIndex, line);
-                    InvokeAsync(() =>
+                    chapter.PushLineToIndex(currentIndex, line);
+                    if (thisTaskChapterIndex == CurrentChapter)
                     {
-                        StateHasChanged(); // Notify Blazor to re-render the component
-                    });
-                });
+                        PushLineToPages(currentIndex, line);
+                        InvokeAsync(() =>
+                        {
+                            StateHasChanged();
+                        });
+                    }
+                }));
             }
+
+            Task.WhenAll(children).ContinueWith(t =>
+            {
+                chapter.LoadStatus = LoadingStatus.Loaded;
+            });
         }
 
         else
         {
             Pages = await BreakChapterToPages(chapter);
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
         }
     }
 
@@ -163,6 +183,7 @@
         int pageIndex = Math.DivRem(index, linesPerPage, out int lineIndex);
         Pages[pageIndex][lineIndex] = line;
     }
+
     private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
     {
 
@@ -180,7 +201,7 @@
             List<List<Node>> page = new List<List<Node>>(linesPerPage); // Create a new page with linesPerPage lines
             for (int j = 0; j < linesPerPage; j++)
             {
-                page.Add([new Node(){}]); // Add an empty line to the page
+                page.Add([new Node() { }]); // Add an empty line to the page
             }
             pages.Add(page); // Add the page to the pages
         }

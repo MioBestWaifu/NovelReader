@@ -265,7 +265,7 @@ namespace Maria.Readers.Logic
                 chapter.Lines.Add(indexedNodeLines[i]);
             }
             //await Task.Delay(10000);
-            chapter.Loaded = true;
+            chapter.LoadStatus = LoadingStatus.Loaded;
             return true;
         }
 
@@ -333,10 +333,6 @@ namespace Maria.Readers.Logic
                              * and other things (mostly) written in katakana that the Translator cannot make sense of. It is not suposed to either.
                              * Those should: A) be inserted into the dictionary from a custom database or 
                              * B) be parsed to hiragana or C) be ignored.
-                             * 
-                             * There is also a weird one. Translator fails to find 私. Likely my shitty code to blame,
-                             * but i could swear there would be an entry for it. Maybe the problem is that it is a
-                             * one-kanji word and therefore better handled with Kanjidic than JMDict? Probably would help as well.
                              * 
                              * Anyways, not fixing any of that now, this version is intended for the display parts only.
                              * 
