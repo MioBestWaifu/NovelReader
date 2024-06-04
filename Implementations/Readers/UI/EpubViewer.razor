@@ -42,6 +42,7 @@
 @code {
     [Inject]
     private IJSRuntime JS { get; set; }
+    private DotNetObjectReference<EpubViewer> objectReference;
 
     [Parameter]
     public string PathToFile { get; set; }
@@ -76,8 +77,10 @@
         {
             //Await the interop file to load
             await Task.Delay(3000);
+            //Move this thing out of here, this will cause problems
+            objectReference = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
             await LoadChapter(CurrentChapter);
-
         });
     }
 
@@ -303,6 +306,17 @@
         }
         //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
         StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnResize()
+    {
+        //Forcing the popup to close because of how the element selection works, it breaks if the position changes
+        if (showPopup)
+        {
+            ClosePopup();
+            StateHasChanged();
+        }
     }
 
     private async void ClosePopup()

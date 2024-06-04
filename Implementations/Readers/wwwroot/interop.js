@@ -17,3 +17,11 @@ window.setElementBackgroundColor = function (x, y, color) {
 window.removeElementBackgroundColor = function (x, y) {
     document.elementFromPoint(x, y).style.backgroundColor = '';
 }
+
+window.resizeHandler = {
+    initialize: function (dotnetHelper) {
+        window.addEventListener('resize', function () {
+            dotnetHelper.invokeMethodAsync('OnResize');
+        });
+    }
+};
