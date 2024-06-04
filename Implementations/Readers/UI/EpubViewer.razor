@@ -18,9 +18,11 @@
             @if (line[0] is TextNode)
             {
                 <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
-                    @foreach (TextNode node in line)
+                    @for (int j = 0; j < line.Count; j++)
                     {
-                        <p @onclick="e => ShowPopup(e,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
+                        TextNode node = (TextNode)line[j];
+                        string id = $"p{i}{j}";
+                        <p id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
                     }
                 </div>
             }
@@ -56,8 +58,7 @@
 
     private bool Initialized { get; set; } = false;
 
-    private double previousElementX = 0;
-    private double previousElementY = 0;
+    private string previousElementId = "";
 
     private bool showPopup = false;
     private EdrdgEntry selectedEdrdgEntry;
@@ -77,15 +78,19 @@
         {
             //Await the interop file to load
             await Task.Delay(3000);
-            //Move this thing out of here, this will cause problems
+            //Move thse two things out of here, this will cause problems
             objectReference = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
+            //await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
             await LoadChapter(CurrentChapter);
         });
     }
 
     private void NextPage()
     {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
         if (CurrentPage < Pages.Count - 1)
         {
             CurrentPage++;
@@ -98,6 +103,10 @@
 
     private void PreviousPage()
     {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
         if (CurrentPage > 0)
         {
             CurrentPage--;
@@ -242,7 +251,7 @@
         return pages;
     }
 
-    private async void ShowPopup(MouseEventArgs e, EdrdgEntry edrdgEntry)
+    private async void ShowPopup(MouseEventArgs e, string id ,EdrdgEntry edrdgEntry)
     {
         //Necessary because not everything has a translation for various reasons
         if (edrdgEntry is null)
@@ -255,9 +264,8 @@
             await RemovePreviousElementBackgroundColor();
         }
         showPopup = true;
-        await JS.InvokeVoidAsync("setElementBackgroundColor", e.ClientX, e.ClientY, "aquamarine");
-        previousElementX = e.ClientX;
-        previousElementY = e.ClientY;
+        await JS.InvokeVoidAsync("setElementBackgroundColor", id, "#d3d3d3");
+        previousElementId = id;
     }
 
     private async void HandleClickOnContent(MouseEventArgs e)
@@ -284,9 +292,8 @@
 
     private async Task RemovePreviousElementBackgroundColor()
     {
-        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementX, previousElementY);
-        previousElementX = -1;
-        previousElementY = -1;
+        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
+        previousElementId = "";
     }
 
     private void HandleKeyPress(KeyboardEventArgs e)
@@ -308,7 +315,7 @@
         StateHasChanged();
     }
 
-    [JSInvokable]
+    /*[JSInvokable]
     public async Task OnResize()
     {
         //Forcing the popup to close because of how the element selection works, it breaks if the position changes
@@ -317,7 +324,7 @@
             ClosePopup();
             StateHasChanged();
         }
-    }
+    }*/
 
     private async void ClosePopup()
     {

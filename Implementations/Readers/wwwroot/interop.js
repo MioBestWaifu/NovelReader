@@ -10,18 +10,24 @@ window.setFocusToElement = function(id) {
     document.getElementById(id).focus();
 }
 
-window.setElementBackgroundColor = function (x, y, color) {
-    document.elementFromPoint(x, y).style.backgroundColor = color;
+window.setElementBackgroundColor = function (id, color) {
+    var element = document.getElementById(id);
+    if (element) {
+        element.style.backgroundColor = color;
+    }
 }
 
-window.removeElementBackgroundColor = function (x, y) {
-    document.elementFromPoint(x, y).style.backgroundColor = '';
+window.removeElementBackgroundColor = function (id) {
+    var element = document.getElementById(id);
+    if (element) {
+        element.style.backgroundColor = '';
+    }
 }
 
-window.resizeHandler = {
+/*window.resizeHandler = {
     initialize: function (dotnetHelper) {
         window.addEventListener('resize', function () {
             dotnetHelper.invokeMethodAsync('OnResize');
         });
     }
-};
+};*/
