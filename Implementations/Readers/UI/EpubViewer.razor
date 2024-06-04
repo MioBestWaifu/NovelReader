@@ -47,7 +47,22 @@
     private DotNetObjectReference<EpubViewer> objectReference;
 
     [Parameter]
-    public string PathToFile { get; set; }
+    public string PathToFile
+    {
+        get
+        {
+            return pathToFile;
+        }
+        set
+        {
+            pathToFile = value;
+            Task.Run(() => OnBookPathSet(pathToFile));
+        }
+    }
+    private string pathToFile = "";
+
+    [Parameter]
+    public Plataform Plataform { get; set; }
 
     private Epub? Book { get; set; } = null;
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
@@ -68,21 +83,17 @@
         return base.OnInitializedAsync();
     }
 
-    protected override async Task OnParametersSetAsync()
+    private async Task OnBookPathSet(string newPath)
     {
-        Debug.WriteLine("PathToFile: " + PathToFile);
-
-        Book = await EpubLoader.LoadEpub(PathToFile);
+        Debug.WriteLine("PathToFile: " + newPath);
+        Book = await EpubLoader.LoadEpub(newPath);
+        //Await the interop file to load
+        await Task.Delay(3000);
+        //Move thse two things out of here, this will cause problems
+        objectReference = DotNetObjectReference.Create(this);
+        //await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
         CurrentChapter = 1;
-        Task.Run(async () =>
-        {
-            //Await the interop file to load
-            await Task.Delay(3000);
-            //Move thse two things out of here, this will cause problems
-            objectReference = DotNetObjectReference.Create(this);
-            //await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
-            await LoadChapter(CurrentChapter);
-        });
+        Task.Run(() => LoadChapter(CurrentChapter));
     }
 
     private void NextPage()
@@ -251,10 +262,11 @@
         return pages;
     }
 
-    private async void ShowPopup(MouseEventArgs e, string id ,EdrdgEntry edrdgEntry)
+    private async void ShowPopup(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
     {
-        //Necessary because not everything has a translation for various reasons
-        if (edrdgEntry is null)
+
+        //Necessary because not everything has a translation for various reasons, and android is not to respond to simple touches
+        if (Plataform == Plataform.Android || edrdgEntry is null)
         {
             return;
         }
