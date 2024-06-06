@@ -102,11 +102,12 @@ namespace Maria.Translation.Japanese
             return jmdictiesBrokenByIndex;
         }
 
-        //pathToOutput should be a directory and expects a trailing slash. I should note, force and check this everywhere.
-        public static void CreateDictionary(string pathToJmdict, string pathToOutput)
+        public static void CreateDictionary(string pathToOriginalJmdict)
         {
+            //Did not revise
+            string pathToOutput = @"..\..\Services\Translation\JMDict\";
             Directory.CreateDirectory(pathToOutput);
-            List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes(pathToJmdict);
+            List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes(pathToOriginalJmdict);
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)
             {
                 byte[] jmdictMsgPack = MessagePackSerializer.Serialize(jmdictiesBrokenByFile[i]);

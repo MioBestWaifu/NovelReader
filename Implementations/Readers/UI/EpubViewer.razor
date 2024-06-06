@@ -62,7 +62,7 @@
     private string pathToFile = "";
 
     [Parameter]
-    public Plataform Plataform { get; set; }
+    public Plataform Plataform { get; set; } = Plataform.Windows;
 
     private Epub? Book { get; set; } = null;
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.

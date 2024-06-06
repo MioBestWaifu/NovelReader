@@ -9,12 +9,6 @@ namespace Maria.Translation.Japanese
 
     public class JapaneseTranslator
     {
-        private readonly string pathToDictionary;
-
-        public JapaneseTranslator(string pathToDictionary)
-        {
-            this.pathToDictionary = pathToDictionary;
-        }
 
         //This should return something else, a custom type for translations maybe. But that requires rethinking the 
         //command response interface and that will be done later.
@@ -30,7 +24,7 @@ namespace Maria.Translation.Japanese
             //Here there could be a check on the size of term to send it to Analyzer straight away
             byte[] termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(term));
             int termIndex = BitConverter.ToUInt16(termHash, 0);
-            List<ConversionEntry> possibleEntries = new JapaneseDictionaryLoader(pathToDictionary).LoadPossibleEntries(termIndex);
+            List<ConversionEntry> possibleEntries = JapaneseDictionaryLoader.LoadPossibleEntries(termIndex);
 
             //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list (rarely >6)
             //it doesn't matter.

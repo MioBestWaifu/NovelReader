@@ -34,7 +34,7 @@ namespace Maria.Readers.Logic
 
         //I think neither load anything on the construction, so no waste of memory.
         private static JapaneseAnalyzer analyzer = new JapaneseAnalyzer("D:\\Programs\\Data\\Unidic");
-        private static JapaneseTranslator translator = new JapaneseTranslator("D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\");
+        private static JapaneseTranslator translator = new JapaneseTranslator();
 
         public async static Task<string> FindStandardsFile(string originalXml)
         {

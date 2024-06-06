@@ -16,7 +16,7 @@ namespace Maria.Tester
             Constants.Initialize(environment.IsDevelopment());
             commandServer = new CommandServer();
             interpreter = new Interpreter();
-            //new JapaneseTranslator("D:\\Programs\\Maria-chan\\Services\\Translation\\JMDict\\");
+            //new JapaneseTranslator();
             JapaneseAnalyzer analyzer = new JapaneseAnalyzer("D:\\Programs\\Data\\Unidic");
             analyzer.Analyze("高い");
             analyzer.Analyze("速く");
