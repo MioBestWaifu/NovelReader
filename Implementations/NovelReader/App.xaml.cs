@@ -11,4 +11,6 @@ namespace Maria.NovelReader
             MainPage = new MainPage();
         }
     }
+
+
 }
