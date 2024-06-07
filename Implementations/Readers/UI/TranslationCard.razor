@@ -1,8 +1,7 @@
 ﻿@using Maria.Translation.Japanese
 @using Maria.Translation.Japanese.Edrdg
-@implements IDisposable
 
-<div class="card" style="height:35vh;overflow-y:auto;max-width:40vw">
+<div id="translation-wrapper" class="card">
     <div class="card-body d-flex flex-column gap-3">
         <div>
             <p style="margin-bottom:0">@kanjisJoined</p>
@@ -36,7 +35,7 @@
     {
         base.OnParametersSet();
 
-        if (Entry != null)
+        if (Entry is not null)
         {
             kanjisJoined = Entry.KanjiElements != null
                 ? string.Join(", ", Entry.KanjiElements.Select(k => k.Kanji))
@@ -51,10 +50,5 @@
     public async void Close()
     {
         await OnClose.InvokeAsync();
-    }
-
-    public void Dispose()
-    {
-        // Implement any necessary cleanup here
     }
 }

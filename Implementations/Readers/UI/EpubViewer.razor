@@ -6,7 +6,7 @@
 <!--Weird path because this is a library, it is suposed to be used in other projects and this is the way to access files in other projects, it does not get automatically sorted out-->
 <script src="_content/Readers/interop.js"></script>
 
-<div id="viewer" style="width:94vw;margin:auto" @onclick="HandleClickOnContent" @onkeydown="HandleKeyPress" tabindex="0">
+<div id="viewer" @onclick="HandleClickOnContent" @onkeydown="HandleKeyPress" tabindex="0">
     @if (Initialized)
     {
         <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
@@ -17,7 +17,7 @@
             <!--Images are their own single-node line-->
             @if (line[0] is TextNode)
             {
-                <div style="margin-bottom:5px; display:flex; width:100%;flex-wrap:wrap;justify-content:flex-start">
+                <div class="rdr-text-block">
                     @for (int j = 0; j < line.Count; j++)
                     {
                         TextNode node = (TextNode)line[j];
@@ -29,7 +29,7 @@
             else if (line[0] is ImageNode)
             {
                 ImageNode imageNode = (ImageNode)line[0];
-                <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") style="max-width:100%" />
+                <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}")/>
             }
         }
     }
@@ -37,14 +37,14 @@
 
 @if (showPopup)
 {
-    <div style="position:fixed;top:0;left:0">
+    <div id="translation-card">
         <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
     </div>
 }
 @code {
     [Inject]
     private IJSRuntime JS { get; set; }
-    private DotNetObjectReference<EpubViewer> objectReference;
+    //private DotNetObjectReference<EpubViewer> objectReference;
 
     [Parameter]
     public string PathToFile
@@ -68,7 +68,7 @@
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
     private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
 
-    private int CurrentChapter { get; set; } = 0;
+    private int CurrentChapter { get; set; } = 1;
     private int CurrentPage { get; set; } = 0;
 
     private bool Initialized { get; set; } = false;
@@ -90,11 +90,10 @@
             Debug.WriteLine("PathToFile: " + newPath);
             Book = await EpubLoader.LoadEpub(newPath);
             //Await the interop file to load
-            await Task.Delay(3000);
-            //Move thse two things out of here, this will cause problems
-            objectReference = DotNetObjectReference.Create(this);
-            //await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
-            CurrentChapter = 1;
+            if (!Initialized)
+            {
+                await Task.Delay(3000);
+            }
             Task.Run(() => LoadChapter(CurrentChapter));
         } catch (Exception e)
         {
@@ -162,16 +161,16 @@
         int thisTaskChapterIndex = CurrentChapter;
         List<Task> children = new List<Task>();
 
+        //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
         if (chapter.LoadStatus == LoadingStatus.Unloaded)
         {
             List<XElement> lines = await EpubFormatter.BreakChapterToLines(chapter);
             Pages = await PreparePages(lines);
             chapter.PrepareLines(lines.Count);
+
             //For the first loading
-            if (!Initialized)
-            {
-                Initialized = true;
-            }
+            Initialized = true;
+
             chapter.LoadStatus = LoadingStatus.Loading;
             for (int i = 0; i < lines.Count; i++)
             {
@@ -215,12 +214,18 @@
         Pages[pageIndex][lineIndex] = line;
     }
 
+    private int GetLinesPerPage()
+    {
+        //Value out of my ass, replace with something actual based on the used css + margins
+        int lineHeight = 30;
+        int windowHeight = JS.InvokeAsync<int>("getWindowHeight").GetAwaiter().GetResult();
+        int linesPerPage = windowHeight / lineHeight;
+        return linesPerPage;
+    }
+
     private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
     {
-
-        int lineHeight = 30;
-        int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
-        int linesPerPage = windowHeight / lineHeight;
+        int linesPerPage = GetLinesPerPage();
 
         List<List<List<Node>>> pages = new List<List<List<Node>>>();
 
@@ -243,11 +248,8 @@
 
     private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
     {
-        //Value out of my ass, replace with something actual based on the used css + margins
-        int lineHeight = 30;
-        int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
-        int linesPerPage = windowHeight / lineHeight;
-
+        
+        int linesPerPage = GetLinesPerPage();
         List<List<List<Node>>> pages = [];
         List<List<Node>> currentPage = [];
         foreach (List<Node> line in chapter.Lines)
@@ -334,17 +336,6 @@
         //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
         StateHasChanged();
     }
-
-    /*[JSInvokable]
-    public async Task OnResize()
-    {
-        //Forcing the popup to close because of how the element selection works, it breaks if the position changes
-        if (showPopup)
-        {
-            ClosePopup();
-            StateHasChanged();
-        }
-    }*/
 
     private async void ClosePopup()
     {
