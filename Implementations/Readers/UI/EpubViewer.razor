@@ -85,15 +85,23 @@
 
     private async Task OnBookPathSet(string newPath)
     {
-        Debug.WriteLine("PathToFile: " + newPath);
-        Book = await EpubLoader.LoadEpub(newPath);
-        //Await the interop file to load
-        await Task.Delay(3000);
-        //Move thse two things out of here, this will cause problems
-        objectReference = DotNetObjectReference.Create(this);
-        //await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
-        CurrentChapter = 1;
-        Task.Run(() => LoadChapter(CurrentChapter));
+        try
+        {
+            Debug.WriteLine("PathToFile: " + newPath);
+            Book = await EpubLoader.LoadEpub(newPath);
+            //Await the interop file to load
+            await Task.Delay(3000);
+            //Move thse two things out of here, this will cause problems
+            objectReference = DotNetObjectReference.Create(this);
+            //await JS.InvokeVoidAsync("resizeHandler.initialize", objectReference);
+            CurrentChapter = 1;
+            Task.Run(() => LoadChapter(CurrentChapter));
+        } catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.InnerException);
+            Debug.WriteLine(e.StackTrace);
+        }
     }
 
     private void NextPage()

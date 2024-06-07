@@ -66,4 +66,6 @@ Another possibility, altough it would be a truckload of work, is to build a book
 
 ## ANDROID SHENANIGANS
 ### MECAB
-As of 0.7 development (Jun 4th, 2024), the first test of NovelReader on Android is aboaut to happen, but i am already quite sure of one thing: the MeCab wrapper probably will not work. Thats becasue MeCab natively is a C++ library and i doubt it would function on Adnroid. In that case, the simples solution is to use a morphological analyzer built in a language that works on android, like Kuromoji (Java). The drawback, beyond the unknown reliability, is that some form of communication has to happen, different processes have to be spawned, and that adds delay and maybe Android bitches about background resources usage, if it lets the programs spawn at all. 
+~~As of 0.7 development (Jun 4th, 2024), the first test of NovelReader on Android is aboaut to happen, but i am already quite sure of one thing: the MeCab wrapper probably will not work. Thats becasue MeCab natively is a C++ library and i doubt it would function on Adnroid. In that case, the simples solution is to use a morphological analyzer built in a language that works on android, like Kuromoji (Java). The drawback, beyond the unknown reliability, is that some form of communication has to happen, different processes have to be spawned, and that adds delay and maybe Android bitches about background resources usage, if it lets the programs spawn at all.~~
+
+Mecab does in fact run on the android emulator. 
