@@ -10,27 +10,37 @@
     @if (Initialized)
     {
         <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
-        <!--Not a foreach because the dynamic modifications in loading would break it-->
-        @for (int i = 0; i < Pages[CurrentPage].Count; i++)
+        @try
         {
-            var line = Pages[CurrentPage][i];
-            <!--Images are their own single-node line-->
-            @if (line[0] is TextNode)
+            <!--Not a foreach because the dynamic modifications in loading would break it-->
+            @for (int i = 0; i < Pages[CurrentPage].Count; i++)
             {
-                <div class="rdr-text-block">
-                    @for (int j = 0; j < line.Count; j++)
-                    {
-                        TextNode node = (TextNode)line[j];
-                        string id = $"p{i}{j}";
-                        <p id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
-                    }
-                </div>
+                var line = Pages[CurrentPage][i];
+                <!--Images are their own single-node line-->
+                @if (line[0] is TextNode)
+                {
+                    <div class="rdr-text-block">
+                        @for (int j = 0; j < line.Count; j++)
+                        {
+                            TextNode node = (TextNode)line[j];
+                            string id = $"p{i}{j}";
+                            <p id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
+                        }
+                    </div>
+                }
+                else if (line[0] is ImageNode)
+                {
+                    ImageNode imageNode = (ImageNode)line[0];
+                    <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
+                }
             }
-            else if (line[0] is ImageNode)
-            {
-                ImageNode imageNode = (ImageNode)line[0];
-                <img src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}")/>
-            }
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.InnerException);
+            Debug.WriteLine(e.StackTrace);
+            <p>Error displaying this page</p>
         }
     }
 </div>
@@ -68,7 +78,7 @@
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
     private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
 
-    private int CurrentChapter { get; set; } = 1;
+    private int CurrentChapter { get; set; } = 0;
     private int CurrentPage { get; set; } = 0;
 
     private bool Initialized { get; set; } = false;
@@ -95,7 +105,8 @@
                 await Task.Delay(3000);
             }
             Task.Run(() => LoadChapter(CurrentChapter));
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             Debug.WriteLine(e.Message);
             Debug.WriteLine(e.InnerException);
@@ -194,6 +205,10 @@
             Task.WhenAll(children).ContinueWith(t =>
             {
                 chapter.LoadStatus = LoadingStatus.Loaded;
+                InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
             });
         }
 
@@ -248,7 +263,7 @@
 
     private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
     {
-        
+
         int linesPerPage = GetLinesPerPage();
         List<List<List<Node>>> pages = [];
         List<List<Node>> currentPage = [];
