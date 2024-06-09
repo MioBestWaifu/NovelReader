@@ -3,10 +3,14 @@
 @using System.Diagnostics
 @using Microsoft.JSInterop
 
-<div id="viewer" @onclick="HandleClickOnContent" @onkeydown="HandleKeyPress" tabindex="0">
-    @if (Initialized)
-    {
-        <h1>@Book?.TableOfContents[CurrentChapter].Item1</h1>
+
+@if (Initialized)
+{
+    <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
+    <div class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onclick="HandleClickOnContent" @onkeydown="HandleKeyPress" tabindex="0">
+
+        <h1 class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")">@Book?.TableOfContents[CurrentChapter].Item1</h1>
+
         @try
         {
             <!--Not a foreach because the dynamic modifications in loading would break it-->
@@ -16,12 +20,13 @@
                 <!--Images are their own single-node line-->
                 @if (line[0] is TextNode)
                 {
-                    <div class="rdr-text-block">
+                    <!--Blocks are starting with a empty node, which i have no idea where it comes from, seems like a bug but might be from the original epub. Also, separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
+                    <div class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
                         @for (int j = 0; j < line.Count; j++)
                         {
                             TextNode node = (TextNode)line[j];
                             string id = $"p{i}{j}";
-                            <p id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
+                            <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
                         }
                     </div>
                 }
@@ -36,8 +41,9 @@
         {
             <p>Error displaying this page</p>
         }
-    }
-</div>
+        
+    </div>
+}
 
 @if (showPopup)
 {
@@ -45,6 +51,8 @@
         <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
     </div>
 }
+
+
 @code {
     [Inject]
     private IJSRuntime JS { get; set; }
@@ -65,6 +73,19 @@
     }
     private string pathToFile = "";
 
+    [Parameter]
+    public ReadingManner ReadingManner { get
+        {
+            return readingManner;
+        }
+        set
+        {
+            readingManner = value;
+            ReadingMannerChanged();
+        }
+    }
+
+    private ReadingManner readingManner;
     // [Parameter]
     // public Plataform Plataform { get; set; } = Plataform.Windows;
 
@@ -72,7 +93,7 @@
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
     private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
 
-    private int CurrentChapter { get; set; } = 0;
+    private int CurrentChapter { get; set; } = 11;
     private int CurrentPage { get; set; } = 0;
 
     private bool Initialized { get; set; } = false;
@@ -89,6 +110,7 @@
 
     private async Task OnBookPathSet(string newPath)
     {
+
         try
         {
             Debug.WriteLine("PathToFile: " + newPath);
@@ -100,6 +122,18 @@
             Debug.WriteLine(e.Message);
             Debug.WriteLine(e.InnerException);
             Debug.WriteLine(e.StackTrace);
+        }
+    }
+
+    private void ReadingMannerChanged()
+    {
+        if (ReadingManner == ReadingManner.Japanese)
+        {
+            JS.InvokeVoidAsync("changeDirectionToRTL");
+        }
+        else
+        {
+            JS.InvokeVoidAsync("changeDirectionToLTR");
         }
     }
 
@@ -220,10 +254,22 @@
 
     private int GetLinesPerPage()
     {
-        //Value out of my ass, replace with something actual based on the used css + margins
-        int lineHeight = 30;
-        int windowHeight = JS.InvokeAsync<int>("getWindowHeight").GetAwaiter().GetResult();
-        int linesPerPage = windowHeight / lineHeight;
+        int linesPerPage;
+        if (ReadingManner == ReadingManner.Japanese)
+        {
+            //Value out of my ass, replace with something actual based on the used css + margins
+            int lineWidth = 40;
+            int windowWidth = JS.InvokeAsync<int>("getWindowWidth").GetAwaiter().GetResult();
+            linesPerPage = windowWidth / lineWidth;
+        }
+        else
+        {
+            //Value out of my ass, replace with something actual based on the used css + margins
+            int lineHeight = 30;
+            int windowHeight = JS.InvokeAsync<int>("getWindowHeight").GetAwaiter().GetResult();
+            linesPerPage = windowHeight / lineHeight;
+        }
+
         return linesPerPage;
     }
 
@@ -307,11 +353,17 @@
 
         if (e.ClientX < windowWidth / 2)
         {
-            PreviousPage();
+            if(ReadingManner == ReadingManner.Japanese)
+                NextPage();
+            else
+                PreviousPage();
         }
         else
         {
-            NextPage();
+            if (ReadingManner == ReadingManner.Japanese)
+                PreviousPage();
+            else
+                NextPage();
         }
         //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
         StateHasChanged();

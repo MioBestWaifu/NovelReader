@@ -1,21 +1,50 @@
-#viewer {
+.rdr-western-viewer {
     width: 94vw;
     margin: auto;
     min-height: 100vh;
+}
+
+.rdr-western-text-block {
+    margin-bottom: 5px;
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+/* Necessary because otherwise the webview will position vertically-written headers at the bottom of the screen with direction rtl*/
+h1{
+    direction: ltr;
+}
+
+.rdr-japanese-viewer {
+    display: flex;
+    height: 96vh;
+    flex-wrap: nowrap;
+    column-gap: 1.5rem;
+    min-width: 100vw;
+    width: max-content;
+    margin-top: 2vh;
+}
+
+.rdr-japanese-text-block {
+    display: flex;
+    height: 100%;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.rdr-japanese-text {
+    writing-mode: vertical-rl;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-bottom: 0;
 }
 
 #translation-card {
     position: fixed;
     top: 0;
     left: 0;
-}
-
-.rdr-text-block {
-    margin-bottom: 5px;
-    display: flex;
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: flex-start;
 }
 
 img {

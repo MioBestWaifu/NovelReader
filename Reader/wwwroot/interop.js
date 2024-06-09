@@ -24,6 +24,15 @@ window.removeElementBackgroundColor = function (id) {
     }
 }
 
+window.changeDirectionToRTL = function () {
+    document.documentElement.setAttribute('dir', 'rtl');
+}
+
+window.changeDirectionToLTR = function () {
+    document.documentElement.setAttribute('dir', 'ltr');
+}
+
+
 /*window.resizeHandler = {
     initialize: function (dotnetHelper) {
         window.addEventListener('resize', function () {
