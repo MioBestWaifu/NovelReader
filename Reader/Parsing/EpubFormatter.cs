@@ -67,16 +67,28 @@ namespace Mio.Reader.Parsing
             XAttribute versionAttribute = packageElement.Attribute("version");
 
             string version = versionAttribute?.Value;
+            List<(string, ZipArchiveEntry)> chaptersFromSpine = ListChaptersFromSpine(standardsEntry, doc);
+            List<(string, ZipArchiveEntry)> namedChapters = new List<(string, ZipArchiveEntry)>();
 
             try
             {
                 if (version == "3.0")
                 {
-                    return ListChaptersFromNav(standardsEntry, doc);
+                    List<(string, ZipArchiveEntry)> chaptersFromNav = ListChaptersFromNav(standardsEntry, doc);
+                    foreach (var spineChapter in chaptersFromSpine)
+                    {
+                        var navChapter = chaptersFromNav.FirstOrDefault(c => c.Item2 == spineChapter.Item2);
+                        namedChapters.Add(navChapter.Item2 != null ? navChapter : spineChapter);
+                    }
                 }
                 else if (version == "2.0")
                 {
-                    return ListChaptersFromToc(standardsEntry);
+                    List<(string, ZipArchiveEntry)> chaptersFromToc = ListChaptersFromToc(standardsEntry);
+                    foreach (var spineChapter in chaptersFromSpine)
+                    {
+                        var tocChapter = chaptersFromToc.FirstOrDefault(c => c.Item2 == spineChapter.Item2);
+                        namedChapters.Add(tocChapter.Item2 != null ? tocChapter : spineChapter);
+                    }
                 }
                 else
                 {
@@ -87,8 +99,10 @@ namespace Mio.Reader.Parsing
             //This should happen if the for whatever reason there is no nav or toc file, or it is not found.
             catch (FileNotFoundException e)
             {
-                return ListChaptersFromSpine(standardsEntry, doc);
+                namedChapters = chaptersFromSpine;
             }
+
+            return namedChapters;
         }
 
 
