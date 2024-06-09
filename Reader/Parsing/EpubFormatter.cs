@@ -4,6 +4,7 @@ using Mio.Translation.Japanese.Edrdg;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Windows.Graphics.Printing.Workflow;
 
 namespace Mio.Reader.Parsing
 {
@@ -24,6 +26,8 @@ namespace Mio.Reader.Parsing
         private static XNamespace epubNs = "http://www.idpf.org/2007/ops";
         private static XNamespace opfNs = "http://www.idpf.org/2007/opf";
         private static XNamespace ncxNs = "http://www.daisy.org/z3986/2005/ncx/";
+        private static XNamespace svgNs = "http://www.w3.org/2000/svg";
+        private static XNamespace xlinkNs = "http://www.w3.org/1999/xlink";
         //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
         //include any other separators that might be missing
         //Why two fields? Class regex as above is fast for regexing, list is faster for comparing.
@@ -252,9 +256,20 @@ namespace Mio.Reader.Parsing
                 {
                     indexedNodeLines.TryAdd(line.Key, ParseTextNode(line.Value));
                 }
-                else if (line.Value.Name == xhtmlNs + "img")
+                else if (line.Value.Name == xhtmlNs + "img" || line.Value.Name == svgNs + "svg")
                 {
-                    indexedNodeLines.TryAdd(line.Key, ParseImageNode(chapter, line.Value));
+                    if (line.Value.Name == svgNs + "svg")
+                    {
+                        XElement imageElement = line.Value.Element(xlinkNs + "image");
+                        if (imageElement != null)
+                        {
+                            indexedNodeLines.TryAdd(line.Key, ParseImageNode(chapter, imageElement, "http://www.w3.org/1999/xlink:href"));
+                        }
+                    }
+                    else
+                    {
+                        indexedNodeLines.TryAdd(line.Key, ParseImageNode(chapter, line.Value, "src"));
+                    }
                 }
 
             });
@@ -270,15 +285,42 @@ namespace Mio.Reader.Parsing
 
         public static Task<List<Node>> ParseLine(Chapter chapter, XElement line)
         {
-            if (line.Name == xhtmlNs + "p")
+            try
             {
-                return Task.FromResult(ParseTextNode(line));
+                if (line.Name == xhtmlNs + "p")
+                {
+                    return Task.FromResult(ParseTextNode(line));
+                }
+
+                else if (line.Name == xhtmlNs + "img" || line.Name == svgNs + "svg")
+                {
+                    if (line.Name ==  svgNs+ "svg")
+                    {
+                        XElement imageElement = line.Element(svgNs + "image");
+                        if (imageElement != null)
+                        {
+                            return Task.FromResult(ParseImageNode(chapter, imageElement, xlinkNs+"href"));
+                        }
+                    }
+                    else
+                    {
+                        return Task.FromResult(ParseImageNode(chapter, line, "src"));
+                    }
+                }
+
+                return Task.FromResult(new List<Node>());
             }
-            else //(line.Name == xhtmlNs + "img")
+            catch (Exception e)
             {
-                return Task.FromResult(ParseImageNode(chapter, line));
+                Debug.WriteLine($"Error parsing line: {e.Message}");
+                Debug.WriteLine($"Line: {line}");
+                Debug.WriteLine(e.StackTrace);
+                return Task.FromResult(new List<Node>());
             }
+        
         }
+
+
         private static List<Node> ParseTextNode(XElement originalElement)
         {
 
@@ -345,10 +387,22 @@ namespace Mio.Reader.Parsing
             return nodes;
         }
 
-        private static List<Node> ParseImageNode(Chapter chapter, XElement originalElement)
+        private static List<Node> ParseImageNode(Chapter chapter, XElement originalElement, string srcAttribute)
         {
-            string path = originalElement.Attribute("src")!.Value;
+            string path = originalElement.Attribute(srcAttribute)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
+            return ParseImageNode(imageEntry);
+        }
+
+        private static List<Node> ParseImageNode(Chapter chapter, XElement originalElement, XName srcName)
+        {
+            string path = originalElement.Attribute(srcName)!.Value;
+            ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
+            return ParseImageNode(imageEntry);
+        }
+
+        private static List<Node> ParseImageNode (ZipArchiveEntry imageEntry)
+        {
             byte[] imageBytes = new byte[imageEntry.Length];
             using (var stream = imageEntry.Open())
             {
@@ -370,7 +424,7 @@ namespace Mio.Reader.Parsing
             XDocument doc = XDocument.Parse(originalXhtml);
 
             // List to store the lines
-            List<XElement> lines = doc.Descendants().Where(n => n.Name == xhtmlNs + "p" || n.Name == xhtmlNs + "img").ToList();
+            List<XElement> lines = doc.Descendants().Where(n => n.Name == xhtmlNs + "p" || n.Name == xhtmlNs + "img" || n.Name == "{http://www.w3.org/2000/svg}svg").ToList();
 
             return Task.FromResult(lines);
         }
