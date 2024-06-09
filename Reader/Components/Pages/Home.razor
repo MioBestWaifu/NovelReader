@@ -1,10 +1,39 @@
 ﻿@using System.Diagnostics
+@using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Viewers
+@using Mio.Reader.Components.Pickers
+
 @page "/"
 
-<EpubViewer PathToFile="D:\Books\Novels\転生王女と天才令嬢の魔法革命\転生王女と天才令嬢の魔法革命.epub"></EpubViewer>
+<!--Should have different pages instead of a if-else-->
+@if (FileHasBeenPicked)
+{
+    <EpubViewer PathToFile=@PathToFile></EpubViewer>
+}
+else
+{
+    @if (plataform == DevicePlatform.WinUI)
+    {
+        <h1>Select book</h1>
+        <WindowsFilePicker OnFilePicked="OnFilePicked"></WindowsFilePicker>
+    }
+    else if (plataform == DevicePlatform.Android)
+    {
+        <p>Android</p>
+        <AndroidFilePicker></AndroidFilePicker>
+    }
+}
 
 
 @code {
-    
+    DevicePlatform plataform = DeviceInfo.Current.Platform;
+    bool FileHasBeenPicked { get; set; } = false;
+    string PathToFile { get; set; }
+
+    private void OnFilePicked(string path)
+    {
+        PathToFile = path;
+        FileHasBeenPicked = true;
+        StateHasChanged();
+    }
 }

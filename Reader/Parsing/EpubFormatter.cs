@@ -227,11 +227,7 @@ namespace Mio.Reader.Parsing
             return contents;
         }
 
-        /// <summary>
-        /// Loads, parses and translates the textual content of a chapter. Ignores furigana and removes images, but both will be added later.
-        /// </summary>
-        /// <param name="chapter"></param>
-        /// <returns>Wether the chapter is parsable. Some "chapters" are actually just images, and those are to be handled differently. Does not return false if the text format is unexpected, but rather throws an exception.</returns>
+        
         public async static Task<bool> LoadChapter(Chapter chapter)
         {
             //Completly ignores images and unexpected text formats and will throw something if those are passed. Those will be handled later.

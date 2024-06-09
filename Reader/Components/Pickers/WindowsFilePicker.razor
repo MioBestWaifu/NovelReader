@@ -1,0 +1,23 @@
+﻿
+<PickerButton OnClick="PickFile"></PickerButton>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnFilePicked { get; set; }
+
+    public async Task PickFile()
+    {
+        var result = await FilePicker.PickAsync(new PickOptions
+            {
+                PickerTitle = "Please select an EPUB file",
+                FileTypes = new FilePickerFileType(
+                new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+            { DevicePlatform.WinUI, new[] { ".epub" } } // Only EPUB files for Windows
+                })
+            });
+
+        if (result is not null)
+            OnFilePicked.InvokeAsync(result.FullPath);
+    }
+}
