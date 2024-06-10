@@ -2,4 +2,5 @@
     height: 35vh;
     overflow-y: auto;
     max-width: 40vw;
+    direction: ltr;
 }

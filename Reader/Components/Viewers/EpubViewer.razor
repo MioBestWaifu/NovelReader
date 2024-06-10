@@ -2,17 +2,19 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
 @using Microsoft.JSInterop
+@using Microsoft.Maui.Devices
 
 
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
-    <div class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onclick="HandleClickOnContent" @onkeydown="HandleKeyPress" tabindex="0">
+    <div id="viewer" class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" tabindex="0">
         @{
             Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
         }
 
-        @if(!chapter.IsImagesOnly){
+        @if (!chapter.IsImagesOnly)
+        {
             <h1 class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")">@Book?.TableOfContents[CurrentChapter].Item1</h1>
         }
 
@@ -31,7 +33,7 @@
                         {
                             TextNode node = (TextNode)line[j];
                             string id = $"p{i}{j}";
-                            <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation>@node.Text</p>
+                            <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </div>
                 }
@@ -95,6 +97,8 @@
     }
 
     private ReadingManner readingManner;
+
+    private DevicePlatform plataform = DeviceInfo.Current.Platform;
     // [Parameter]
     // public Plataform Plataform { get; set; } = Plataform.Windows;
 
@@ -368,7 +372,7 @@
             return;
         }
 
-        int windowWidth = await JS.InvokeAsync<int>("getWindowHeight");
+        int windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
 
         if (e.ClientX < windowWidth / 2)
         {
@@ -402,11 +406,22 @@
                 if (showPopup)
                     ClosePopup();
                 break;
+            //These should be different on image-only pages, which is one more reason to have separate components for separate chapter types
             case "ArrowLeft":
-                PreviousPage();
+                if (ReadingManner == ReadingManner.Western)
+                    PreviousPage();
                 break;
             case "ArrowRight":
-                NextPage();
+                if (ReadingManner == ReadingManner.Western)
+                    NextPage();
+                break;
+            case "ArrowUp":
+                if (ReadingManner == ReadingManner.Japanese)
+                    PreviousPage();
+                break;
+            case "ArrowDown":
+            if (ReadingManner == ReadingManner.Japanese)
+                    NextPage();
                 break;
         }
         //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?

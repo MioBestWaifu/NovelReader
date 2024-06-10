@@ -40,6 +40,10 @@ window.scrollToVerticalStart = function () {
     window.scrollTo(window.scrollX, 0);
 }
 
+window.focusOnElement = function (id) {
+    document.getElementById(id).focus();
+}
+
 /*window.resizeHandler = {
     initialize: function (dotnetHelper) {
         window.addEventListener('resize', function () {

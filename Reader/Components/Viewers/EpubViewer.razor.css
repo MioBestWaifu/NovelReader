@@ -17,9 +17,13 @@ h1{
     direction: ltr;
 }
 
+p::selection {
+    background-color: #d3d3d3;
+}
+
 .rdr-japanese-viewer {
     display: flex;
-    height: 96vh;
+    height: 95vh;
     flex-wrap: nowrap;
     column-gap: 1.5rem;
     min-width: 100vw;
