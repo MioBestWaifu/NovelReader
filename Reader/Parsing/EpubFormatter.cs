@@ -434,7 +434,7 @@ namespace Mio.Reader.Parsing
             XDocument doc = XDocument.Parse(originalXhtml);
 
             // List to store the lines
-            List<XElement> lines = doc.Descendants().Where(n => n.Name == xhtmlNs + "p" || n.Name == xhtmlNs + "img" || n.Name == "{http://www.w3.org/2000/svg}svg").ToList();
+            List<XElement> lines = doc.Descendants().Where(n => n.Name == xhtmlNs + "p" || n.Name == xhtmlNs + "img" || n.Name == svgNs+"svg").ToList();
 
             return Task.FromResult(lines);
         }
