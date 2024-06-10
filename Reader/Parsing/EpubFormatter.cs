@@ -345,10 +345,9 @@ namespace Mio.Reader.Parsing
             for (int i = 0, n = sentences.Length; i < n; i++)
             {
                 //Should never be zero, i think. If it happens, will cause a bug. Purposefully not checking to see if breaks.
-
+                //Also, This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
                 if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
                 {
-                    //This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
                     nodes.Add(new TextNode() { Text = sentences[i] });
                     continue;
                 }
