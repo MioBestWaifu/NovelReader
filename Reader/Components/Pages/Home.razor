@@ -1,0 +1,109 @@
+﻿@using System.Diagnostics
+@using Microsoft.Maui.Devices
+@using Mio.Reader.Components.Viewers
+@using Mio.Reader.Components.Pickers
+@using System.IO.Compression
+
+@page "/"
+
+<!--Should have different pages instead of a if-else-->
+@if (FileHasBeenPicked)
+{
+    <EpubViewer PathToFile=@PathToFile ReadingManner=@(plataform == DevicePlatform.WinUI ? ReadingManner.Japanese : ReadingManner.Western)></EpubViewer>
+}
+else
+{
+    @if (plataform == DevicePlatform.WinUI)
+    {
+        <h1>Select book</h1>
+        <WindowsFilePicker OnFilePicked="OnFilePickedWindows"></WindowsFilePicker>
+    }
+    else if (plataform == DevicePlatform.Android)
+    {
+        if (!UnidicDownloaded)
+        {
+            <p>Download the Unidic to proceed. It may take a while</p>
+            <button @onclick="DownloadUnidic">Download Unidic</button>
+        }
+        else
+        {
+            <AndroidFilePicker OnFilePicked="OnFilePickedAndroid"></AndroidFilePicker>
+        }
+    }
+}
+
+
+@code {
+    DevicePlatform plataform = DeviceInfo.Current.Platform;
+    bool FileHasBeenPicked { get; set; } = false;
+    string PathToFile { get; set; }
+    bool UnidicDownloaded { get; set; } = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        if(plataform == DevicePlatform.Android)
+        {
+            string unidicPath = Path.Combine(FileSystem.AppDataDirectory, "Unidic");
+            UnidicDownloaded = Directory.Exists(unidicPath);
+            InvokeAsync(() => { StateHasChanged(); });
+        }
+        return base.OnInitializedAsync();
+    }
+
+    private void OnFilePickedWindows(string path)
+    {
+        PathToFile = path;
+        FileHasBeenPicked = true;
+        StateHasChanged();
+    }
+
+    private void OnFilePickedAndroid(FileResult fileResult)
+    {
+        PathToFile = fileResult.FullPath;
+        FileHasBeenPicked = true;
+        StateHasChanged();
+    }
+
+    //Here temporarily, should be somewhere else
+    public async Task<string> DownloadUnidic()
+    {
+        try
+        {
+            // Create a HttpClient instance
+            using (HttpClient client = new HttpClient())
+            {
+                client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+                // Download the ZIP file
+                byte[] zipData = await client.GetByteArrayAsync("https://clrd.ninjal.ac.jp/unidic_archive/2302/unidic-cwj-202302.zip");
+
+                // Get the app's private data directory
+                string appDataDir = FileSystem.AppDataDirectory;
+
+                // Define the path for the downloaded ZIP file
+                string zipFilePath = Path.Combine(appDataDir, "unidic-cwj-202302.zip");
+
+                // Write the downloaded ZIP data to a file
+                await File.WriteAllBytesAsync(zipFilePath, zipData);
+
+                // Define the path for the target extraction directory
+                string extractionDirPath = Path.Combine(appDataDir, "Unidic");
+
+                // Extract the ZIP file contents
+                ZipFile.ExtractToDirectory(zipFilePath, extractionDirPath);
+
+                // Delete the downloaded ZIP file
+                File.Delete(zipFilePath);
+
+                UnidicDownloaded = true;
+                InvokeAsync(() => { StateHasChanged(); });
+
+                return extractionDirPath;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error downloading and extracting ZIP file: {ex.Message}");
+            return null;
+        }
+    }
+}

@@ -1,0 +1,11 @@
+﻿<button @onclick="Clicked">Pick file</button>
+
+@code {
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private void Clicked()
+    {
+        OnClick.InvokeAsync();
+    }
+}

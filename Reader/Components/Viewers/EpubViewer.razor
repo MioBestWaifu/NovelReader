@@ -1,0 +1,513 @@
+﻿@using System.Xml.Linq
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Diagnostics
+@using Microsoft.JSInterop
+@using Microsoft.Maui.Devices
+
+
+@if (Initialized)
+{
+    <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
+    <div id="viewer" class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ontouchstart="HandleTouchStart" @ontouchmove="HandleTouchMove" @ontouchend="HandleTouchEnd" tabindex="0">
+        @{
+            Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
+        }
+
+        @if (!chapter.IsImagesOnly)
+        {
+            <h1 class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")">@Book?.TableOfContents[CurrentChapter].Item1</h1>
+        }
+
+        @try
+        {
+            <!--Not a foreach because the dynamic modifications in loading would break it-->
+            @for (int i = 0; i < Pages[CurrentPage].Count; i++)
+            {
+                var line = Pages[CurrentPage][i];
+                <!--Images are their own single-node line-->
+                @if (line[0] is TextNode)
+                {
+                    <!--Separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
+
+                    //Japanese ReadingManner does not work on mobile. I have no idea why and have tested various arrangements, but the text-block simply refuses to grow its width. 
+                    //It works in desktop. Maybe some shenanigan with the webview rendering vertical text on mobile. 
+                    //If a solution is not found with a flexbox, find some other way to make this a visually cohesive block of text whose parts can be selected apart.
+                    <div class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                        @for (int j = 0; j < line.Count; j++)
+                        {
+                            TextNode node = (TextNode)line[j];
+                            string id = $"p{i:D2}{j}";
+                            <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                        }
+                    </div>
+                }
+                else if (line[0] is ImageNode)
+                {
+                    string cssClass = chapter.IsImagesOnly || ReadingManner == ReadingManner.Western ? "rdr-inline-img-western" : "rdr-inline-img-japanese";
+
+                    ImageNode imageNode = (ImageNode)line[0];
+                    <img class=@cssClass src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            <p>Error displaying this page</p>
+        }
+
+    </div>
+}
+
+@if (showPopup)
+{
+    <div id="translation-card">
+        <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
+    </div>
+}
+
+
+@code {
+    [Inject]
+    private IJSRuntime JS { get; set; }
+    //private DotNetObjectReference<EpubViewer> objectReference;
+
+    [Parameter]
+    public string PathToFile
+    {
+        get
+        {
+            return pathToFile;
+        }
+        set
+        {
+            pathToFile = value;
+            Task.Run(() => OnBookPathSet(pathToFile));
+        }
+    }
+    private string pathToFile = "";
+
+    [Parameter]
+    public ReadingManner ReadingManner
+    {
+        get
+        {
+            return readingManner;
+        }
+        set
+        {
+            readingManner = value;
+            ReadingMannerChanged();
+        }
+    }
+
+    private ReadingManner readingManner;
+
+    private DevicePlatform plataform = DeviceInfo.Current.Platform;
+    // [Parameter]
+    // public Plataform Plataform { get; set; } = Plataform.Windows;
+
+    private Epub? Book { get; set; } = null;
+    //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
+    private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
+
+    private int CurrentChapter { get; set; } = 11;
+    private int CurrentPage { get; set; } = 0;
+
+    private bool Initialized { get; set; } = false;
+
+    private string previousElementId = "";
+    private double firstTouchX = 0;
+    private double firstTouchY = 0;
+    private double lastTouchX = 0;
+    private double lastTouchY = 0;
+
+    private bool showPopup = false;
+    private EdrdgEntry selectedEdrdgEntry;
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnBookPathSet(string newPath)
+    {
+
+        try
+        {
+            Debug.WriteLine("PathToFile: " + newPath);
+            Book = await EpubLoader.LoadEpub(newPath);
+            Task.Run(() => LoadChapter(CurrentChapter));
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.InnerException);
+            Debug.WriteLine(e.StackTrace);
+        }
+    }
+
+    private void ReadingMannerChanged()
+    {
+        if (ReadingManner == ReadingManner.Japanese)
+        {
+            JS.InvokeVoidAsync("changeDirectionToRTL");
+        }
+        else
+        {
+            JS.InvokeVoidAsync("changeDirectionToLTR");
+        }
+    }
+
+    private void NextPage()
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        if (CurrentPage < Pages.Count - 1)
+        {
+            CurrentPage++;
+        }
+        else
+        {
+            NextChapter();
+        }
+
+        if (ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
+    }
+
+    private void PreviousPage()
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        if (CurrentPage > 0)
+        {
+            CurrentPage--;
+        }
+        else
+        {
+            PreviousChapter();
+        }
+
+        if (ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
+    }
+
+    private void NextChapter()
+    {
+        if (CurrentChapter < Book?.TableOfContents.Count - 1)
+        {
+            CurrentChapter++;
+            Task.Run(() => LoadChapter(CurrentChapter));
+        }
+    }
+
+    private void PreviousChapter()
+    {
+        if (CurrentChapter > 0)
+        {
+            CurrentChapter--;
+            Task.Run(() => LoadChapter(CurrentChapter));
+        }
+    }
+
+    private async Task LoadChapter(int index)
+    {
+        Chapter chapter = Book.TableOfContents[index].Item2;
+        CurrentPage = 0;
+        //To keep track of if the user went to another chapter while the current one was loading
+        int thisTaskChapterIndex = CurrentChapter;
+        List<Task> children = new List<Task>();
+
+        //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
+        if (chapter.LoadStatus == LoadingStatus.Unloaded)
+        {
+            List<XElement> lines = await EpubFormatter.BreakChapterToLines(chapter);
+            Pages = await PreparePages(lines);
+            chapter.PrepareLines(lines.Count);
+
+            //For the first loading
+            Initialized = true;
+
+            chapter.LoadStatus = LoadingStatus.Loading;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                int currentIndex = i; // Capture the current index
+                children.Add(EpubFormatter.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                {
+                    Debug.WriteLine("Parsing line " + currentIndex);
+                    List<Node> line = parseLineTask.Result;
+                    chapter.PushLineToIndex(currentIndex, line);
+                    if (thisTaskChapterIndex == CurrentChapter)
+                    {
+                        PushLineToPages(currentIndex, line);
+                        InvokeAsync(() =>
+                        {
+                            StateHasChanged();
+                        });
+                    }
+                }));
+            }
+
+            Task.WhenAll(children).ContinueWith(t =>
+            {
+                chapter.LoadStatus = LoadingStatus.Loaded;
+                InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
+            });
+        }
+
+        else
+        {
+            Pages = await BreakChapterToPages(chapter);
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void PushLineToPages(int index, List<Node> line)
+    {
+        int linesPerPage = Pages[CurrentPage].Count;
+        int pageIndex = Math.DivRem(index, linesPerPage, out int lineIndex);
+        Pages[pageIndex][lineIndex] = line;
+    }
+
+    private int GetLinesPerPage()
+    {
+        int linesPerPage;
+        if (ReadingManner == ReadingManner.Japanese)
+        {
+            //Value out of my ass, replace with something actual based on the used css + margins
+            int lineWidth = 40;
+            int windowWidth = JS.InvokeAsync<int>("getWindowWidth").GetAwaiter().GetResult();
+            linesPerPage = windowWidth / lineWidth;
+        }
+        else
+        {
+            //Value out of my ass, replace with something actual based on the used css + margins
+            int lineHeight = 30;
+            int windowHeight = JS.InvokeAsync<int>("getWindowHeight").GetAwaiter().GetResult();
+            linesPerPage = windowHeight / lineHeight;
+        }
+
+        return linesPerPage;
+    }
+
+    private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
+    {
+        int linesPerPage = GetLinesPerPage();
+
+        List<List<List<Node>>> pages = new List<List<List<Node>>>();
+
+        int totalLines = lines.Count;
+        int totalPages = (totalLines + linesPerPage - 1) / linesPerPage; // Calculate total pages
+
+        for (int i = 0; i < totalPages; i++)
+        {
+            List<List<Node>> page = new List<List<Node>>(linesPerPage); // Create a new page with linesPerPage lines
+            for (int j = 0; j < linesPerPage; j++)
+            {
+                page.Add([new Node() { }]); // Add an empty line to the page
+            }
+            pages.Add(page); // Add the page to the pages
+        }
+
+        return pages;
+    }
+
+
+    private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
+    {
+
+        int linesPerPage = GetLinesPerPage();
+        List<List<List<Node>>> pages = [];
+        List<List<Node>> currentPage = [];
+        foreach (List<Node> line in chapter.Lines)
+        {
+            currentPage.Add(line);
+
+            if (currentPage.Count == linesPerPage)
+            {
+                pages.Add(currentPage);
+                currentPage = new List<List<Node>>();
+            }
+        }
+
+        // Add the last page if it has any lines
+        if (currentPage.Count > 0)
+        {
+            pages.Add(currentPage);
+        }
+
+        return pages;
+    }
+
+    private async void ShowPopup(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
+    {
+
+        //Necessary because not everything has a translation for various reasons, and android is not to respond to simple touches
+        //Plataform == Plataform.Android ||
+        if (edrdgEntry is null)
+        {
+            return;
+        }
+        selectedEdrdgEntry = edrdgEntry;
+        if (showPopup)
+        {
+            await RemovePreviousElementBackgroundColor();
+        }
+        showPopup = true;
+        await JS.InvokeVoidAsync("setElementBackgroundColor", id, "#d3d3d3");
+        previousElementId = id;
+    }
+
+    private async void HandleClickOnContent(MouseEventArgs e)
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+            return;
+        }
+
+        int windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
+
+        if (e.ScreenX < windowWidth / 2)
+        {
+            if (ReadingManner == ReadingManner.Japanese)
+                NextPage();
+            else
+                PreviousPage();
+        }
+        else
+        {
+            if (ReadingManner == ReadingManner.Japanese)
+                PreviousPage();
+            else
+                NextPage();
+        }
+        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
+        StateHasChanged();
+    }
+
+    private void HandleTouchStart(TouchEventArgs e)
+    {
+        if(plataform != DevicePlatform.Android)
+            return;
+        try
+        {
+            firstTouchX = e.Touches[0].ScreenX;
+            firstTouchY = e.Touches[0].ScreenY;
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine("Touch start event error: "+ex.Message);
+        }
+    }
+
+    private void HandleTouchMove(TouchEventArgs e)
+    {
+        if (plataform != DevicePlatform.Android)
+            return;
+        try
+        {
+            lastTouchX = e.Touches[0].ScreenX;
+            lastTouchY = e.Touches[0].ScreenY;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Touch move event error: "+ex.Message);
+        }
+    }
+
+    private async void HandleTouchEnd(TouchEventArgs e)
+    {
+        if(plataform != DevicePlatform.Android)
+            return;
+        try
+        {
+            double minDeltaX = await JS.InvokeAsync<double>("getWindowWidth") / 4;
+            double minDeltaY = await JS.InvokeAsync<double>("getWindowHeight") / 4;
+            double deltaX = lastTouchX - firstTouchX;
+            double deltaY = lastTouchY - firstTouchY;
+            firstTouchX = 0;
+            firstTouchY = 0;
+            lastTouchX = 0;
+            lastTouchY = 0;
+
+            if (ReadingManner == ReadingManner.Japanese)
+            {
+                if (deltaY > minDeltaY)
+                    PreviousPage();
+                else if (deltaY < -minDeltaY)
+                    NextPage();
+
+            }
+            else
+            {
+                if (deltaX > minDeltaX)
+                    PreviousPage();
+                else if (deltaX < -minDeltaX)
+                    NextPage();
+            }
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine("Touch end event error: "+ex.Message);
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "Escape":
+                if (showPopup)
+                    ClosePopup();
+                break;
+            //These should be different on image-only pages, which is one more reason to have separate components for separate chapter types
+            case "ArrowLeft":
+                if (ReadingManner == ReadingManner.Western)
+                    PreviousPage();
+                break;
+            case "ArrowRight":
+                if (ReadingManner == ReadingManner.Western)
+                    NextPage();
+                break;
+            case "ArrowUp":
+                if (ReadingManner == ReadingManner.Japanese)
+                    PreviousPage();
+                break;
+            case "ArrowDown":
+            if (ReadingManner == ReadingManner.Japanese)
+                    NextPage();
+                break;
+        }
+        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
+        StateHasChanged();
+    }
+
+    private async void ClosePopup()
+    {
+        showPopup = false;
+        selectedEdrdgEntry = null;
+        await RemovePreviousElementBackgroundColor();
+    }
+
+    private async Task RemovePreviousElementBackgroundColor()
+    {
+        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
+        previousElementId = "";
+    }
+
+}
