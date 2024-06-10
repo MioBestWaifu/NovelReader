@@ -32,6 +32,13 @@ window.changeDirectionToLTR = function () {
     document.documentElement.setAttribute('dir', 'ltr');
 }
 
+window.scrollToHorizontalStart = function () {
+    window.scrollTo(0, window.scrollY);
+}
+
+window.scrollToVerticalStart = function () {
+    window.scrollTo(window.scrollX, 0);
+}
 
 /*window.resizeHandler = {
     initialize: function (dotnetHelper) {

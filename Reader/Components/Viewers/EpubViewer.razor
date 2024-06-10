@@ -160,6 +160,11 @@
         {
             NextChapter();
         }
+
+        if (ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
     }
 
     private void PreviousPage()
@@ -176,6 +181,11 @@
         {
             PreviousChapter();
         }
+
+        if (ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
     }
 
     private void NextChapter()
