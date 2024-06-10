@@ -9,7 +9,7 @@
 <!--Should have different pages instead of a if-else-->
 @if (FileHasBeenPicked)
 {
-    <EpubViewer PathToFile=@PathToFile ReadingManner=ReadingManner.Japanese></EpubViewer>
+    <EpubViewer PathToFile=@PathToFile ReadingManner=@(plataform == DevicePlatform.WinUI ? ReadingManner.Japanese : ReadingManner.Western)></EpubViewer>
 }
 else
 {
