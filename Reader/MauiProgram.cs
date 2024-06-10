@@ -2,12 +2,14 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.LifecycleEvents;
+#if WINDOWS
 using Microsoft.UI.Windowing;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using System.Diagnostics;
 using WinRT.Interop;
 using Windows.Graphics;
+#endif
 
 namespace Mio.Reader
 {
@@ -38,6 +40,7 @@ namespace Mio.Reader
 
 
             builder.Services.AddMauiBlazorWebView();
+
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

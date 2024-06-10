@@ -10,11 +10,8 @@ namespace Mio.Reader
 
             MainPage = new MainPage();
 
-            /*AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-            {
-                Debug.WriteLine(e.ExceptionObject);
-                Debug.WriteLine(s);
-            };*/
+            var x = FileSystem.Current.AppDataDirectory;
+            Debug.WriteLine(x);
         }
     }
 

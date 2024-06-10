@@ -12,7 +12,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+#if WINDOWS
 using Windows.Graphics.Printing.Workflow;
+#endif
 
 namespace Mio.Reader.Parsing
 {
@@ -36,7 +38,8 @@ namespace Mio.Reader.Parsing
         private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
 
         //I think neither load anything on the construction, so no waste of memory.
-        private static JapaneseAnalyzer analyzer = new JapaneseAnalyzer("D:\\Programs\\Data\\Unidic");
+        private static string pathToUnidic = DeviceInfo.Current.Platform == DevicePlatform.WinUI ? "D:\\Programs\\Data\\Unidic" : FileSystem.AppDataDirectory+"/Unidic";
+        public static JapaneseAnalyzer analyzer = new JapaneseAnalyzer(pathToUnidic);
         private static JapaneseTranslator translator = new JapaneseTranslator();
 
         public async static Task<string> FindStandardsFile(string originalXml)

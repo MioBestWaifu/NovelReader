@@ -8,7 +8,7 @@
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
-    <div id="viewer" class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" tabindex="0">
+    <div id="viewer" class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ontouchstart="HandleTouchStart" @ontouchmove="HandleTouchMove" @ontouchend="HandleTouchEnd" tabindex="0">
         @{
             Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
         }
@@ -112,6 +112,10 @@
     private bool Initialized { get; set; } = false;
 
     private string previousElementId = "";
+    private double firstTouchX = 0;
+    private double firstTouchY = 0;
+    private double lastTouchX = 0;
+    private double lastTouchY = 0;
 
     private bool showPopup = false;
     private EdrdgEntry selectedEdrdgEntry;
@@ -374,7 +378,7 @@
 
         int windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
 
-        if (e.ClientX < windowWidth / 2)
+        if (e.ScreenX < windowWidth / 2)
         {
             if (ReadingManner == ReadingManner.Japanese)
                 NextPage();
@@ -392,10 +396,71 @@
         StateHasChanged();
     }
 
-    private async Task RemovePreviousElementBackgroundColor()
+    private void HandleTouchStart(TouchEventArgs e)
     {
-        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
-        previousElementId = "";
+        if(plataform != DevicePlatform.Android)
+            return;
+        try
+        {
+            firstTouchX = e.Touches[0].ScreenX;
+            firstTouchY = e.Touches[0].ScreenY;
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine("Touch start event error: "+ex.Message);
+        }
+    }
+
+    private void HandleTouchMove(TouchEventArgs e)
+    {
+        if (plataform != DevicePlatform.Android)
+            return;
+        try
+        {
+            lastTouchX = e.Touches[0].ScreenX;
+            lastTouchY = e.Touches[0].ScreenY;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Touch move event error: "+ex.Message);
+        }
+    }
+
+    private async void HandleTouchEnd(TouchEventArgs e)
+    {
+        if(plataform != DevicePlatform.Android)
+            return;
+        try
+        {
+            double minDeltaX = await JS.InvokeAsync<double>("getWindowWidth") / 4;
+            double minDeltaY = await JS.InvokeAsync<double>("getWindowHeight") / 4;
+            double deltaX = lastTouchX - firstTouchX;
+            double deltaY = lastTouchY - firstTouchY;
+            firstTouchX = 0;
+            firstTouchY = 0;
+            lastTouchX = 0;
+            lastTouchY = 0;
+
+            if (ReadingManner == ReadingManner.Japanese)
+            {
+                if (deltaY > minDeltaY)
+                    PreviousPage();
+                else if (deltaY < -minDeltaY)
+                    NextPage();
+
+            }
+            else
+            {
+                if (deltaX > minDeltaX)
+                    PreviousPage();
+                else if (deltaX < -minDeltaX)
+                    NextPage();
+            }
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine("Touch end event error: "+ex.Message);
+        }
     }
 
     private void HandleKeyPress(KeyboardEventArgs e)
@@ -433,6 +498,12 @@
         showPopup = false;
         selectedEdrdgEntry = null;
         await RemovePreviousElementBackgroundColor();
+    }
+
+    private async Task RemovePreviousElementBackgroundColor()
+    {
+        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
+        previousElementId = "";
     }
 
 }
