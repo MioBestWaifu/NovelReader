@@ -68,6 +68,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="bootstrap" Version="5.3.3" />
         <PackageReference Include="CommunityToolkit.Maui.Core" Version="9.0.1" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
