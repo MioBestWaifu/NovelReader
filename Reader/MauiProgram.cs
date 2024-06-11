@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.LifecycleEvents;
+using CommunityToolkit.Maui.Core;
+
 #if WINDOWS
 using Microsoft.UI.Windowing;
 using Microsoft.UI;
@@ -41,7 +43,7 @@ namespace Mio.Reader
 
             builder.Services.AddMauiBlazorWebView();
 
-
+            builder.UseMauiApp<App>().UseMauiCommunityToolkitCore();
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();

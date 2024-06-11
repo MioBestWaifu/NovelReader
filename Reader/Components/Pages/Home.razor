@@ -1,4 +1,5 @@
 ﻿@using System.Diagnostics
+@using CommunityToolkit.Maui.Storage
 @using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Viewers
 @using Mio.Reader.Components.Pickers
@@ -15,14 +16,22 @@ else
 {
     @if (plataform == DevicePlatform.WinUI)
     {
-        <h1>Select book</h1>
-        <WindowsFilePicker OnFilePicked="OnFilePickedWindows"></WindowsFilePicker>
+        if (!UnidicDetermined)
+        {
+            <button @onclick="PickUnidicPath">Select path to the Unidic</button>
+        }
+        else
+        {
+            <h1>Select book</h1>
+            <WindowsFilePicker OnFilePicked="OnFilePickedWindows"></WindowsFilePicker>
+        }
+
     }
     else if (plataform == DevicePlatform.Android)
     {
-        if (!UnidicDownloaded)
+        if (!UnidicDetermined)
         {
-            <p>Download the Unidic to proceed. It may take a while</p>
+            <p>Download the Unidic to proceed. It may take a few minutes</p>
             <button @onclick="DownloadUnidic">Download Unidic</button>
         }
         else
@@ -37,14 +46,14 @@ else
     DevicePlatform plataform = DeviceInfo.Current.Platform;
     bool FileHasBeenPicked { get; set; } = false;
     string PathToFile { get; set; }
-    bool UnidicDownloaded { get; set; } = false;
+    bool UnidicDetermined { get; set; } = false;
 
     protected override Task OnInitializedAsync()
     {
         if(plataform == DevicePlatform.Android)
         {
             string unidicPath = Path.Combine(FileSystem.AppDataDirectory, "Unidic");
-            UnidicDownloaded = Directory.Exists(unidicPath);
+            UnidicDetermined = Directory.Exists(unidicPath);
             InvokeAsync(() => { StateHasChanged(); });
         }
         return base.OnInitializedAsync();
@@ -59,6 +68,7 @@ else
 
     private void OnFilePickedAndroid(FileResult fileResult)
     {
+        EpubFormatter.analyzer = new JapaneseAnalyzer(FileSystem.AppDataDirectory + "/Unidic");
         PathToFile = fileResult.FullPath;
         FileHasBeenPicked = true;
         StateHasChanged();
@@ -94,7 +104,7 @@ else
                 // Delete the downloaded ZIP file
                 File.Delete(zipFilePath);
 
-                UnidicDownloaded = true;
+                UnidicDetermined = true;
                 InvokeAsync(() => { StateHasChanged(); });
 
                 return extractionDirPath;
@@ -104,6 +114,25 @@ else
         {
             Debug.WriteLine($"Error downloading and extracting ZIP file: {ex.Message}");
             return null;
+        }
+    }
+
+    private async void PickUnidicPath()
+    {
+        try
+        {
+            var result = await FolderPicker.Default.PickAsync();
+
+            if (result != null)
+            {
+                EpubFormatter.analyzer = new JapaneseAnalyzer(result.Folder.Path);
+                UnidicDetermined = true;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.StackTrace);
         }
     }
 }
