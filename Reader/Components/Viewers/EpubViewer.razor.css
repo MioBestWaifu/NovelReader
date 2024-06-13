@@ -52,6 +52,23 @@ p::selection {
     margin-bottom: 0;
 }
 
+.rdr-navigator {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    direction: ltr;
+    background-color:dimgrey;
+    display:flex;
+    align-items:center;
+}
+
+.rdr-start-animation {
+    animation-name: fadeOut;
+    animation-duration: 2s;
+    animation-delay: 2s;
+    animation-fill-mode: forwards;
+}
 #translation-card {
     position: fixed;
     top: 0;

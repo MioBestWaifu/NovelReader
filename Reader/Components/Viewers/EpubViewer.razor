@@ -1,6 +1,7 @@
 ﻿@using System.Xml.Linq
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Diagnostics
+@using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.JSInterop
 @using Microsoft.Maui.Devices
 
@@ -28,14 +29,14 @@
                 @if (line[0] is TextNode)
                 {
                     <!--Separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
-
-                    //Japanese ReadingManner does not work on mobile. I have no idea why and have tested various arrangements, but the text-block simply refuses to grow its width. 
-                    //It works in desktop. Maybe some shenanigan with the webview rendering vertical text on mobile. 
+                    //Japanese ReadingManner does not work on mobile. I have no idea why and have tested various arrangements, but the text-block simply refuses to grow its width.
+                    //It works in desktop. Maybe some shenanigan with the webview rendering vertical text on mobile.
                     //If a solution is not found with a flexbox, find some other way to make this a visually cohesive block of text whose parts can be selected apart.
                     <div class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
                         @for (int j = 0; j < line.Count; j++)
                         {
                             TextNode node = (TextNode)line[j];
+                            //This may create duplicate ids if there are more than 99 lines, but that should never happen.
                             string id = $"p{i:D2}{j}";
                             <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
@@ -43,7 +44,7 @@
                 }
                 else if (line[0] is ImageNode)
                 {
-                    string cssClass = chapter.IsImagesOnly || ReadingManner == ReadingManner.Western ? "rdr-inline-img-western" : "rdr-inline-img-japanese";
+                    string cssClass = chapter.IsImagesOnly || ReadingManner == ReadingManner.Japanese ? "rdr-inline-img-japanese" : "rdr-inline-img-western";
 
                     ImageNode imageNode = (ImageNode)line[0];
                     <img class=@cssClass src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
@@ -64,6 +65,18 @@
         <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
     </div>
 }
+
+<div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="LeftButtonClicked"/>
+
+    <div class="mx-2">
+        <input type="number" class="form-control" style="width: 50px; display: inline-block;" min="1" max="@Pages.Count"
+               value=@(CurrentPage + 1) @onchange="NavigateToPage" />
+        / @Pages.Count
+    </div>
+
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" OnClick="RightButtonClicked" />
+</div>
 
 
 @code {
@@ -110,8 +123,37 @@
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
     private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
 
+    private CancellationTokenSource cts = new CancellationTokenSource();
     private int CurrentChapter { get; set; } = 11;
-    private int CurrentPage { get; set; } = 0;
+    private int CurrentPage
+    {
+        get
+        {
+            return currentPage;
+        }
+        set
+        {
+            try
+            {
+                currentPage = value;
+                navigatorClass = "rdr-navigator";
+                InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+                StartOrResetNavigatorAnimation();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine(e.InnerException);
+                Debug.WriteLine(e.StackTrace);
+            }
+        }
+    }
+
+
+    private int currentPage;
 
     private bool Initialized { get; set; } = false;
 
@@ -122,10 +164,15 @@
     private double lastTouchY = 0;
 
     private bool showPopup = false;
+    private bool showNavigator = true;
+    private string navigatorClass;
+    private int animationCounter = 0;
+
     private EdrdgEntry selectedEdrdgEntry;
 
     protected override Task OnInitializedAsync()
     {
+        CurrentPage = 0;
         return base.OnInitializedAsync();
     }
 
@@ -156,6 +203,22 @@
         {
             JS.InvokeVoidAsync("changeDirectionToLTR");
         }
+    }
+
+    private async void StartOrResetNavigatorAnimation()
+    {
+        animationCounter++;
+        await Task.Delay(5000);
+        animationCounter--;
+        if(animationCounter <= 0)
+        {
+            animationCounter = 0;
+            navigatorClass = "rdr-navigator rdr-start-animation";
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        } 
     }
 
     private void NextPage()
@@ -198,6 +261,42 @@
             JS.InvokeVoidAsync("scrollToHorizontalStart");
         else
             JS.InvokeVoidAsync("scrollToVerticalStart");
+    }
+
+    private void LeftButtonClicked()
+    {
+        if (ReadingManner == ReadingManner.Japanese)
+            NextPage();
+        else
+            PreviousPage();
+    }
+
+    private void RightButtonClicked()
+    {
+        if (ReadingManner == ReadingManner.Japanese)
+            PreviousPage();
+        else
+            NextPage();
+    }
+
+    private void NavigateToPage(ChangeEventArgs e)
+    {
+        int page = int.Parse(e.Value.ToString());
+        if (page < 1 || page > Pages.Count)
+        {
+            return;
+        }
+
+        page--;
+
+        if (CurrentPage != page)
+        {
+            CurrentPage = page;
+            if (ReadingManner == ReadingManner.Japanese)
+                JS.InvokeVoidAsync("scrollToHorizontalStart");
+            else
+                JS.InvokeVoidAsync("scrollToVerticalStart");
+        }
     }
 
     private void NextChapter()
@@ -402,16 +501,16 @@
 
     private void HandleTouchStart(TouchEventArgs e)
     {
-        if(plataform != DevicePlatform.Android)
+        if (plataform != DevicePlatform.Android)
             return;
         try
         {
             firstTouchX = e.Touches[0].ScreenX;
             firstTouchY = e.Touches[0].ScreenY;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            Debug.WriteLine("Touch start event error: "+ex.Message);
+            Debug.WriteLine("Touch start event error: " + ex.Message);
         }
     }
 
@@ -426,13 +525,13 @@
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Touch move event error: "+ex.Message);
+            Debug.WriteLine("Touch move event error: " + ex.Message);
         }
     }
 
     private async void HandleTouchEnd(TouchEventArgs e)
     {
-        if(plataform != DevicePlatform.Android)
+        if (plataform != DevicePlatform.Android)
             return;
         try
         {
@@ -461,9 +560,9 @@
                     NextPage();
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            Debug.WriteLine("Touch end event error: "+ex.Message);
+            Debug.WriteLine("Touch end event error: " + ex.Message);
         }
     }
 
@@ -489,7 +588,7 @@
                     PreviousPage();
                 break;
             case "ArrowDown":
-            if (ReadingManner == ReadingManner.Japanese)
+                if (ReadingManner == ReadingManner.Japanese)
                     NextPage();
                 break;
         }

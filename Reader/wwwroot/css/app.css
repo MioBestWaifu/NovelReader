@@ -1,4 +1,16 @@
-﻿html, body {
+﻿@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+
+
+html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     overflow:auto;
 }
