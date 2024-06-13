@@ -14,9 +14,8 @@
             Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
         }
 
-        @if (!chapter.IsImagesOnly)
-        {
-            <h1 class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")">@Book?.TableOfContents[CurrentChapter].Item1</h1>
+        @if(!chapter.IsImagesOnly){
+            <h1 id="chapter-title" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" @onclick="(() => {showTableOfContents = true; StateHasChanged();})">@Book?.TableOfContents[CurrentChapter].Item1</h1>
         }
 
         @try
@@ -44,7 +43,7 @@
                 }
                 else if (line[0] is ImageNode)
                 {
-                    string cssClass = chapter.IsImagesOnly || ReadingManner == ReadingManner.Japanese ? "rdr-inline-img-japanese" : "rdr-inline-img-western";
+                    string cssClass = !chapter.IsImagesOnly && ReadingManner == ReadingManner.Japanese ? "rdr-inline-img-japanese" : "rdr-inline-img-western";
 
                     ImageNode imageNode = (ImageNode)line[0];
                     <img class=@cssClass src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
@@ -63,6 +62,20 @@
 {
     <div id="translation-card">
         <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
+    </div>
+}
+
+@if (showTableOfContents)
+{
+    <div id="toc">
+        <div id="toc-close">
+            <FluentIcon Value="@(new Icons.Regular.Size20.Dismiss())" OnClick="(() => {showTableOfContents = false; StateHasChanged();})"></FluentIcon>
+        </div>
+        @for(int i = 0; i<Book.TableOfContents.Count; i++)
+        {
+            int index = i;
+            <p style="cursor:pointer; direction:ltr" @onclick="(() => {showTableOfContents = false; NavigateToChapter(index); })">@Book.TableOfContents[i].Item1</p>
+        }
     </div>
 }
 
@@ -164,7 +177,8 @@
     private double lastTouchY = 0;
 
     private bool showPopup = false;
-    private bool showNavigator = true;
+    private bool showTableOfContents = false;
+
     private string navigatorClass;
     private int animationCounter = 0;
 
@@ -296,6 +310,15 @@
                 JS.InvokeVoidAsync("scrollToHorizontalStart");
             else
                 JS.InvokeVoidAsync("scrollToVerticalStart");
+        }
+    }
+
+    private void NavigateToChapter(int index)
+    {
+        if (CurrentChapter != index)
+        {
+            CurrentChapter = index;
+            Task.Run(() => LoadChapter(CurrentChapter));
         }
     }
 

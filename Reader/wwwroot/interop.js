@@ -33,11 +33,11 @@ window.changeDirectionToLTR = function () {
 }
 
 window.scrollToHorizontalStart = function () {
-    window.scrollTo(0, window.scrollY);
+    document.body.scrollTo(0, document.body.scrollTop);
 }
 
 window.scrollToVerticalStart = function () {
-    window.scrollTo(window.scrollX, 0);
+    document.body.scrollTo(document.body.scrollLeft, 0);
 }
 
 window.focusOnElement = function (id) {
