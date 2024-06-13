@@ -17,15 +17,8 @@ else
 {
     @if (plataform == DevicePlatform.WinUI)
     {
-        if (!UnidicDetermined)
-        {
-            <button @onclick="PickUnidicPath">Select path to the Unidic</button>
-        }
-        else
-        {
-            <h1>Select book</h1>
-            <WindowsFilePicker OnFilePicked="OnFilePickedWindows"></WindowsFilePicker>
-        }
+        <h1>Select book</h1>
+        <WindowsFilePicker OnFilePicked="OnFilePickedWindows"></WindowsFilePicker>
 
     }
     else if (plataform == DevicePlatform.Android)
@@ -51,10 +44,9 @@ else
 
     protected override Task OnInitializedAsync()
     {
-        if(plataform == DevicePlatform.Android)
+        if (plataform == DevicePlatform.Android)
         {
-            string unidicPath = Path.Combine(FileSystem.AppDataDirectory, "Unidic");
-            UnidicDetermined = Directory.Exists(unidicPath);
+            UnidicDetermined = Directory.Exists(Configurations.Current.PathToUnidic);
             InvokeAsync(() => { StateHasChanged(); });
         }
         return base.OnInitializedAsync();
@@ -69,7 +61,6 @@ else
 
     private void OnFilePickedAndroid(FileResult fileResult)
     {
-        EpubFormatter.analyzer = new JapaneseAnalyzer(FileSystem.AppDataDirectory + "/Unidic");
         PathToFile = fileResult.FullPath;
         FileHasBeenPicked = true;
         StateHasChanged();
@@ -97,7 +88,7 @@ else
                 await File.WriteAllBytesAsync(zipFilePath, zipData);
 
                 // Define the path for the target extraction directory
-                string extractionDirPath = Path.Combine(appDataDir, "Unidic");
+                string extractionDirPath = Configurations.Current.PathToUnidic;
 
                 // Extract the ZIP file contents
                 ZipFile.ExtractToDirectory(zipFilePath, extractionDirPath);

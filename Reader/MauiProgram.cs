@@ -23,6 +23,12 @@ namespace Mio.Reader
             builder
                 .UseMauiApp<App>();
 
+#if WINDOWS
+            Configurations.Current.PathToUnidic = Path.Combine(AppContext.BaseDirectory,"Unidic");
+#else
+            Configurations.Current.PathToUnidic = Path.Combine(FileSystem.AppDataDirectory,"Unidic");
+#endif
+
             builder.ConfigureLifecycleEvents(lifecycle =>
             {
 #if WINDOWS

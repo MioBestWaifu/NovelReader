@@ -37,7 +37,7 @@ namespace Mio.Reader.Parsing
 
         private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
 
-        public static JapaneseAnalyzer analyzer;
+        public static JapaneseAnalyzer analyzer = new JapaneseAnalyzer(Configurations.Current.PathToUnidic);
         private static JapaneseTranslator translator = new JapaneseTranslator();
 
         public async static Task<string> FindStandardsFile(string originalXml)
