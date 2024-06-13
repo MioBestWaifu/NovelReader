@@ -295,6 +295,11 @@
 
     private void NavigateToPage(ChangeEventArgs e)
     {
+        if(showPopup)
+        {
+            ClosePopup();
+        }
+
         int page = int.Parse(e.Value.ToString());
         if (page < 1 || page > Pages.Count)
         {
@@ -315,6 +320,10 @@
 
     private void NavigateToChapter(int index)
     {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
         if (CurrentChapter != index)
         {
             CurrentChapter = index;
