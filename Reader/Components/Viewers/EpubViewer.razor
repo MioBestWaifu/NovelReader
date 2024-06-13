@@ -28,10 +28,8 @@
                 @if (line[0] is TextNode)
                 {
                     <!--Separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
-                    //Japanese ReadingManner does not work on mobile. I have no idea why and have tested various arrangements, but the text-block simply refuses to grow its width.
-                    //It works in desktop. Maybe some shenanigan with the webview rendering vertical text on mobile.
-                    //If a solution is not found with a flexbox, find some other way to make this a visually cohesive block of text whose parts can be selected apart.
-                    <div class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                    //May seem strange to have p's inside p's, but this is done because on the one hand individual words need to be clickable, and on the other hand the mobile webview was not rendering vertical text properly in a div in landscape mode. This achieves both.
+                    <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
                         @for (int j = 0; j < line.Count; j++)
                         {
                             TextNode node = (TextNode)line[j];
@@ -39,7 +37,7 @@
                             string id = $"p{i:D2}{j}";
                             <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
-                    </div>
+                    </p>
                 }
                 else if (line[0] is ImageNode)
                 {

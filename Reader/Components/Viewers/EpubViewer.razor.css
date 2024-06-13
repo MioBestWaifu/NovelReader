@@ -36,13 +36,11 @@ p::selection {
 }
 
 .rdr-japanese-text-block {
-    display: flex;
     height: 100%;
-    flex-wrap: wrap;
-    flex-direction: column;
-}
-
-.rdr-japanese-text {
+    word-wrap: break-word;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-bottom: 0;
     writing-mode: vertical-rl;
     /*This may be counter-intuitve, but is necessary for proper layout. Because in Japanese mode the direction of the document is set
         to RTL, the browser expects the text to be written from right to left, but this is not the case, 
@@ -51,6 +49,11 @@ p::selection {
         but certain characters will be changed to suit the browser expections. Which is why this terribleness has to be done.
     */
     direction: ltr;
+}
+
+.rdr-japanese-text {
+    writing-mode: vertical-rl;
+    display: inline;
     margin-block-start: 0;
     margin-block-end: 0;
     margin-bottom: 0;
