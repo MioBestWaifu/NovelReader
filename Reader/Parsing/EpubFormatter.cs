@@ -349,7 +349,13 @@ namespace Mio.Reader.Parsing
                 //Also, This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
                 if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
                 {
-                    nodes.Add(new TextNode() { Text = sentences[i] });
+                    if(nodes.Count == 0)
+                    {
+                        nodes.Add(new TextNode() { Text = sentences[i] });
+                    } else
+                    {
+                        nodes[^1].Text += sentences[i];
+                    }
                     continue;
                 }
 
