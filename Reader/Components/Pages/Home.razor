@@ -2,7 +2,6 @@
 @using CommunityToolkit.Maui.Storage
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.Maui.Devices
-@using Mio.Reader.Components.Viewers
 @using System.IO.Compression
 @using Mio.Reader.Services
 
@@ -10,16 +9,18 @@
 @page "/"
 
 <!--Should have different pages instead of a if-else-->
+<FluentDesignTheme Mode="DesignThemeModes.Dark" OfficeColor="OfficeColor.Stream" />
 @if (string.IsNullOrEmpty(Configurations.PathToLibrary))
 {
+    <p>Some text here to test colors</p>
     <button @onclick="PickLibraryFolder">Pick the library folder</button>
+    <FluentButton Appearance="Appearance.Outline">AAAAA</FluentButton>
 }
 else
 {
     if (plataform == DevicePlatform.WinUI || UnidicDetermined)
     {
         <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
-
     }
     else 
     {

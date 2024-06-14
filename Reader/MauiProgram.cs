@@ -5,6 +5,8 @@ using Microsoft.Maui.LifecycleEvents;
 
 using CommunityToolkit.Maui.Core;
 using Mio.Reader.Services;
+using Microsoft.FluentUI.AspNetCore.Components;
+
 
 #if WINDOWS
 using Microsoft.UI.Windowing;
@@ -48,7 +50,7 @@ namespace Mio.Reader
             builder.Services.AddSingleton<DataManagementService>();
             builder.Services.AddSingleton<LibraryService>();
 
-
+            builder.Services.AddFluentUIComponents();
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG

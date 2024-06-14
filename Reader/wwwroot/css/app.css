@@ -15,6 +15,14 @@ html, body {
     overflow:auto;
 }
 
+body {
+    font-size: var(--type-ramp-base-font-size);
+    line-height: var(--type-ramp-base-line-height);
+    font-weight: var(--font-weight);
+    color: var(--neutral-foreground-rest);
+    background: var(--neutral-fill-layer-rest);
+}
+
 a, .btn-link {
     color: #006bb7;
 }
