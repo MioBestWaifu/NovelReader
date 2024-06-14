@@ -40,6 +40,7 @@ namespace Mio.Reader
 
             builder.ConfigureLifecycleEvents(lifecycle =>
             {
+
 #if WINDOWS
                 lifecycle.AddWindows(windowBuilder =>
                 {

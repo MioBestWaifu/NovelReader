@@ -2,6 +2,7 @@
 using Mio.Reader.Parsing.Structure;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,26 +11,40 @@ namespace Mio.Reader.Services
 {
     public class LibraryService (ConfigurationsService configs,DataManagementService dataManager)
     {
-        //Maybe should make this another class containing both the metadata and the user's interactions.
-        public List<EpubMetadata> Books { get; private set; } = [];
+        /*
+         * The base64 of the covers will take a lot o memory for larger libraries. Should:
+         * 1 - Have pagination
+         * 2 - Only keep base64 in memoray while that page of the library is being displayed
+        */
+        public List<EpubInteraction> Books { get; private set; } = [];
         public event EventHandler BookAdded;
 
         public async void Initialize()
         {
-            Books = [];
+            Books = await dataManager.GetSavedInteractions();
+            Parallel.ForEach(Books, async (book) =>
+            {
+                book.Metadata.CoverBase64 = await Utils.GetCoverBase64(book.Metadata.Path, book.Metadata.CoverRelativePath);
+            });
+            BookAdded.Invoke(this, EventArgs.Empty);
             //Should this loading be done with dataManger?
             string[] files = Directory.GetFiles(configs.PathToLibrary!, "*.epub", SearchOption.AllDirectories).Order().ToArray();
             foreach (string file in files)
             {
+                //Not sure how efficient this is for large libraries.
+                if (Books.Any(b => b.Metadata.Path == file))
+                {
+                    continue;
+                }
                 //Should be wrapper in a try-catch. Isn't because it's still not published and errors are easier to find like this.
-                Books.Add(await EpubLoader.LoadMetadata(file));
+                Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(file)));
                 BookAdded.Invoke(this, EventArgs.Empty);
             }
         }
 
         public async void SaveAll()
         {
-
+            await dataManager.SaveInteractions(Books);
         }
     }
 }

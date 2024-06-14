@@ -1,16 +1,48 @@
-﻿using System;
+﻿using Mio.Reader.Parsing.Structure;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Mio.Reader.Services
 {
     public class DataManagementService (ConfigurationsService configs)
     {
+        private JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+        {
+            IncludeFields = true,
+            PropertyNameCaseInsensitive = true
+        };
 
+        public async Task<List<EpubInteraction>> GetSavedInteractions()
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<List<EpubInteraction>>(await File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Library.json")), jsonOptions);
+            } catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting saved interactions: {ex.Message}");
+                return [];
+            }
+        }
+
+        public async Task<bool> SaveInteractions(List<EpubInteraction> interactions)
+        {
+            try
+            {
+                await File.WriteAllTextAsync(Path.Combine(FileSystem.AppDataDirectory, "Library.json"), JsonSerializer.Serialize(interactions, jsonOptions));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving interactions: {ex.Message}");
+                return false;
+            }
+        }
         public async Task<bool> DownloadUnidic()
         {
             try
