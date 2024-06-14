@@ -4,14 +4,13 @@
 @using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Viewers
 @using System.IO.Compression
-@using Mio.Reader.Managers
+@using Mio.Reader.Services
 
-@inject NavigationManager Navigator
 
 @page "/"
 
 <!--Should have different pages instead of a if-else-->
-@if (string.IsNullOrEmpty(PathToLibrary))
+@if (string.IsNullOrEmpty(Configurations.PathToLibrary))
 {
     <button @onclick="PickLibraryFolder">Pick the library folder</button>
 }
@@ -19,7 +18,7 @@ else
 {
     if (plataform == DevicePlatform.WinUI || UnidicDetermined)
     {
-        <Library PathToLibrary="@PathToLibrary" OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
+        <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
 
     }
     else 
@@ -32,15 +31,21 @@ else
 
 
 @code {
+    [Inject]
+    NavigationManager Navigator{ get; set; }
+    [Inject]
+    ConfigurationsService Configurations { get; set; }
+    [Inject]
+    DataManagementService DataManager { get; set; }
+
     DevicePlatform plataform = DeviceInfo.Current.Platform;
-    string? PathToLibrary { get; set; }
     bool UnidicDetermined { get; set; } = false;
 
     protected override Task OnInitializedAsync()
     {
         if (plataform == DevicePlatform.Android)
         {
-            UnidicDetermined = Directory.Exists(Configurations.Current.PathToUnidic);
+            UnidicDetermined = Directory.Exists(Configurations.PathToUnidic);
             InvokeAsync(() => { StateHasChanged(); });
         }
         return base.OnInitializedAsync();
@@ -58,8 +63,8 @@ else
         if (!result.IsSuccessful)
             return;
 
-        PathToLibrary = result.Folder.Path;
-        Debug.WriteLine(PathToLibrary);
+        Configurations.PathToLibrary = result.Folder.Path;
+        Debug.WriteLine(Configurations.PathToLibrary);
         StateHasChanged();
     }
 

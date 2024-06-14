@@ -5,6 +5,7 @@
 @using Microsoft.JSInterop
 @using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Pages
+@using Mio.Reader.Services
 @page "/reader"
 
 
@@ -98,6 +99,8 @@
 @code {
     [Inject]
     private IJSRuntime JS { get; set; }
+    [Inject]
+    private LibraryService Library{ get; set; }
 
     [Parameter]
     public ReadingManner ReadingManner

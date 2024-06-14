@@ -1,8 +1,9 @@
-﻿<div style="display:flex">
-    @for (int i = 0; i < Books.Count; i++)
+﻿@using Mio.Reader.Services
+<div style="display:flex">
+    @for (int i = 0; i < LibraryService.Books.Count; i++)
     {
         int currentIterationIndex = i;
-        EpubMetadata book = Books[currentIterationIndex];
+        EpubMetadata book = LibraryService.Books[currentIterationIndex];
         <div style="display:flex; flex-direction:column; margin: 10px;">
             <!--Not necessarily always a jpeg actually. Should find format in the metadata-->
             <img src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 250px;" />
@@ -15,38 +16,16 @@
 </div>
 
 @code {
-    [Parameter]
-    public string? PathToLibrary { get
-        {
-            return pathToLibrary;
-        } set
-        {
-            pathToLibrary = value;
-            Task.Run(() => LoadBooks());
-        } 
-    }
 
     [Parameter]
     public EventCallback<int> OnBookSelected { get; set; }
 
-    public static List<EpubMetadata> Books { get; private set; } = [];
+    [Inject]
+    public LibraryService LibraryService { get; set; }
 
-    private string? pathToLibrary;
-
-    private async void LoadBooks()
+    protected override void OnInitialized()
     {
-        Books = [];
-        string[] files = Directory.GetFiles(PathToLibrary!, "*.epub", SearchOption.AllDirectories).Order().ToArray();
-        foreach (string file in files)
-        {
-            Books.Add(await EpubLoader.LoadMetadata(file));
-            InvokeAsync(() => { StateHasChanged(); });
-        }
-
-    }
-
-    private async void LoadProgress()
-    {
-        
+        LibraryService.BookAdded += (sender, e) => InvokeAsync(() => StateHasChanged());
+        Task.Run(() => LibraryService.Initialize());
     }
 }

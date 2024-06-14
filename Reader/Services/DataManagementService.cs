@@ -6,11 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Reader.Managers
+namespace Mio.Reader.Services
 {
-    internal class DataManager
+    public class DataManagementService (ConfigurationsService configs)
     {
-        public static async Task<bool> DownloadUnidic()
+
+        public async Task<bool> DownloadUnidic()
         {
             try
             {
@@ -26,7 +27,7 @@ namespace Mio.Reader.Managers
 
                     await File.WriteAllBytesAsync(zipFilePath, zipData);
 
-                    string extractionDirPath = Configurations.Current.PathToUnidic;
+                    string extractionDirPath = configs.PathToUnidic;
 
                     ZipFile.ExtractToDirectory(zipFilePath, extractionDirPath);
 

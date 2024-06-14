@@ -1,4 +1,5 @@
 ﻿using Mio.Reader.Parsing.Structure;
+using Mio.Reader.Services;
 using Mio.Translation.Japanese;
 using Mio.Translation.Japanese.Edrdg;
 using System;
@@ -29,7 +30,11 @@ namespace Mio.Reader.Parsing
 
         private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
 
-        public static JapaneseAnalyzer analyzer = new JapaneseAnalyzer(Configurations.Current.PathToUnidic);
+        //Obviouslt breaks if configs is not assigned before analyzer, but that should never happen because this field is assinged in the very ConfigurationsService constructor.
+        public static ConfigurationsService Configs { private get { return configs; } set { configs = value; analyzer = new JapaneseAnalyzer(value.PathToUnidic); } }
+        private static ConfigurationsService configs;
+        public static JapaneseAnalyzer analyzer;
+
         private static JapaneseTranslator translator = new JapaneseTranslator();
 
 
