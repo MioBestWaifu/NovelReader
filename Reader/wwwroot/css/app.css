@@ -8,11 +8,15 @@
     }
 }
 
+.rdr-standard-button{
+    width: 250px;
+    height: 50px;
+}
 
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    overflow:auto;
+    overflow: auto;
 }
 
 body {
