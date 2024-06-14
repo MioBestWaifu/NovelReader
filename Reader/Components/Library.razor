@@ -1,0 +1,49 @@
+﻿<div style="display:flex">
+    @foreach (EpubMetadata book in Books)
+    {
+        <div style="display:flex; flex-direction:column; margin: 10px;">
+            <!--Not necessarily always a jpeg actually. Should find format in the metadata-->
+            <img src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 250px;" />
+            <p>@book.Title</p>
+            <p>@book.Author</p>
+            <button @onclick="() => OnBookSelected.InvokeAsync(book)">Read</button>
+        </div>
+    
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? PathToLibrary { get
+        {
+            return pathToLibrary;
+        } set
+        {
+            pathToLibrary = value;
+            LoadBooks();
+        } 
+    }
+
+    [Parameter]
+    public EventCallback<EpubMetadata> OnBookSelected { get; set; }
+
+    private List<EpubMetadata> Books { get; set; } = [];
+
+    private string? pathToLibrary;
+
+    private async void LoadBooks()
+    {
+        string[] files = Directory.GetFiles(PathToLibrary!, "*.epub", SearchOption.AllDirectories).Order().ToArray();
+        foreach (string file in files)
+        {
+            Books.Add(await EpubLoader.LoadMetadata(file));
+            StateHasChanged();
+        }
+
+    }
+
+    private async void LoadProgress()
+    {
+        
+    }
+}

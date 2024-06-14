@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    internal class Chapter
+    public class Chapter
     {
         public string Title { get; set; } = "";
         public ZipArchiveEntry FileReference { get; private set; }

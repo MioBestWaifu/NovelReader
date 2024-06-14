@@ -4,6 +4,8 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.JSInterop
 @using Microsoft.Maui.Devices
+@using Mio.Reader.Components.Pages
+@page "/reader"
 
 
 @if (Initialized)
@@ -14,7 +16,8 @@
             Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
         }
 
-        @if(!chapter.IsImagesOnly){
+        @if (!chapter.IsImagesOnly)
+        {
             <h1 id="chapter-title" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" @onclick="(() => {showTableOfContents = true; StateHasChanged();})">@Book?.TableOfContents[CurrentChapter].Item1</h1>
         }
 
@@ -35,7 +38,7 @@
                             TextNode node = (TextNode)line[j];
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
                             string id = $"p{i:D2}{j}";
-                            <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                        <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </p>
                 }
@@ -69,7 +72,7 @@
         <div id="toc-close">
             <FluentIcon Value="@(new Icons.Regular.Size20.Dismiss())" OnClick="(() => {showTableOfContents = false; StateHasChanged();})"></FluentIcon>
         </div>
-        @for(int i = 0; i<Book.TableOfContents.Count; i++)
+        @for (int i = 0; i < Book.TableOfContents.Count; i++)
         {
             int index = i;
             <p style="cursor:pointer; direction:ltr" @onclick="(() => {showTableOfContents = false; NavigateToChapter(index); })">@Book.TableOfContents[i].Item1</p>
@@ -78,7 +81,7 @@
 }
 
 <div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
-    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="LeftButtonClicked"/>
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="LeftButtonClicked" />
 
     <div class="mx-2">
         <input type="number" class="form-control" style="width: 50px; display: inline-block;" min="1" max="@Pages.Count"
@@ -96,19 +99,19 @@
     //private DotNetObjectReference<EpubViewer> objectReference;
 
     [Parameter]
-    public string PathToFile
+    public EpubMetadata ChosenBook
     {
         get
         {
-            return pathToFile;
+            return chosenBook;
         }
-        set
-        {
-            pathToFile = value;
-            Task.Run(() => OnBookPathSet(pathToFile));
+        set { 
+            chosenBook = value; 
+            OnBookSet(value); 
         }
     }
-    private string pathToFile = "";
+
+    private EpubMetadata chosenBook;
 
     [Parameter]
     public ReadingManner ReadingManner
@@ -184,17 +187,18 @@
 
     protected override Task OnInitializedAsync()
     {
+        ReadingManner = ReadingManner.Japanese;
         CurrentPage = 0;
+        ChosenBook = Home.BookSelected!;
         return base.OnInitializedAsync();
     }
 
-    private async Task OnBookPathSet(string newPath)
+    private async Task OnBookSet(EpubMetadata newBook)
     {
 
         try
         {
-            Debug.WriteLine("PathToFile: " + newPath);
-            Book = await EpubLoader.LoadEpub(newPath);
+            Book = await EpubLoader.LoadEpub(newBook);
             Task.Run(() => LoadChapter(CurrentChapter));
         }
         catch (Exception e)
@@ -222,7 +226,7 @@
         animationCounter++;
         await Task.Delay(5000);
         animationCounter--;
-        if(animationCounter <= 0)
+        if (animationCounter <= 0)
         {
             animationCounter = 0;
             navigatorClass = "rdr-navigator rdr-start-animation";
@@ -230,7 +234,7 @@
             {
                 StateHasChanged();
             });
-        } 
+        }
     }
 
     private void NextPage()
@@ -293,7 +297,7 @@
 
     private void NavigateToPage(ChangeEventArgs e)
     {
-        if(showPopup)
+        if (showPopup)
         {
             ClosePopup();
         }
