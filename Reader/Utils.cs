@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Reader.Parsing
+namespace Mio.Reader
 {
     internal static class Utils
     {
@@ -44,6 +44,28 @@ namespace Mio.Reader.Parsing
             ZipArchiveEntry entry = archive.GetEntry(directory);
 
             return entry;
+        }
+
+        public static async Task<bool> RequestStoragePermissions()
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.StorageRead>();
+
+                if (status == PermissionStatus.Granted)
+                {
+                    status = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
+
+                    if (status != PermissionStatus.Granted)
+                    {
+                        status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+                    }
+                }
+            }
+
+            return status == PermissionStatus.Granted;
         }
 
 

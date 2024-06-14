@@ -3,7 +3,6 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Viewers
-@using Mio.Reader.Components.Pickers
 @using System.IO.Compression
 @using Mio.Reader.Managers
 
@@ -51,7 +50,7 @@ else
     {
         if (plataform == DevicePlatform.Android)
         {
-            if (!await AndroidFilePicker.RequestFilesPermission())
+            if (!await Utils.RequestStoragePermissions())
                 return;
         }
 
