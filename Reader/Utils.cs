@@ -63,14 +63,26 @@ namespace Mio.Reader
 
             ZipArchiveEntry coverEntry = GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
             //Could use some compression
+            return await GetCoverBase64(coverEntry, true);
+        }
+
+        public static async Task<string> GetCoverBase64(ZipArchiveEntry coverEntry, bool downscale)
+        {
             if (coverEntry != null)
             {
-                byte[] coverBytes = new byte[coverEntry.Length];
-                using (var stream = coverEntry.Open())
+                try
                 {
-                    stream.ReadAsync(coverBytes, 0, coverBytes.Length).Wait();
+                    byte[] coverBytes = new byte[coverEntry.Length];
+                    using (var stream = coverEntry.Open())
+                    {
+                        await stream.ReadAsync(coverBytes, 0, coverBytes.Length);
+                    }
+                    return Convert.ToBase64String(coverBytes);
                 }
-                return Convert.ToBase64String(coverBytes);
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
             }
 
             return "";

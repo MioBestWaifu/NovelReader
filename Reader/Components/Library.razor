@@ -1,12 +1,12 @@
 ﻿@using Mio.Reader.Services
-<div style="display:flex">
+<div style="display:flex; flex-wrap:wrap">
     @for (int i = 0; i < LibraryService.Books.Count; i++)
     {
         int currentIterationIndex = i;
         EpubMetadata book = LibraryService.Books[currentIterationIndex].Metadata;
         <div style="display:flex; flex-direction:column; margin: 10px;">
             <!--Not necessarily always a jpeg actually. Should find format in the metadata-->
-            <img src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 250px;" />
+            <img src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 240px; width:160px;" />
             <p>@book.Title</p>
             <p>@book.Author</p>
             <button @onclick="() => OnBookSelected.InvokeAsync(currentIterationIndex)">Read</button>
