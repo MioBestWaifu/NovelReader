@@ -81,8 +81,8 @@ namespace Mio.Reader
                             if (downscale)
                             {
                                 // Set the new size here
-                                int newWidth = 200;
-                                int newHeight = 300;
+                                int newWidth = 220;
+                                int newHeight = 330;
 
                                 image.Mutate(x => x.Resize(newWidth, newHeight));
                             }

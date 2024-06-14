@@ -13,6 +13,27 @@
     height: 50px;
 }
 
+.rdr-card {
+    border: 1px solid var(--accent-base-color);
+    padding: 0 !important;
+}
+
+.rdr-standard-text{
+    font-size: 1rem;
+}
+
+.rdr-small-text{
+    font-size: 0.8rem;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.hover-underline:hover {
+    text-decoration: underline;
+}
+
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
