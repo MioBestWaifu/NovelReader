@@ -3,18 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.LifecycleEvents;
 
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using CommunityToolkit.Maui.Core;
-
-#if WINDOWS
-After:
-using CommunityToolkit.Maui.Core;
-using Mio.Reader.Services;
-
-
-#if WINDOWS
-*/
 using CommunityToolkit.Maui.Core;
 using Mio.Reader.Services;
 
