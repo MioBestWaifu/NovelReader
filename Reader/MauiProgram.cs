@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.LifecycleEvents;
+
 using CommunityToolkit.Maui.Core;
+using Mio.Reader.Services;
 
 #if WINDOWS
 using Microsoft.UI.Windowing;
@@ -23,14 +25,10 @@ namespace Mio.Reader
             builder
                 .UseMauiApp<App>().UseMauiCommunityToolkitCore();
 
-#if WINDOWS
-            Configurations.Current.PathToUnidic = Path.Combine(AppContext.BaseDirectory,"Unidic");
-#else
-            Configurations.Current.PathToUnidic = Path.Combine(FileSystem.AppDataDirectory,"Unidic");
-#endif
 
             builder.ConfigureLifecycleEvents(lifecycle =>
             {
+
 #if WINDOWS
                 lifecycle.AddWindows(windowBuilder =>
                 {
@@ -46,10 +44,13 @@ namespace Mio.Reader
 #endif
             });
 
+            builder.Services.AddSingleton<ConfigurationsService>();
+            builder.Services.AddSingleton<DataManagementService>();
+            builder.Services.AddSingleton<LibraryService>();
+
 
             builder.Services.AddMauiBlazorWebView();
 
-            builder.UseMauiApp<App>().UseMauiCommunityToolkitCore();
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();

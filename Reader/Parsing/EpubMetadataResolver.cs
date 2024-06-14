@@ -69,7 +69,7 @@ namespace Mio.Reader.Parsing
                 Debug.WriteLine($"Error loading cover: {e.Message}");
             }
 
-            return new EpubMetadata(title, string.Join(", ", authors), path, version, coverBase64, standardOpfPath);
+            return new EpubMetadata(title, string.Join(", ", authors), path, version, coverBase64,pathToCover, standardOpfPath);
         }
 
         private static string ResolveTitle(XDocument standardsDoc, int version)

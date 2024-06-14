@@ -5,6 +5,7 @@
 @using Microsoft.JSInterop
 @using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Pages
+@using Mio.Reader.Services
 @page "/reader"
 
 
@@ -98,6 +99,8 @@
 @code {
     [Inject]
     private IJSRuntime JS { get; set; }
+    [Inject]
+    private LibraryService Library{ get; set; }
 
     [Parameter]
     public ReadingManner ReadingManner
@@ -122,6 +125,7 @@
     private DevicePlatform plataform = DeviceInfo.Current.Platform;
 
     private Epub? Book { get; set; } = null;
+    private EpubInteraction interaction;
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
     private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
 
@@ -176,17 +180,19 @@
     {
         ReadingManner = ReadingManner.Japanese;
         CurrentPage = 0;
-        Task.Run(() => SetBook(Library.Books[BookIndex]));
+        interaction = Library.Books[BookIndex];
+        CurrentChapter = interaction.LastChapter;
+        Task.Run(() => SetBook());
         return base.OnInitializedAsync();
     }
 
-    private async Task SetBook(EpubMetadata newBook)
+    private async Task SetBook()
     {
 
         try
         {
-            Book = await EpubLoader.LoadEpub(newBook);
-            Task.Run(() => LoadChapter(CurrentChapter));
+            Book = await EpubLoader.LoadEpub(interaction.Metadata);
+            Task.Run(() => LoadChapter(CurrentChapter, true));
         }
         catch (Exception e)
         {
@@ -233,6 +239,7 @@
         if (CurrentPage < Pages.Count - 1)
         {
             CurrentPage++;
+            interaction.LastPage = CurrentPage;
         }
         else
         {
@@ -254,6 +261,7 @@
         if (CurrentPage > 0)
         {
             CurrentPage--;
+            interaction.LastPage = CurrentPage;
         }
         else
         {
@@ -285,6 +293,7 @@
         if (CurrentPage != page)
         {
             CurrentPage = page;
+            interaction.LastPage = CurrentPage;
             if (ReadingManner == ReadingManner.Japanese)
                 JS.InvokeVoidAsync("scrollToHorizontalStart");
             else
@@ -301,6 +310,7 @@
         if (CurrentChapter != index)
         {
             CurrentChapter = index;
+            interaction.LastChapter = CurrentChapter;
             Task.Run(() => LoadChapter(CurrentChapter));
         }
     }
@@ -310,6 +320,7 @@
         if (CurrentChapter < Book?.TableOfContents.Count - 1)
         {
             CurrentChapter++;
+            interaction.LastChapter = CurrentChapter;
             Task.Run(() => LoadChapter(CurrentChapter));
         }
     }
@@ -319,14 +330,14 @@
         if (CurrentChapter > 0)
         {
             CurrentChapter--;
+            interaction.LastChapter = CurrentChapter;
             Task.Run(() => LoadChapter(CurrentChapter));
         }
     }
 
-    private async Task LoadChapter(int index)
+    private async Task LoadChapter(int index, bool firstLoad = false)
     {
         Chapter chapter = Book.TableOfContents[index].Item2;
-        CurrentPage = 0;
         //To keep track of if the user went to another chapter while the current one was loading
         int thisTaskChapterIndex = CurrentChapter;
         List<Task> children = new List<Task>();
@@ -336,6 +347,16 @@
         {
             List<XElement> lines = await EpubParser.BreakChapterToLines(chapter);
             Pages = await PreparePages(lines);
+            if(firstLoad && interaction.LastTimeNumberOfPages != 0)
+            {
+                CurrentPage = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
+            } else
+            {
+                CurrentPage = 0;
+            }
+
+            interaction.LastTimeNumberOfPages = Pages.Count;
+
             chapter.PrepareLines(lines.Count);
 
             //For the first loading
@@ -374,6 +395,7 @@
         else
         {
             Pages = await BreakChapterToPages(chapter);
+            CurrentPage = 0;
             InvokeAsync(() =>
             {
                 StateHasChanged();

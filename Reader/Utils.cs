@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Mio.Reader.Parsing;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
@@ -44,6 +46,34 @@ namespace Mio.Reader
             ZipArchiveEntry entry = archive.GetEntry(directory);
 
             return entry;
+        }
+
+        public static async Task<string> GetCoverBase64(string pathToEpub, string coverRelativePath)
+        {
+            ZipArchive archive = ZipFile.OpenRead(pathToEpub);
+            Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                namedEntries[entry.FullName] = entry;
+            }
+
+            string containerXml = await new StreamReader(namedEntries["META-INF/container.xml"].Open()).ReadToEndAsync();
+
+            string standardOpfPath = await EpubMetadataResolver.ResolveStandardsFile(containerXml);
+
+            ZipArchiveEntry coverEntry = GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
+            //Could use some compression
+            if (coverEntry != null)
+            {
+                byte[] coverBytes = new byte[coverEntry.Length];
+                using (var stream = coverEntry.Open())
+                {
+                    stream.ReadAsync(coverBytes, 0, coverBytes.Length).Wait();
+                }
+                return Convert.ToBase64String(coverBytes);
+            }
+
+            return "";
         }
 
         public static async Task<bool> RequestStoragePermissions()
