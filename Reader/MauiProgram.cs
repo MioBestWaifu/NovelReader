@@ -21,7 +21,7 @@ namespace Mio.Reader
         {
             var builder = MauiApp.CreateBuilder();
             builder
-                .UseMauiApp<App>();
+                .UseMauiApp<App>().UseMauiCommunityToolkitCore();
 
 #if WINDOWS
             Configurations.Current.PathToUnidic = Path.Combine(AppContext.BaseDirectory,"Unidic");

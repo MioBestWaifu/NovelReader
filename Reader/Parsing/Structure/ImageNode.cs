@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    internal class ImageNode : Node
+    public class ImageNode : Node
     {
         public string Type { get; set; } = "";
     }

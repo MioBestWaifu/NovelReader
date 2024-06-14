@@ -8,16 +8,24 @@ namespace Mio.Reader.Parsing
 {
     internal static class EpubLoader
     {
+        public async static Task<EpubMetadata> LoadMetadata (string path)
+        {
+            ZipArchive archive = ZipFile.OpenRead(path);
+            var res =  await EpubFormatter.FindMetadata(path,archive);
+            archive.Dispose();
+            return res;
+        }
+
         /// <summary>
         /// Does not actually load the content of the Epub, but rather references and indexes the files in a organized fashion.
         /// The only contents that are loaded are the metadata and the table of contents.
         /// </summary>
         /// <param name="path"></param>
-        public async static Task<Epub> LoadEpub(string path)
+        public async static Task<Epub> LoadEpub(EpubMetadata metadata)
         {
-            ZipArchive archive = ZipFile.OpenRead(path);
+            ZipArchive archive = ZipFile.OpenRead(metadata.Path);
 
-            Epub epub = new Epub(archive);
+            Epub epub = new Epub(archive,metadata);
             //Not parallel because it is (probably) a small list.
             Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
             foreach (ZipArchiveEntry entry in archive.Entries)
@@ -25,13 +33,9 @@ namespace Mio.Reader.Parsing
                 Debug.WriteLine(entry.FullName);
                 namedEntries[entry.FullName] = entry;
             }
+            string standardOpf = await new StreamReader(namedEntries[metadata.Standards].Open()).ReadToEndAsync();
 
-            string containerXml = await new StreamReader(namedEntries["META-INF/container.xml"].Open()).ReadToEndAsync();
-
-            string standardOpfPath = await EpubFormatter.FindStandardsFile(containerXml);
-            string standardOpf = await new StreamReader(namedEntries[standardOpfPath].Open()).ReadToEndAsync();
-
-            List<(string, ZipArchiveEntry)> contents = EpubFormatter.ListChapters(namedEntries[standardOpfPath], standardOpf);
+            List<(string, ZipArchiveEntry)> contents = EpubFormatter.ListChapters(namedEntries[metadata.Standards], standardOpf);
 
             foreach (var pair in contents)
             {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    internal class TextNode : Node
+    public class TextNode : Node
     {
         public EdrdgEntry? EdrdgEntry { get; set; }
     }

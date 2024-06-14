@@ -22,7 +22,7 @@
         ShowLackOfPermissionPopup = false;
         await base.OnInitializedAsync();
     }
-    public async Task<bool> RequestFilesPermission()
+    public static async Task<bool> RequestFilesPermission()
     {
         var status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
 

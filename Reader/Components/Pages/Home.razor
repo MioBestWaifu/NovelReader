@@ -6,32 +6,27 @@
 @using Mio.Reader.Components.Pickers
 @using System.IO.Compression
 
+@inject NavigationManager Navigatior
+
 @page "/"
 
 <!--Should have different pages instead of a if-else-->
-@if (FileHasBeenPicked)
+@if (string.IsNullOrEmpty(PathToLibrary))
 {
-    <EpubViewer PathToFile=@PathToFile ReadingManner=ReadingManner.Japanese></EpubViewer>
+    <button @onclick="PickLibraryFolder">Pick the library folder</button>
 }
 else
 {
-    @if (plataform == DevicePlatform.WinUI)
+    if (plataform == DevicePlatform.WinUI || UnidicDetermined)
     {
-        <h1>Select book</h1>
-        <WindowsFilePicker OnFilePicked="OnFilePickedWindows"></WindowsFilePicker>
+        <Library PathToLibrary="@PathToLibrary" OnBookSelected="@(m => {BookSelected = m; Navigatior.NavigateTo("/reader");})"/>
 
     }
-    else if (plataform == DevicePlatform.Android)
+    else 
     {
-        if (!UnidicDetermined)
-        {
-            <p>Download the Unidic to proceed. It may take a few minutes</p>
-            <button @onclick="DownloadUnidic">Download Unidic</button>
-        }
-        else
-        {
-            <AndroidFilePicker OnFilePicked="OnFilePickedAndroid"></AndroidFilePicker>
-        }
+        <p>Download the Unidic to proceed. It may take a few minutes</p>
+        //TODO ensure this is only called once
+        <button @onclick="DownloadUnidic">Download Unidic</button>
     }
 }
 
@@ -40,7 +35,10 @@ else
     DevicePlatform plataform = DeviceInfo.Current.Platform;
     bool FileHasBeenPicked { get; set; } = false;
     string PathToFile { get; set; }
+    string PathToLibrary { get; set; }
     bool UnidicDetermined { get; set; } = false;
+    //Temporary. Should be in a service or something
+    public static EpubMetadata? BookSelected { get; set; }
 
     protected override Task OnInitializedAsync()
     {
@@ -63,6 +61,23 @@ else
     {
         PathToFile = fileResult.FullPath;
         FileHasBeenPicked = true;
+        StateHasChanged();
+    }
+
+    private async void PickLibraryFolder()
+    {
+        if (plataform == DevicePlatform.Android)
+        {
+            if (!await AndroidFilePicker.RequestFilesPermission())
+                return;
+        }
+
+        FolderPickerResult result = await FolderPicker.Default.PickAsync();
+        if (!result.IsSuccessful)
+            return;
+
+        PathToLibrary = result.Folder.Path;
+        Debug.WriteLine(PathToLibrary);
         StateHasChanged();
     }
 

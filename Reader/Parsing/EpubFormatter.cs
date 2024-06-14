@@ -57,6 +57,161 @@ namespace Mio.Reader.Parsing
             return fullPath;
         }
 
+        public static async Task<EpubMetadata> FindMetadata(string path,ZipArchive archive)
+        {
+            //Not parallel because it is (probably) a small list.
+            Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                Debug.WriteLine(entry.FullName);
+                namedEntries[entry.FullName] = entry;
+            }
+
+            string containerXml = await new StreamReader(namedEntries["META-INF/container.xml"].Open()).ReadToEndAsync();
+
+            string standardOpfPath = await FindStandardsFile(containerXml);
+            string standardsXml = await new StreamReader(namedEntries[standardOpfPath].Open()).ReadToEndAsync();
+            XDocument standardsDoc = XDocument.Parse(standardsXml);
+            XElement packageElement = standardsDoc.Root;
+            XAttribute versionAttribute = packageElement.Attribute("version");
+            int version = int.Parse(versionAttribute?.Value[0].ToString() ?? "0");
+
+            
+
+            string title = FindTitle(standardsDoc,version);
+            List<string> authors = FindAuthors(standardsDoc, version);
+            string pathToCover = FindPathToCover(standardsDoc, version);
+            string coverBase64 = string.Empty;
+            try
+            {
+                ZipArchiveEntry coverEntry = Utils.GetRelativeEntry(namedEntries[standardOpfPath], pathToCover);
+                byte[] coverBytes = new byte[coverEntry.Length];
+                using (var stream = coverEntry.Open())
+                {
+                    stream.ReadAsync(coverBytes, 0, coverBytes.Length).Wait();
+                }
+                coverBase64 = Convert.ToBase64String(coverBytes);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error loading cover: {e.Message}");
+            }
+
+            return new EpubMetadata(title, string.Join(", ", authors), path, version, coverBase64, standardOpfPath);
+        }
+
+        private static string FindTitle(XDocument standardsDoc, int version)
+        {
+            // Define namespaces for EPUB 2 and EPUB 3
+            XNamespace dcNs = "http://purl.org/dc/elements/1.1/";
+
+            // Initialize title variable
+            string title = string.Empty;
+
+            if (version == 3)
+            {
+                // For EPUB 3, the metadata is under the package/metadata element
+                XElement metadata = standardsDoc.Root.Element(opfNs + "metadata");
+                if (metadata != null)
+                {
+                    // Find the first title element within the metadata section
+                    XElement titleElement = metadata.Elements(dcNs + "title").FirstOrDefault();
+                    if (titleElement != null)
+                    {
+                        title = titleElement.Value;
+                    }
+                }
+            }
+            else if (version == 2)
+            {
+                // For EPUB 2, the structure is similar, but handling is provided for consistency
+                XElement metadata = standardsDoc.Root.Element(opfNs + "metadata");
+                if (metadata != null)
+                {
+                    // Find the first title element within the metadata section
+                    XElement titleElement = metadata.Elements(dcNs + "title").FirstOrDefault();
+                    if (titleElement != null)
+                    {
+                        title = titleElement.Value;
+                    }
+                }
+            }
+
+            return title;
+        }
+
+
+        private static List<string> FindAuthors(XDocument standardsDoc, int version)
+        {
+            // Define the Dublin Core namespace
+            XNamespace dcNs = "http://purl.org/dc/elements/1.1/";
+            List<string> authors = new List<string>();
+
+            // The metadata element is under the package/metadata for both EPUB 2 and EPUB 3
+            XElement metadata = standardsDoc.Root.Element(opfNs + "metadata");
+            if (metadata != null)
+            {
+                // Find all creator elements within the metadata section
+                IEnumerable<XElement> authorElements = metadata.Elements(dcNs + "creator");
+                foreach (var authorElement in authorElements)
+                {
+                    // For EPUB 3, we might also want to consider the role attribute to filter authors
+                    if (version == 3)
+                    {
+                        XAttribute roleAttribute = authorElement.Attribute(opfNs + "role");
+                        // If role attribute is present and equals 'aut' (author), or if role attribute is not used
+                        if (roleAttribute == null || roleAttribute.Value == "aut")
+                        {
+                            authors.Add(authorElement.Value);
+                        }
+                    }
+                    else
+                    {
+                        // For EPUB 2, simply add the author's name
+                        authors.Add(authorElement.Value);
+                    }
+                }
+            }
+
+            return authors;
+        }
+
+        private static string FindPathToCover(XDocument standardDoc, int version)
+        {
+            string coverPath = string.Empty;
+
+            if (version == 3)
+            {
+                // EPUB 3: Look for a meta element with name="cover" to find the cover image ID, then find the item with that ID
+                XElement metadata = standardDoc.Root.Element(opfNs + "manifest");
+                if (metadata != null)
+                {
+                    XElement coverItem = metadata.Elements(opfNs + "item")
+                                                 .FirstOrDefault(m => (string)m.Attribute("properties") == "cover-image");
+                    if (coverItem != null)
+                    {
+                        coverPath = coverItem.Attribute("href")?.Value;
+                    }
+                }
+            }
+
+            else if (version == 2)
+            {
+                // EPUB 2: The cover image might be indicated in the guide section
+                XElement guide = standardDoc.Root.Element(opfNs + "guide");
+                XElement coverRef = guide?.Elements(opfNs + "reference")
+                                         .FirstOrDefault(r => (string)r.Attribute("type") == "cover");
+                if (coverRef != null)
+                {
+                    coverPath = coverRef.Attribute("href")?.Value;
+                }
+            }
+
+            return coverPath;
+        }
+
+
+
 
         public static List<(string, ZipArchiveEntry)> ListChapters(ZipArchiveEntry standardsEntry, string standardsXml)
         {

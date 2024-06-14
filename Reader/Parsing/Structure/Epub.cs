@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    internal class Epub
+    public class Epub
     {
-        public string Title { get; set; } = "";
-        public string Author { get; set; } = "";
-        private ZipArchive zipReference;
-        public List<(string, Chapter)> TableOfContents { get; } = [];
+        public EpubMetadata Metadata { get; private set; }
+        ZipArchive zipReference;
+        public List<(string, Chapter)> TableOfContents = [];
 
-        public Epub(ZipArchive zip)
+        public Epub(ZipArchive zip, EpubMetadata metadata)
         {
             zipReference = zip;
+            Metadata = metadata;
         }
     }
 }
