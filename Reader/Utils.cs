@@ -1,4 +1,6 @@
 ﻿using Mio.Reader.Parsing;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -72,12 +74,26 @@ namespace Mio.Reader
             {
                 try
                 {
-                    byte[] coverBytes = new byte[coverEntry.Length];
                     using (var stream = coverEntry.Open())
                     {
-                        await stream.ReadAsync(coverBytes, 0, coverBytes.Length);
+                        using (var image = SixLabors.ImageSharp.Image.Load(stream))
+                        {
+                            if (downscale)
+                            {
+                                // Set the new size here
+                                int newWidth = 200;
+                                int newHeight = 300;
+
+                                image.Mutate(x => x.Resize(newWidth, newHeight));
+                            }
+
+                            using (var ms = new MemoryStream())
+                            {
+                                image.SaveAsJpeg(ms);
+                                return Convert.ToBase64String(ms.ToArray());
+                            }
+                        }
                     }
-                    return Convert.ToBase64String(coverBytes);
                 }
                 catch (Exception e)
                 {
@@ -87,6 +103,7 @@ namespace Mio.Reader
 
             return "";
         }
+
 
         public static async Task<bool> RequestStoragePermissions()
         {
