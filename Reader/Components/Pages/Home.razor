@@ -6,7 +6,7 @@
 @using Mio.Reader.Components.Pickers
 @using System.IO.Compression
 
-@inject NavigationManager Navigatior
+@inject NavigationManager Navigator
 
 @page "/"
 
@@ -19,7 +19,7 @@ else
 {
     if (plataform == DevicePlatform.WinUI || UnidicDetermined)
     {
-        <Library PathToLibrary="@PathToLibrary" OnBookSelected="@(m => {BookSelected = m; Navigatior.NavigateTo("/reader");})"/>
+        <Library PathToLibrary="@PathToLibrary" OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
 
     }
     else 
@@ -37,8 +37,6 @@ else
     string PathToFile { get; set; }
     string PathToLibrary { get; set; }
     bool UnidicDetermined { get; set; } = false;
-    //Temporary. Should be in a service or something
-    public static EpubMetadata? BookSelected { get; set; }
 
     protected override Task OnInitializedAsync()
     {
@@ -121,25 +119,6 @@ else
         {
             Debug.WriteLine($"Error downloading and extracting ZIP file: {ex.Message}");
             return null;
-        }
-    }
-
-    private async void PickUnidicPath()
-    {
-        try
-        {
-            var result = await FolderPicker.Default.PickAsync();
-
-            if (result != null)
-            {
-                EpubFormatter.analyzer = new JapaneseAnalyzer(result.Folder.Path);
-                UnidicDetermined = true;
-                StateHasChanged();
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.StackTrace);
         }
     }
 }
