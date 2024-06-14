@@ -11,7 +11,7 @@ namespace Mio.Reader.Parsing
         public async static Task<EpubMetadata> LoadMetadata (string path)
         {
             ZipArchive archive = ZipFile.OpenRead(path);
-            var res =  await EpubFormatter.FindMetadata(path,archive);
+            var res =  await EpubMetadataResolver.ResolveMetadata(path,archive);
             archive.Dispose();
             return res;
         }
@@ -35,7 +35,7 @@ namespace Mio.Reader.Parsing
             }
             string standardOpf = await new StreamReader(namedEntries[metadata.Standards].Open()).ReadToEndAsync();
 
-            List<(string, ZipArchiveEntry)> contents = EpubFormatter.ListChapters(namedEntries[metadata.Standards], standardOpf);
+            List<(string, ZipArchiveEntry)> contents = EpubMetadataResolver.ResolveChapters(namedEntries[metadata.Standards], standardOpf);
 
             foreach (var pair in contents)
             {

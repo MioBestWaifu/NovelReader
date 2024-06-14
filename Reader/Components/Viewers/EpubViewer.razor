@@ -120,8 +120,6 @@
     private ReadingManner readingManner;
 
     private DevicePlatform plataform = DeviceInfo.Current.Platform;
-    // [Parameter]
-    // public Plataform Plataform { get; set; } = Plataform.Windows;
 
     private Epub? Book { get; set; } = null;
     //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
@@ -336,7 +334,7 @@
         //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
         if (chapter.LoadStatus == LoadingStatus.Unloaded)
         {
-            List<XElement> lines = await EpubFormatter.BreakChapterToLines(chapter);
+            List<XElement> lines = await EpubParser.BreakChapterToLines(chapter);
             Pages = await PreparePages(lines);
             chapter.PrepareLines(lines.Count);
 
@@ -347,7 +345,7 @@
             for (int i = 0; i < lines.Count; i++)
             {
                 int currentIndex = i; // Capture the current index
-                children.Add(EpubFormatter.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                children.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
                 {
                     Debug.WriteLine("Parsing line " + currentIndex);
                     List<Node> line = parseLineTask.Result;
