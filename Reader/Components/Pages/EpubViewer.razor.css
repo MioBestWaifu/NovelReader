@@ -67,11 +67,15 @@ p{
     position: fixed;
     bottom: 0;
     left: 50%;
+    min-width:150px;
     transform: translateX(-50%);
     direction: ltr;
-    background-color: var(--neutral-foreground-rest);
+    background-color: var(--neutral-layer-2);
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--accent-base-color);
+    border-radius: 5px 5px 0 0;
 }
 
 .rdr-start-animation {

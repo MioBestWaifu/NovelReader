@@ -20,6 +20,8 @@ namespace Mio.Reader.Services
         //Multiple library folders to be implemented eventually, should be a list.
         public string PathToLibrary { get; set; }
 
+        public string MainColor { get; set; } = "#770737";
+
         public ConfigurationsService()
         {
 #if WINDOWS

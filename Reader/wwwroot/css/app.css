@@ -45,7 +45,7 @@ body {
     line-height: var(--type-ramp-base-line-height);
     font-weight: var(--font-weight);
     color: var(--neutral-foreground-rest);
-    background: var(--neutral-fill-layer-rest);
+    background: var(--neutral-layer-1);
 }
 
 a, .btn-link {

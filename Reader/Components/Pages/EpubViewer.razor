@@ -10,7 +10,7 @@
 @layout MainLayout
 @page "/reader"
 
-<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor="#CF9FFF"></FluentDesignTheme>
+<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configs.MainColor></FluentDesignTheme>
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
@@ -82,23 +82,26 @@
 }
 
 <div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
-    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); 
-        else PreviousPage();})" />
+    <!--Using the base accent color like that is bad. Eill make these very apart from the rest of the theme-->
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.Custom" CustomColor=@Configs.MainColor
+    OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
 
     <div class="mx-2" style="color:var(--neutral-fill-layer-rest)">
-        <input type="number" class="form-control" style="width: 50px; display: inline-block;border:1px solid var(--neutral-foreground-rest);" min="1" max="@Pages.Count"
+        <input type="number" class="form-control" style="width: 50px; display: inline-block;" min="1" max="@Pages.Count"
                value=@(CurrentPage + 1) @onchange="NavigateToPage" />
         / @Pages.Count
     </div>
 
-    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) PreviousPage(); 
-        else NextPage();})" />
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.Custom" CustomColor=@Configs.MainColor 
+        OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) PreviousPage(); else NextPage();})" />
 </div>
 
 
 @code {
     [Inject]
     private IJSRuntime JS { get; set; }
+    [Inject]
+    private ConfigurationsService Configs { get; set; }
     [Inject]
     private LibraryService Library{ get; set; }
 

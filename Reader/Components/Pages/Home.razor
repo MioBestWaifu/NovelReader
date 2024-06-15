@@ -10,7 +10,7 @@
 
 
 <!--Should have different pages instead of a if-else-->
-<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor="#CF9FFF" />
+<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configurations.MainColor />
 @if (string.IsNullOrEmpty(Configurations.PathToLibrary))
 {
     <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
