@@ -1,16 +1,15 @@
 ﻿@using Mio.Reader.Services
-<div style="display:flex">
+<div class="d-flex flex-wrap justify-content-evenly">
     @for (int i = 0; i < LibraryService.Books.Count; i++)
     {
         int currentIterationIndex = i;
         EpubMetadata book = LibraryService.Books[currentIterationIndex].Metadata;
-        <div style="display:flex; flex-direction:column; margin: 10px;">
-            <!--Not necessarily always a jpeg actually. Should find format in the metadata-->
-            <img src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 250px;" />
-            <p>@book.Title</p>
-            <p>@book.Author</p>
-            <button @onclick="() => OnBookSelected.InvokeAsync(currentIterationIndex)">Read</button>
-        </div>
+        <FluentCard Class="rdr-card" Width="220px" Height="430px">
+            <img class="pointer" src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 330px; width:220px;"
+            @onclick="(() => OnBookSelected.InvokeAsync(currentIterationIndex))" />
+            <p class="pointer hover-underline" @onclick="(() => OnBookSelected.InvokeAsync(currentIterationIndex))">@book.Title</p>
+            <p class="rdr-xsmall-text pointer hover-underline">@book.Author</p>
+        </FluentCard>
     
     }
 </div>

@@ -1,4 +1,6 @@
 ﻿using Mio.Reader.Parsing;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,18 +65,45 @@ namespace Mio.Reader
 
             ZipArchiveEntry coverEntry = GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
             //Could use some compression
+            return await GetCoverBase64(coverEntry, true);
+        }
+
+        public static async Task<string> GetCoverBase64(ZipArchiveEntry coverEntry, bool downscale)
+        {
             if (coverEntry != null)
             {
-                byte[] coverBytes = new byte[coverEntry.Length];
-                using (var stream = coverEntry.Open())
+                try
                 {
-                    stream.ReadAsync(coverBytes, 0, coverBytes.Length).Wait();
+                    using (var stream = coverEntry.Open())
+                    {
+                        using (var image = SixLabors.ImageSharp.Image.Load(stream))
+                        {
+                            if (downscale)
+                            {
+                                // Set the new size here
+                                int newWidth = 220;
+                                int newHeight = 330;
+
+                                image.Mutate(x => x.Resize(newWidth, newHeight));
+                            }
+
+                            using (var ms = new MemoryStream())
+                            {
+                                image.SaveAsJpeg(ms);
+                                return Convert.ToBase64String(ms.ToArray());
+                            }
+                        }
+                    }
                 }
-                return Convert.ToBase64String(coverBytes);
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
             }
 
             return "";
         }
+
 
         public static async Task<bool> RequestStoragePermissions()
         {

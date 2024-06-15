@@ -17,16 +17,12 @@
                 }
             </ol>
         </div>
-        <button @onclick="Close">Close</button>
     </div>
 </div>
 
 @code {
     [Parameter]
     public EdrdgEntry Entry { get; set; }
-
-    [Parameter]
-    public EventCallback OnClose { get; set; }
 
     private string kanjisJoined = string.Empty;
     private string readingsJoined = string.Empty;
@@ -45,10 +41,5 @@
                 ? string.Join(", ", Entry.ReadingElements.Select(r => r.Reading))
                 : string.Empty;
         }
-    }
-
-    public async void Close()
-    {
-        await OnClose.InvokeAsync();
     }
 }
