@@ -14,7 +14,7 @@ namespace Mio.Reader.Services
         /*
          * The base64 of the covers will take a lot o memory for larger libraries. Should:
          * 1 - Have pagination
-         * 2 - Only keep base64 in memoray while that page of the library is being displayed
+         * 2 - Only keep base64 in memory while that page of the library is being displayed
         */
         public List<EpubInteraction> Books { get; private set; } = [];
         public event EventHandler BookAdded;

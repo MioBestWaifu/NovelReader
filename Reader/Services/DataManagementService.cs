@@ -17,7 +17,12 @@ namespace Mio.Reader.Services
         {
             try
             {
-                return JsonSerializer.Deserialize<List<EpubInteraction>>(await File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Library.json")), ConfigurationsService.jsonOptions);
+                List<EpubInteraction> saved = JsonSerializer.Deserialize<List<EpubInteraction>>(await
+                    File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Library.json")), ConfigurationsService.jsonOptions);
+
+                saved.RemoveAll(b => !File.Exists(b.Metadata.Path));
+
+                return saved;
             } catch (Exception ex)
             {
                 Debug.WriteLine($"Error getting saved interactions: {ex.Message}");
