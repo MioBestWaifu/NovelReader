@@ -12,17 +12,12 @@ namespace Mio.Reader.Services
 {
     public class DataManagementService (ConfigurationsService configs)
     {
-        private JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-        {
-            IncludeFields = true,
-            PropertyNameCaseInsensitive = true
-        };
 
         public async Task<List<EpubInteraction>> GetSavedInteractions()
         {
             try
             {
-                return JsonSerializer.Deserialize<List<EpubInteraction>>(await File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Library.json")), jsonOptions);
+                return JsonSerializer.Deserialize<List<EpubInteraction>>(await File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Library.json")), ConfigurationsService.jsonOptions);
             } catch (Exception ex)
             {
                 Debug.WriteLine($"Error getting saved interactions: {ex.Message}");
@@ -38,7 +33,7 @@ namespace Mio.Reader.Services
                 {
                     return true;
                 }
-                await File.WriteAllTextAsync(Path.Combine(FileSystem.AppDataDirectory, "Library.json"), JsonSerializer.Serialize(interactions, jsonOptions));
+                await File.WriteAllTextAsync(Path.Combine(FileSystem.AppDataDirectory, "Library.json"), JsonSerializer.Serialize(interactions, ConfigurationsService.jsonOptions));
                 return true;
             }
             catch (Exception ex)

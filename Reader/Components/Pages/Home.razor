@@ -72,6 +72,7 @@ else
             return;
 
         Configurations.PathToLibrary = result.Folder.Path;
+        Configurations.Save();
         Debug.WriteLine(Configurations.PathToLibrary);
         StateHasChanged();
     }

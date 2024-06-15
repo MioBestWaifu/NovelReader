@@ -6,6 +6,7 @@ using Microsoft.Maui.LifecycleEvents;
 using CommunityToolkit.Maui.Core;
 using Mio.Reader.Services;
 using Microsoft.FluentUI.AspNetCore.Components;
+using System.Text.Json;
 
 
 #if WINDOWS
@@ -45,8 +46,18 @@ namespace Mio.Reader
                 });
 #endif
             });
+            ConfigurationsService configurationsService;
+            try
+            {
+                var readTask = File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Configs.json"));
+                readTask.Wait();
+                configurationsService = JsonSerializer.Deserialize<ConfigurationsService>(readTask.Result,ConfigurationsService.jsonOptions);
+            } catch (Exception)
+            {
+                configurationsService = new ConfigurationsService();
+            }
 
-            builder.Services.AddSingleton<ConfigurationsService>();
+            builder.Services.AddSingleton<ConfigurationsService>(configurationsService);
             builder.Services.AddSingleton<DataManagementService>();
             builder.Services.AddSingleton<LibraryService>();
 
