@@ -57,7 +57,7 @@ namespace Mio.Reader
                 configurationsService = new ConfigurationsService();
             }
 
-            builder.Services.AddSingleton<ConfigurationsService>(configurationsService);
+            builder.Services.AddSingleton(configurationsService!);
             builder.Services.AddSingleton<DataManagementService>();
             builder.Services.AddSingleton<LibraryService>();
 
