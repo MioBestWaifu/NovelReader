@@ -35,7 +35,6 @@ namespace Mio.Reader.Parsing
             Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                Debug.WriteLine(entry.FullName);
                 namedEntries[entry.FullName] = entry;
             }
 
@@ -163,11 +162,15 @@ namespace Mio.Reader.Parsing
 
             else if (version == 2)
             {
-                XElement guide = standardDoc.Root.Element(Namespaces.opfNs + "guide");
-                XElement coverRef = guide?.Elements(Namespaces.opfNs + "reference")
-                                         .FirstOrDefault(r => (string)r.Attribute("type") == "cover");
-                if (coverRef != null)
+                XElement metadata = standardDoc.Root.Element(Namespaces.opfNs + "metadata");
+                XElement coverMeta = metadata?.Elements(Namespaces.opfNs + "meta")
+                                         .FirstOrDefault(r => (string)r.Attribute("name") == "cover");
+                if (coverMeta != null)
                 {
+                    string coverId = coverMeta.Attribute("content")!.Value;
+                    XElement coverRef = standardDoc.Root.Element(Namespaces.opfNs + "manifest")
+                                              .Elements(Namespaces.opfNs + "item")
+                                              .FirstOrDefault(i => (string)i.Attribute("id") == coverId);
                     coverPath = coverRef.Attribute("href")?.Value;
                 }
             }

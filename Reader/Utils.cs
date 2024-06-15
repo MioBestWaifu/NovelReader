@@ -17,14 +17,19 @@ namespace Mio.Reader
         {
             ZipArchive archive = currentLocation.Archive;
             string directory;
+            int lastSlash = currentLocation.FullName.LastIndexOf('/');
             if (relativePath.StartsWith('/'))
             {
                 directory = relativePath.Substring(1);
+            } 
+            else if (lastSlash == -1)
+            {
+                directory = relativePath;
             }
             else
             {
                 // Get the directory of the current location
-                directory = currentLocation.FullName.Substring(0, currentLocation.FullName.LastIndexOf('/'));
+                directory = currentLocation.FullName.Substring(0, lastSlash);
 
                 // Split the relative path into parts
                 string[] parts = relativePath.Split('/');
