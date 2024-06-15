@@ -5,8 +5,9 @@
 @using System.IO.Compression
 @using Mio.Reader.Services
 
-
+@layout MainLayout
 @page "/"
+
 
 <!--Should have different pages instead of a if-else-->
 <FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor="#CF9FFF" />
@@ -14,7 +15,7 @@
 {
     <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
         <h4>No library folder has been chosen. Please choose one.</h4>
-        <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size16.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
+        <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
     </div>
 }
 else
@@ -31,7 +32,7 @@ else
                 bool disabled = false;
             }
             <!--Not sure if the StateHasChanged call there is needed-->
-            <FluentButton Class="rdr-standard-button" OnClick="(() => {disabled = true; StateHasChanged();Task.Run(() => DownloadUnidic());})" IconStart="@(new Icons.Regular.Size16.ArrowDownload())" Appearance="Appearance.Accent" Disabled=@disabled>Download</FluentButton>
+            <FluentButton Class="rdr-standard-button" OnClick="(() => {disabled = true; StateHasChanged();Task.Run(() => DownloadUnidic());})" IconStart="@(new Icons.Regular.Size20.ArrowDownload())" Appearance="Appearance.Accent" Disabled=@disabled>Download</FluentButton>
         </div>
     }
 }

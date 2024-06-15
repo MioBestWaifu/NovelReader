@@ -6,9 +6,11 @@
 @using Microsoft.Maui.Devices
 @using Mio.Reader.Components.Pages
 @using Mio.Reader.Services
+
+@layout MainLayout
 @page "/reader"
 
-
+<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor="#CF9FFF"></FluentDesignTheme>
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
@@ -21,6 +23,18 @@
         {
             <h1 id="chapter-title" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" @onclick="(() => {showTableOfContents = true; StateHasChanged();})">@Book?.TableOfContents[CurrentChapter].Item1</h1>
         }
+
+        <!--Gets blurry when scrolling, dont know why-->
+        <FluentMenu HorizontalInset=true HorizontalPosition="HorizontalPosition.Left" VerticalInset=true VerticalPosition="VerticalPosition.Top" Anchor="chapter-title" @bind-Open=@showTableOfContents
+        Width="@(plataform == DevicePlatform.WinUI ? "300px" : "100%")">
+            <div class="@(plataform == DevicePlatform.WinUI ? "toc" : "toc-mobile")">
+                @for (int i = 0; i < Book.TableOfContents.Count; i++)
+                {
+                    int index = i;
+                    <FluentMenuItem style="direction:ltr" OnClick="(() => {showTableOfContents = false; NavigateToChapter(index); })">@Book.TableOfContents[index].Item1</FluentMenuItem>
+                }
+            </div>
+        </FluentMenu>
 
         @try
         {
@@ -39,7 +53,8 @@
                             TextNode node = (TextNode)line[j];
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
                             string id = $"p{i:D2}{j}";
-                        <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                        <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)"
+                           @onmouseleave="e => Task.Run(() => HandleMouseLeaveWord(e,id))" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </p>
                 }
@@ -59,34 +74,19 @@
 
     </div>
 }
-
 @if (showPopup)
 {
-    <div id="translation-card">
-        <TranslationCard Entry="selectedEdrdgEntry" OnClose="ClosePopup" />
-    </div>
-}
-
-@if (showTableOfContents)
-{
-    <div id="toc">
-        <div id="toc-close">
-            <FluentIcon Value="@(new Icons.Regular.Size20.Dismiss())" OnClick="(() => {showTableOfContents = false; StateHasChanged();})"></FluentIcon>
-        </div>
-        @for (int i = 0; i < Book.TableOfContents.Count; i++)
-        {
-            int index = i;
-            <p style="cursor:pointer; direction:ltr" @onclick="(() => {showTableOfContents = false; NavigateToChapter(index); })">@Book.TableOfContents[i].Item1</p>
-        }
-    </div>
+    <FluentTooltip @onmouseenter="(() => enteredTooltip = true)" @onmouseleave="ClosePopup"  UseTooltipService="false" Anchor=@selectedWordId OnDismissed="ClosePopup" Id="translation-card">
+        <TranslationCard Entry=@selectedEdrdgEntry />
+    </FluentTooltip>
 }
 
 <div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
     <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); 
         else PreviousPage();})" />
 
-    <div class="mx-2">
-        <input type="number" class="form-control" style="width: 50px; display: inline-block;" min="1" max="@Pages.Count"
+    <div class="mx-2" style="color:var(--neutral-fill-layer-rest)">
+        <input type="number" class="form-control" style="width: 50px; display: inline-block;border:1px solid var(--neutral-foreground-rest);" min="1" max="@Pages.Count"
                value=@(CurrentPage + 1) @onchange="NavigateToPage" />
         / @Pages.Count
     </div>
@@ -167,6 +167,7 @@
     private double firstTouchY = 0;
     private double lastTouchX = 0;
     private double lastTouchY = 0;
+    private bool enteredTooltip = false;
 
     private bool showPopup = false;
     private bool showTableOfContents = false;
@@ -174,6 +175,7 @@
     private string navigatorClass;
     private int animationCounter = 0;
 
+    private string selectedWordId = "";
     private EdrdgEntry selectedEdrdgEntry;
 
     protected override Task OnInitializedAsync()
@@ -489,6 +491,7 @@
         {
             return;
         }
+        selectedWordId = id;
         selectedEdrdgEntry = edrdgEntry;
         if (showPopup)
         {
@@ -497,6 +500,16 @@
         showPopup = true;
         await JS.InvokeVoidAsync("setElementBackgroundColor", id, "#d3d3d3");
         previousElementId = id;
+        StateHasChanged();
+    }
+
+    private async void ClosePopup()
+    {
+        showPopup = false;
+        selectedEdrdgEntry = null;
+        selectedWordId = "";
+        enteredTooltip = false;
+        await RemovePreviousElementBackgroundColor();
     }
 
     private async void HandleClickOnContent(MouseEventArgs e)
@@ -531,6 +544,12 @@
     {
         if (plataform != DevicePlatform.Android)
             return;
+
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+
         try
         {
             firstTouchX = e.Touches[0].ScreenX;
@@ -594,6 +613,15 @@
         }
     }
 
+    private async void HandleMouseLeaveWord(MouseEventArgs e, string id)
+    {
+        await Task.Delay(700);
+        if (!enteredTooltip && showPopup && selectedWordId == id)
+        {
+            ClosePopup();
+        }
+    }
+
     private void HandleKeyPress(KeyboardEventArgs e)
     {
         switch (e.Key)
@@ -624,12 +652,7 @@
         StateHasChanged();
     }
 
-    private async void ClosePopup()
-    {
-        showPopup = false;
-        selectedEdrdgEntry = null;
-        await RemovePreviousElementBackgroundColor();
-    }
+
 
     private async Task RemovePreviousElementBackgroundColor()
     {

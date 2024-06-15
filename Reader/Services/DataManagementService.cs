@@ -34,6 +34,10 @@ namespace Mio.Reader.Services
         {
             try
             {
+                if(interactions.Count == 0)
+                {
+                    return true;
+                }
                 await File.WriteAllTextAsync(Path.Combine(FileSystem.AppDataDirectory, "Library.json"), JsonSerializer.Serialize(interactions, jsonOptions));
                 return true;
             }

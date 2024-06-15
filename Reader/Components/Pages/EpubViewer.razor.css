@@ -25,6 +25,10 @@ p::selection {
     background-color: #d3d3d3;
 }
 
+p{
+    font-size: 16px;
+}
+
 .rdr-japanese-viewer {
     display: flex;
     height: 95vh;
@@ -65,9 +69,9 @@ p::selection {
     left: 50%;
     transform: translateX(-50%);
     direction: ltr;
-    background-color:dimgrey;
-    display:flex;
-    align-items:center;
+    background-color: var(--neutral-foreground-rest);
+    display: flex;
+    align-items: center;
 }
 
 .rdr-start-animation {
@@ -76,15 +80,14 @@ p::selection {
     animation-fill-mode: forwards;
 }
 
-#toc {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 300px;
-    height: 300px;
+.toc {
+    max-height: 90vh;
     overflow-y: auto;
-    background-color: dimgray;
-    word-wrap: break-word;
+}
+
+.toc-mobile {
+    max-height: 100vh;
+    overflow-y: auto;
 }
 
 #toc-close {
