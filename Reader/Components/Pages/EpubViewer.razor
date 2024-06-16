@@ -26,8 +26,8 @@
 
         <!--Gets blurry when scrolling, dont know why-->
         <FluentMenu HorizontalInset=true HorizontalPosition="HorizontalPosition.Left" VerticalInset=true VerticalPosition="VerticalPosition.Top" Anchor="chapter-title" @bind-Open=@showTableOfContents
-        Width="@(plataform == DevicePlatform.WinUI ? "300px" : "100%")">
-            <div class="@(plataform == DevicePlatform.WinUI ? "toc" : "toc-mobile")">
+        Width="@(ReadingManner == ReadingManner.Japanese ? "300px" : "100%")">
+            <div class="@(ReadingManner == ReadingManner.Japanese ? "toc" : "toc-mobile")">
                 @for (int i = 0; i < Book.TableOfContents.Count; i++)
                 {
                     int index = i;
@@ -94,13 +94,12 @@
 }
 
 <div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
-    <!--Using the base accent color like that is bad. Eill make these very apart from the rest of the theme-->
+    <!--Using the base accent color like that is bad. Will make these very apart from the rest of the theme-->
     <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.Custom" CustomColor=@Configs.MainColor
     OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
 
-    <!--Too small-->
     <div class="mx-2" style="color:var(--neutral-fill-layer-rest)">
-        <input type="number" class="form-control" style="width: 50px; display: inline-block;" min="1" max="@Pages.Count"
+        <input type="number" class="form-control" style="width:70px; display: inline-block;" min="1" max="@Pages.Count"
                value=@(CurrentPage + 1) @onchange="NavigateToPage" />
         / @Pages.Count
     </div>

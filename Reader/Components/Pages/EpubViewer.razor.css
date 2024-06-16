@@ -107,10 +107,12 @@ p{
 }
 
 .rdr-inline-img-japanese {
-    max-height: 100vh;
+    max-height: 100%;
+    height: fit-content
 }
 
 .rdr-inline-img-western {
+    /*TODO see if 100% is better*/
     max-width: 100vw;
     margin: auto;
 }
