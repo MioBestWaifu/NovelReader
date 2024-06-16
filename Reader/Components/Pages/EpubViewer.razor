@@ -88,7 +88,8 @@
 }
 @if (showPopup)
 {
-    <FluentTooltip @onmouseenter="(() => enteredTooltip = true)" @onmouseleave="ClosePopup"  UseTooltipService="false" Anchor=@selectedWordId OnDismissed="ClosePopup" Id="translation-card">
+    <FluentTooltip Delay="0" @onmouseenter="(() => enteredTooltip = true)" @onmouseleave="ClosePopup"
+        UseTooltipService="false" Anchor=@selectedWordId OnDismissed="ClosePopup" Id="translation-card">
         <TranslationCard Entry=@selectedEdrdgEntry />
     </FluentTooltip>
 }
