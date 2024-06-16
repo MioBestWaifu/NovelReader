@@ -14,6 +14,7 @@
         Symbol,
         Filler,
         Other,
-        Unknown
+        Unknown,
+        Error
     }
 }

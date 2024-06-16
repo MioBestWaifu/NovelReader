@@ -26,5 +26,15 @@ namespace Mio.Translation.Japanese
                     break;
             }
         }
+
+        /// <summary>
+        /// Only use for errored lexemes
+        /// </summary>
+        /// <param name="surface"></param>
+        public JapaneseLexeme(string surface)
+        {
+            Surface = surface;
+            Category = GrammaticalCategory.Error;
+        }
     }
 }
