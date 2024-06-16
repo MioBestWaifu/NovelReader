@@ -41,6 +41,7 @@ namespace Mio.Translation.Japanese
                     {
                         Console.WriteLine($"Error parsing node: {node.Surface} {node.Feature}");
                         Console.WriteLine(e.Message);
+
                     }
                 }
             }
