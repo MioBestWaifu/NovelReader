@@ -21,10 +21,6 @@ h1{
     cursor:pointer;
 }
 
-p::selection {
-    background-color: #d3d3d3;
-}
-
 p{
     font-size: 16px;
 }
@@ -41,23 +37,22 @@ p{
 
 .rdr-japanese-text-block {
     height: 100%;
-    word-wrap: break-word;
     margin-block-start: 0;
     margin-block-end: 0;
     margin-bottom: 0;
     writing-mode: vertical-rl;
-    /*This may be counter-intuitve, but is necessary for proper layout. Because in Japanese mode the direction of the document is set
+    /*This may be counter-intuitve, but is necessary for proper layout. Because in Japanese mode the direction of the container is set
         to RTL, the browser expects the text to be written from right to left, but this is not the case, 
         becasuse Epubs source will be written in the western style and even if they arent the parser should reverse them.
-        As such, the browser actually fucks the text layout. The order of characters remains correct because they are laid out explicitly within a flexbox
+        As such, the browser actually fucks the text layout. The order of characters remains correct because they are laid out explicitly
         but certain characters will be changed to suit the browser expections. Which is why this terribleness has to be done.
     */
-    direction: ltr;
+    direction:ltr;
 }
 
 .rdr-japanese-text {
     writing-mode: vertical-rl;
-    display: inline;
+    display: inline-block;
     margin-block-start: 0;
     margin-block-end: 0;
     margin-bottom: 0;
@@ -107,10 +102,12 @@ p{
 }
 
 .rdr-inline-img-japanese {
-    max-height: 100vh;
+    max-height: 100%;
+    height: fit-content
 }
 
 .rdr-inline-img-western {
+    /*TODO see if 100% is better*/
     max-width: 100vw;
     margin: auto;
 }

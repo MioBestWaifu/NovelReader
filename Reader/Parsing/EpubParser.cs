@@ -2,6 +2,7 @@
 using Mio.Reader.Services;
 using Mio.Translation.Japanese;
 using Mio.Translation.Japanese.Edrdg;
+using SixLabors.ImageSharp.Formats;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -55,7 +56,7 @@ namespace Mio.Reader.Parsing
                         XElement imageElement = line.Element(Namespaces.svgNs + "image");
                         if (imageElement != null)
                         {
-                            return Task.FromResult(ParseImageElement(chapter, imageElement, Namespaces.xlinkNs +"href"));
+                            return Task.FromResult(ParseImageElement(chapter, imageElement, Namespaces.xlinkNs + "href"));
                         }
                     }
                     else
@@ -64,16 +65,18 @@ namespace Mio.Reader.Parsing
                     }
                 }
 
-                return Task.FromResult(new List<Node>());
+                //What this means is that this invalid line will not throw an error when the UI renders, but the UI 
+                //will not render anything with it because it needs a child of Node, not Node itself. So it will count as a line but not take up space or throw errors.
+                return Task.FromResult(new List<Node>() { new Node() });
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"Error parsing line: {e.Message}");
                 Debug.WriteLine($"Line: {line}");
                 Debug.WriteLine(e.StackTrace);
-                return Task.FromResult(new List<Node>());
+                return Task.FromResult(new List<Node>() { new Node() });
             }
-        
+
         }
 
 
@@ -94,10 +97,11 @@ namespace Mio.Reader.Parsing
                 //Also, This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
                 if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
                 {
-                    if(nodes.Count == 0)
+                    if (nodes.Count == 0)
                     {
                         nodes.Add(new TextNode() { Text = sentences[i] });
-                    } else
+                    }
+                    else
                     {
                         nodes[^1].Text += sentences[i];
                     }
@@ -122,7 +126,7 @@ namespace Mio.Reader.Parsing
                             /*
                              * One of the nodes that gets errored here is some hiragana MeCab turns into 踏ん反る. The JMDict
                              * does not contain an entry for that, and other EDRDG-based translators cannot find it either, so not my fault.
-                             * Sometimes the same happens with other verbs written in hiragana that are found in ohter EDRDG-Based dictionaries, so that is my propably fault,
+                             * Sometimes the same happens with other verbs written in hiragana that are found in ohter EDRDG-Based dictionaries, so that is my fault,
                              * most likely because the dictionary-building process only uses one key and is overall very faulty and simple.
                              * Also, there is a possibility that the Analyzer is fucking some things up by converting hiragana to kanji. 
                              * I do not understand fucks of Mecab inner workings, so it might actually do a good job of
@@ -162,16 +166,14 @@ namespace Mio.Reader.Parsing
             return ParseImageElement(imageEntry);
         }
 
-        private static List<Node> ParseImageElement (ZipArchiveEntry imageEntry)
+        private static List<Node> ParseImageElement(ZipArchiveEntry imageEntry)
         {
-            byte[] imageBytes = new byte[imageEntry.Length];
-            using (var stream = imageEntry.Open())
-            {
-                stream.ReadAsync(imageBytes, 0, imageBytes.Length).Wait();
-            }
-            string base64 = Convert.ToBase64String(imageBytes);
+            Task<string> base64Task = Utils.ParseImageEntryToBase64(imageEntry);
+            base64Task.Wait();
+            string base64 = base64Task.Result;
+            string type = imageEntry.FullName.Split('.')[^1];
 
-            return [new ImageNode() { Text = base64 }];
+            return [new ImageNode() { Text = base64, Type = type }];
         }
 
         /// <summary>
@@ -181,11 +183,9 @@ namespace Mio.Reader.Parsing
         /// <returns>The </returns>
         private static Task<List<XElement>> BreakXhtmlToLines(string originalXhtml)
         {
-            // Parse the XHTML content
             XDocument doc = XDocument.Parse(originalXhtml);
 
-            // List to store the lines
-            List<XElement> lines = doc.Descendants().Where(n => n.Name == Namespaces.xhtmlNs + "p" || n.Name == Namespaces.xhtmlNs + "img" || n.Name == Namespaces.svgNs +"svg").ToList();
+            List<XElement> lines = doc.Descendants().Where(n => n.Name == Namespaces.xhtmlNs + "p" || n.Name == Namespaces.xhtmlNs + "img" || n.Name == Namespaces.svgNs + "svg").ToList();
 
             return Task.FromResult(lines);
         }
@@ -214,16 +214,10 @@ namespace Mio.Reader.Parsing
                 }
                 else if (node is XElement elementNode)
                 {
-                    if (elementNode.Name == Namespaces.xhtmlNs + "ruby")
-                    {
-                        // Add the ruby content (kanji) and ignore rt tags
-                        var rubyText = elementNode.Nodes().Where(n => !(n is XElement e && e.Name == Namespaces.xhtmlNs + "rt")).Select(n => n.ToString());
-                        sb.Append(string.Join("", rubyText));
-                    }
-                    else if (elementNode.Name != Namespaces.xhtmlNs + "rt")
-                    {
-                        sb.Append(elementNode.Value);
-                    }
+                    // Add the ruby content (kanji) and ignore rt tags, ensuring inner tags text is included without the tags
+                    var rubyText = elementNode.Nodes().Where(n => !(n is XElement e && e.Name == Namespaces.xhtmlNs + "rt"))
+                        .Select(n => n is XText ? n.ToString() : (n is XElement el ? el.Value : ""));
+                    sb.Append(string.Join("", rubyText));
                 }
             }
 

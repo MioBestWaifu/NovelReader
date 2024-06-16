@@ -18,7 +18,8 @@ namespace Mio.Translation.Japanese
         }
 
         /// <summary>
-        /// 
+        /// Also includes errored nodes in the resulting list, with GramaticalCategory of Error. This is to ensure the
+        /// integrity of the text. Data is not to be lost here if the analyzer fails to parse a node.
         /// </summary>
         /// <param name="text"></param>
         /// <returns>Always a initialized list</returns>
@@ -41,6 +42,7 @@ namespace Mio.Translation.Japanese
                     {
                         Console.WriteLine($"Error parsing node: {node.Surface} {node.Feature}");
                         Console.WriteLine(e.Message);
+                        lexemes.Add(new JapaneseLexeme(node.Surface));
                     }
                 }
             }

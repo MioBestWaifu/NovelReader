@@ -13,8 +13,11 @@ namespace Mio.Reader.Services
         public static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
         {
             IncludeFields = true,
-            PropertyNameCaseInsensitive = true
-        };
+            PropertyNameCaseInsensitive = true,
+#if DEBUG
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+#endif
+    };
 
         public string PathToUnidic { get; set; }
         //Multiple library folders to be implemented eventually, should be a list.
