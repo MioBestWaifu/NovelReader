@@ -2,6 +2,7 @@
 using Mio.Reader.Services;
 using Mio.Translation.Japanese;
 using Mio.Translation.Japanese.Edrdg;
+using SixLabors.ImageSharp.Formats;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -125,7 +126,7 @@ namespace Mio.Reader.Parsing
                             /*
                              * One of the nodes that gets errored here is some hiragana MeCab turns into 踏ん反る. The JMDict
                              * does not contain an entry for that, and other EDRDG-based translators cannot find it either, so not my fault.
-                             * Sometimes the same happens with other verbs written in hiragana that are found in ohter EDRDG-Based dictionaries, so that is my propably fault,
+                             * Sometimes the same happens with other verbs written in hiragana that are found in ohter EDRDG-Based dictionaries, so that is my fault,
                              * most likely because the dictionary-building process only uses one key and is overall very faulty and simple.
                              * Also, there is a possibility that the Analyzer is fucking some things up by converting hiragana to kanji. 
                              * I do not understand fucks of Mecab inner workings, so it might actually do a good job of
@@ -167,14 +168,12 @@ namespace Mio.Reader.Parsing
 
         private static List<Node> ParseImageElement(ZipArchiveEntry imageEntry)
         {
-            byte[] imageBytes = new byte[imageEntry.Length];
-            using (var stream = imageEntry.Open())
-            {
-                stream.ReadAsync(imageBytes, 0, imageBytes.Length).Wait();
-            }
-            string base64 = Convert.ToBase64String(imageBytes);
+            Task<string> base64Task = Utils.ParseImageEntryToBase64(imageEntry);
+            base64Task.Wait();
+            string base64 = base64Task.Result;
+            string type = imageEntry.FullName.Split('.')[^1];
 
-            return [new ImageNode() { Text = base64 }];
+            return [new ImageNode() { Text = base64, Type = type }];
         }
 
         /// <summary>
@@ -184,10 +183,8 @@ namespace Mio.Reader.Parsing
         /// <returns>The </returns>
         private static Task<List<XElement>> BreakXhtmlToLines(string originalXhtml)
         {
-            // Parse the XHTML content
             XDocument doc = XDocument.Parse(originalXhtml);
 
-            // List to store the lines
             List<XElement> lines = doc.Descendants().Where(n => n.Name == Namespaces.xhtmlNs + "p" || n.Name == Namespaces.xhtmlNs + "img" || n.Name == Namespaces.svgNs + "svg").ToList();
 
             return Task.FromResult(lines);

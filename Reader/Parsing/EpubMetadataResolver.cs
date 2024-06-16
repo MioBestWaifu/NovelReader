@@ -56,7 +56,7 @@ namespace Mio.Reader.Parsing
             try
             {
                 ZipArchiveEntry coverEntry = Utils.GetRelativeEntry(namedEntries[standardOpfPath], pathToCover);
-                coverBase64 = await Utils.GetCoverBase64(coverEntry,true);
+                coverBase64 = await Utils.ParseImageEntryToBase64(coverEntry,440,660);
             }
             catch (Exception e)
             {

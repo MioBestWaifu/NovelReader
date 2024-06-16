@@ -98,6 +98,7 @@
     <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.Custom" CustomColor=@Configs.MainColor
     OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
 
+    <!--Too small-->
     <div class="mx-2" style="color:var(--neutral-fill-layer-rest)">
         <input type="number" class="form-control" style="width: 50px; display: inline-block;" min="1" max="@Pages.Count"
                value=@(CurrentPage + 1) @onchange="NavigateToPage" />

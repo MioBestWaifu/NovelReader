@@ -8,6 +8,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Image = SixLabors.ImageSharp.Image;
+using SixLabors.ImageSharp.Formats;
 
 namespace Mio.Reader
 {
@@ -39,7 +41,15 @@ namespace Mio.Reader
                     if (part == "..")
                     {
                         // Go up one level
-                        directory = directory.Substring(0, directory.LastIndexOf('/'));
+                        lastSlash = directory.LastIndexOf('/');
+                        if(lastSlash == -1)
+                        {
+                            directory = "";
+                        }
+                        else
+                        {
+                            directory = directory.Substring(0, lastSlash);
+                        }
                     }
                     else
                     {
@@ -49,6 +59,10 @@ namespace Mio.Reader
                 }
             }
 
+            if (directory.StartsWith('/'))
+            {
+                directory = directory.Substring(1);
+            }
             // Get the entry with the full path
             ZipArchiveEntry entry = archive.GetEntry(directory);
 
@@ -70,33 +84,64 @@ namespace Mio.Reader
 
             ZipArchiveEntry coverEntry = GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
             //Could use some compression
-            return await GetCoverBase64(coverEntry, true);
+            return await ParseImageEntryToBase64(coverEntry, 440, 660);
         }
 
-        public static async Task<string> GetCoverBase64(ZipArchiveEntry coverEntry, bool downscale)
+        public static async Task<string> ParseImageEntryToBase64(ZipArchiveEntry coverEntry, int newWidth, int newHeight)
         {
             if (coverEntry != null)
             {
                 try
                 {
-                    using (var stream = coverEntry.Open())
-                    {
-                        using (var image = SixLabors.ImageSharp.Image.Load(stream))
+                        using (var image = await ParseImage(coverEntry))
                         {
-                            if (downscale)
-                            {
-                                // Set the new size here
-                                int newWidth = 440;
-                                int newHeight = 660;
-
-                                image.Mutate(x => x.Resize(newWidth, newHeight));
-                            }
+                            image.Mutate(x => x.Resize(newWidth, newHeight));
 
                             using (var ms = new MemoryStream())
                             {
-                                image.SaveAsJpeg(ms);
+                            IImageEncoder encoder = coverEntry.FullName.Split('.')[^1] switch
+                            {
+                                "jpg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                                "jpeg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                                "png" => new SixLabors.ImageSharp.Formats.Png.PngEncoder(),
+                                "gif" => new SixLabors.ImageSharp.Formats.Gif.GifEncoder(),
+                                _ => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
+                            };
+                            image.Save(ms,encoder);
                                 return Convert.ToBase64String(ms.ToArray());
                             }
+                        }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+
+            return "";
+        }
+
+        public static async Task<string> ParseImageEntryToBase64(ZipArchiveEntry imageEntry)
+        {
+            if (imageEntry != null)
+            {
+                try
+                {
+                    using (var image = await ParseImage(imageEntry))
+                    {
+
+                        using (var ms = new MemoryStream())
+                        {
+                            IImageEncoder encoder = imageEntry.FullName.Split('.')[^1] switch
+                            {
+                                "jpg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                                "jpeg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                                "png" => new SixLabors.ImageSharp.Formats.Png.PngEncoder(),
+                                "gif" => new SixLabors.ImageSharp.Formats.Gif.GifEncoder(),
+                                _ => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
+                            };
+                            image.Save(ms, encoder);
+                            return Convert.ToBase64String(ms.ToArray());
                         }
                     }
                 }
@@ -109,6 +154,11 @@ namespace Mio.Reader
             return "";
         }
 
+        public static async Task<Image> ParseImage(ZipArchiveEntry imageEntry)
+        {
+            using var stream = imageEntry.Open();
+            return SixLabors.ImageSharp.Image.Load(stream);
+        }
 
         public static async Task<bool> RequestStoragePermissions()
         {
