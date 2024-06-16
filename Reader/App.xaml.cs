@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Windowing;
-using Mio.Reader.Services;
+﻿using Mio.Reader.Services;
 using System.Diagnostics;
 
 namespace Mio.Reader
