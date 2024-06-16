@@ -90,7 +90,22 @@
 {
     <FluentTooltip Delay="0" @onmouseenter="(() => enteredTooltip = true)" @onmouseleave="ClosePopup"
         UseTooltipService="false" Anchor=@selectedWordId OnDismissed="ClosePopup" Id="translation-card">
-        <TranslationCard Entry=@selectedEdrdgEntry />
+            <div class="card-body d-flex flex-column gap-3" style="direction:ltr">
+                <div>
+                    <p style="margin-bottom:0">@JoinKanjis(selectedEdrdgEntry.KanjiElements)</p>
+                </div>
+                <div>
+                    <p style="margin-bottom:0">@JoinReadings(selectedEdrdgEntry.ReadingElements)</p>
+                </div>
+                <div>
+                    <ol class="list-unstyled">
+                    @foreach (var (sense, index) in selectedEdrdgEntry.SenseElements.Select((value, i) => (value, i)))
+                        {
+                            <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
+                        }
+                    </ol>
+                </div>
+            </div>
     </FluentTooltip>
 }
 
@@ -195,6 +210,16 @@
     private EdrdgEntry selectedEdrdgEntry;
 
     private int fuckedLines = 0;
+
+    private string JoinKanjis(List<KanjiElement>? kanjis)
+    {
+        return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)): string.Empty;
+    }
+
+    private string JoinReadings(List<ReadingElement> readings)
+    {
+        return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
+    }
 
     protected override Task OnInitializedAsync()
     {

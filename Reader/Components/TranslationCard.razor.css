@@ -1,6 +1,0 @@
-#translation-wrapper {
-    overflow-y: auto;
-    direction: ltr;
-    background-color: var(--neutral-foreground-rest);
-    color: var(--fill-color);
-}
