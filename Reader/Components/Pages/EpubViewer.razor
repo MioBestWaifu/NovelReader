@@ -69,7 +69,19 @@
         }
         catch (Exception e)
         {
+
             <p>Error displaying this page</p>
+
+            fuckedLines++;
+            Debug.WriteLine($"There have been {fuckedLines} fucked lines");
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.StackTrace);
+            if (e.InnerException is not null)
+            {
+                Debug.WriteLine(e.InnerException);
+                Debug.WriteLine(e.InnerException?.StackTrace);
+            }
+            Debug.WriteLine("----------------------------");
         }
 
     </div>
@@ -180,6 +192,8 @@
 
     private string selectedWordId = "";
     private EdrdgEntry selectedEdrdgEntry;
+
+    private int fuckedLines = 0;
 
     protected override Task OnInitializedAsync()
     {
