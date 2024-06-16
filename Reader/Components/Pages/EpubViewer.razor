@@ -26,7 +26,7 @@
 
         <!--Gets blurry when scrolling, dont know why-->
         <FluentMenu HorizontalInset=true HorizontalPosition="HorizontalPosition.Left" VerticalInset=true VerticalPosition="VerticalPosition.Top" Anchor="chapter-title" @bind-Open=@showTableOfContents
-        Width="@(ReadingManner == ReadingManner.Japanese ? "300px" : "100%")">
+                    Width="@(ReadingManner == ReadingManner.Japanese ? "300px" : "100%")">
             <div class="@(ReadingManner == ReadingManner.Japanese ? "toc" : "toc-mobile")">
                 @for (int i = 0; i < Book.TableOfContents.Count; i++)
                 {
@@ -54,7 +54,7 @@
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
                             string id = $"p{i:D2}{j}";
                         <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)"
-                           @onmouseleave="e => Task.Run(() => HandleMouseLeaveWord(e,id))" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                            @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </p>
                 }
@@ -88,31 +88,32 @@
 }
 @if (showPopup)
 {
-    <FluentTooltip Delay="0" @onmouseenter="(() => enteredTooltip = true)" @onmouseleave="ClosePopup"
-        UseTooltipService="false" Anchor=@selectedWordId OnDismissed="ClosePopup" Id="translation-card">
+    <FluentPopover AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})" Id="translation-card">
+        <Header>
+            <p style="font-weight: normal;font-size: 22px;">@JoinKanjis(selectedEdrdgEntry.KanjiElements)</p>
+        </Header>
+        <Body>
             <div class="card-body d-flex flex-column gap-3" style="direction:ltr">
                 <div>
-                    <p style="margin-bottom:0">@JoinKanjis(selectedEdrdgEntry.KanjiElements)</p>
-                </div>
-                <div>
-                    <p style="margin-bottom:0">@JoinReadings(selectedEdrdgEntry.ReadingElements)</p>
+                    <p>@JoinReadings(selectedEdrdgEntry.ReadingElements)</p>
                 </div>
                 <div>
                     <ol class="list-unstyled">
-                    @foreach (var (sense, index) in selectedEdrdgEntry.SenseElements.Select((value, i) => (value, i)))
+                        @foreach (var (sense, index) in selectedEdrdgEntry.SenseElements.Select((value, i) => (value, i)))
                         {
                             <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
                         }
                     </ol>
                 </div>
             </div>
-    </FluentTooltip>
+        </Body>
+    </FluentPopover>
 }
 
 <div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
     <!--Using the base accent color like that is bad. Will make these very apart from the rest of the theme-->
     <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.Custom" CustomColor=@Configs.MainColor
-    OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
+                OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
 
     <div class="mx-2" style="color:var(--neutral-fill-layer-rest)">
         <input type="number" class="form-control" style="width:70px; display: inline-block;" min="1" max="@Pages.Count"
@@ -120,8 +121,8 @@
         / @Pages.Count
     </div>
 
-    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.Custom" CustomColor=@Configs.MainColor 
-        OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) PreviousPage(); else NextPage();})" />
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.Custom" CustomColor=@Configs.MainColor
+                OnClick="(() => {if (ReadingManner == ReadingManner.Japanese) PreviousPage(); else NextPage();})" />
 </div>
 
 
@@ -131,7 +132,7 @@
     [Inject]
     private ConfigurationsService Configs { get; set; }
     [Inject]
-    private LibraryService Library{ get; set; }
+    private LibraryService Library { get; set; }
 
     [Parameter]
     public ReadingManner ReadingManner
@@ -210,16 +211,6 @@
     private EdrdgEntry selectedEdrdgEntry;
 
     private int fuckedLines = 0;
-
-    private string JoinKanjis(List<KanjiElement>? kanjis)
-    {
-        return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)): string.Empty;
-    }
-
-    private string JoinReadings(List<ReadingElement> readings)
-    {
-        return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
-    }
 
     protected override Task OnInitializedAsync()
     {
@@ -395,10 +386,11 @@
         {
             List<XElement> lines = await EpubParser.BreakChapterToLines(chapter);
             Pages = await PreparePages(lines);
-            if(firstLoad && interaction.LastTimeNumberOfPages != 0)
+            if (firstLoad && interaction.LastTimeNumberOfPages != 0)
             {
                 CurrentPage = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
-            } else
+            }
+            else
             {
                 CurrentPage = 0;
             }
@@ -704,6 +696,16 @@
     {
         await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
         previousElementId = "";
+    }
+
+    private string JoinKanjis(List<KanjiElement>? kanjis)
+    {
+        return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)) : string.Empty;
+    }
+
+    private string JoinReadings(List<ReadingElement> readings)
+    {
+        return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
     }
 
 }
