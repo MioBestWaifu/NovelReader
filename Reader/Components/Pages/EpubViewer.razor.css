@@ -21,10 +21,6 @@ h1{
     cursor:pointer;
 }
 
-p::selection {
-    background-color: #d3d3d3;
-}
-
 p{
     font-size: 16px;
 }
@@ -41,7 +37,6 @@ p{
 
 .rdr-japanese-text-block {
     height: 100%;
-    word-wrap: break-word;
     margin-block-start: 0;
     margin-block-end: 0;
     margin-bottom: 0;
@@ -57,7 +52,7 @@ p{
 
 .rdr-japanese-text {
     writing-mode: vertical-rl;
-    display: inline;
+    display: inline-block;
     margin-block-start: 0;
     margin-block-end: 0;
     margin-bottom: 0;

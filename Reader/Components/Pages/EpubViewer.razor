@@ -36,6 +36,32 @@
             </div>
         </FluentMenu>
 
+        @if (showPopup)
+        {
+            <FluentPopover Style="max-height:45vh;max-width:80vw;overflow:auto" VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset" 
+                AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})" 
+                HorizontalInset=false Id="translation-card">
+                <Header>
+                    <p style="font-weight: normal;font-size: 22px;">@JoinKanjis(selectedEdrdgEntry.KanjiElements)</p>
+                </Header>
+                <Body>
+                    <div class="card-body d-flex flex-column gap-3" style="direction:ltr">
+                        <div>
+                            <p>@JoinReadings(selectedEdrdgEntry.ReadingElements)</p>
+                        </div>
+                        <div>
+                            <ol class="list-unstyled">
+                                @foreach (var (sense, index) in selectedEdrdgEntry.SenseElements.Select((value, i) => (value, i)))
+                                {
+                                    <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
+                                }
+                            </ol>
+                        </div>
+                    </div>
+                </Body>
+            </FluentPopover>
+        }
+
         @try
         {
             <!--Not a foreach because the dynamic modifications in loading would break it-->
@@ -47,7 +73,7 @@
                 {
                     <!--Separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
                     //May seem strange to have p's inside p's, but this is done because on the one hand individual words need to be clickable, and on the other hand the mobile webview was not rendering vertical text properly in a div in landscape mode. This achieves both.
-                    <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                    <div class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
                         @for (int j = 0; j < line.Count; j++)
                         {
                             TextNode node = (TextNode)line[j];
@@ -56,7 +82,7 @@
                         <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)"
                             @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
-                    </p>
+                    </div>
                 }
                 else if (line[0] is ImageNode)
                 {
@@ -86,29 +112,7 @@
 
     </div>
 }
-@if (showPopup)
-{
-    <FluentPopover AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})" Id="translation-card">
-        <Header>
-            <p style="font-weight: normal;font-size: 22px;">@JoinKanjis(selectedEdrdgEntry.KanjiElements)</p>
-        </Header>
-        <Body>
-            <div class="card-body d-flex flex-column gap-3" style="direction:ltr">
-                <div>
-                    <p>@JoinReadings(selectedEdrdgEntry.ReadingElements)</p>
-                </div>
-                <div>
-                    <ol class="list-unstyled">
-                        @foreach (var (sense, index) in selectedEdrdgEntry.SenseElements.Select((value, i) => (value, i)))
-                        {
-                            <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
-                        }
-                    </ol>
-                </div>
-            </div>
-        </Body>
-    </FluentPopover>
-}
+
 
 <div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
     <!--Using the base accent color like that is bad. Will make these very apart from the rest of the theme-->
@@ -523,8 +527,6 @@
     private async void ShowPopup(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
     {
 
-        //Necessary because not everything has a translation for various reasons, and android is not to respond to simple touches
-        //Plataform == Plataform.Android ||
         if (edrdgEntry is null)
         {
             return;
@@ -536,7 +538,7 @@
             await RemovePreviousElementBackgroundColor();
         }
         showPopup = true;
-        await JS.InvokeVoidAsync("setElementBackgroundColor", id, "#d3d3d3");
+        await JS.InvokeVoidAsync("setElementBackgroundColor", id, "var(--neutral-stroke-layer-rest");
         previousElementId = id;
         StateHasChanged();
     }

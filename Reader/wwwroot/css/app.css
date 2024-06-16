@@ -34,6 +34,10 @@
     text-decoration: underline;
 }
 
+::selection {
+    background-color: var(--neutral-base-color);
+}
+
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
