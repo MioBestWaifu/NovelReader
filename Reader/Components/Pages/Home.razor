@@ -40,6 +40,8 @@ else
 
 @code {
     [Inject]
+    IJSRuntime JS { get; set; }
+    [Inject]
     NavigationManager Navigator{ get; set; }
     [Inject]
     ConfigurationsService Configurations { get; set; }
@@ -51,6 +53,7 @@ else
 
     protected override Task OnInitializedAsync()
     {
+        JS.InvokeVoidAsync("changeDirectionToLTR");
         if (plataform == DevicePlatform.Android)
         {
             UnidicDetermined = Directory.Exists(Configurations.PathToUnidic);
