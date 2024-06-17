@@ -222,6 +222,8 @@
         CurrentPage = 0;
         interaction = Library.Books[BookIndex];
         CurrentChapter = interaction.LastChapter;
+        if (EpubParser.analyzer is null)
+            EpubParser.analyzer = new JapaneseAnalyzer(Configs.PathToUnidic);
         Task.Run(() => SetBook());
         return base.OnInitializedAsync();
     }

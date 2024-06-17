@@ -14,8 +14,8 @@
 @if (string.IsNullOrEmpty(Configurations.PathToLibrary))
 {
     <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
-        <h4>No library folder has been chosen. Please choose one.</h4>
-        <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
+        <h4>No library folder/file has been chosen. Please choose one.</h4>
+        <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder/File</FluentButton>
     </div>
 }
 else
@@ -47,6 +47,8 @@ else
     ConfigurationsService Configurations { get; set; }
     [Inject]
     DataManagementService DataManager { get; set; }
+    [Inject]
+    LibraryService Lib { get; set; }
 
     DevicePlatform plataform = DeviceInfo.Current.Platform;
     bool UnidicDetermined { get; set; } = false;
@@ -68,6 +70,17 @@ else
         {
             if (!await Utils.RequestStoragePermissions())
                 return;
+            /*
+            * This is a workaraound and should ideally not exist. The problem is that Android refuses to list the files in the directory.
+            * I have permissions, have used differente permissions and APIS (including Intent and Java), but the system just refuses to return all file sin the library fodler.
+            * The odd things are that the exact same call on the exact same folder works on another project, and that one file (jpg) is listed.
+            * Until i can figure out what the hell is going on, android only allows to pick specific files, not a library.
+            */
+            string filePath = await Utils.PickFileAndroid();
+            Task task = Task.Run(async () => Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath))));
+            await task;
+            Navigator.NavigateTo("/reader?bookIndex=0");
+            return;
         }
 
         FolderPickerResult result = await FolderPicker.Default.PickAsync();
@@ -77,7 +90,7 @@ else
         Configurations.PathToLibrary = result.Folder.Path;
         Configurations.Save();
         Debug.WriteLine(Configurations.PathToLibrary);
-        StateHasChanged();
+        InvokeAsync(() => StateHasChanged());
     }
 
     private async void DownloadUnidic()

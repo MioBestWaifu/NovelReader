@@ -32,9 +32,8 @@ namespace Mio.Reader.Parsing
         private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
 
         //Obviouslt breaks if configs is not assigned before analyzer, but that should never happen because this field is assinged in the very ConfigurationsService constructor.
-        public static ConfigurationsService Configs { private get { return configs; } set { configs = value; analyzer = new JapaneseAnalyzer(value.PathToUnidic); } }
-        private static ConfigurationsService configs;
-        public static JapaneseAnalyzer analyzer;
+        public static ConfigurationsService Configs { get; set; }
+        public static JapaneseAnalyzer? analyzer;
 
         private static JapaneseTranslator translator = new JapaneseTranslator();
 
