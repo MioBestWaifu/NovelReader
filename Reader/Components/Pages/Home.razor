@@ -77,7 +77,8 @@ else
             * Until i can figure out what the hell is going on, android only allows to pick specific files, not a library.
             */
             string filePath = await Utils.PickFileAndroid();
-            Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath)));
+            Task task = Task.Run(async () => Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath))));
+            await task;
             Navigator.NavigateTo("/reader?bookIndex=0");
             return;
         }
@@ -89,7 +90,7 @@ else
         Configurations.PathToLibrary = result.Folder.Path;
         Configurations.Save();
         Debug.WriteLine(Configurations.PathToLibrary);
-        StateHasChanged();
+        InvokeAsync(() => StateHasChanged());
     }
 
     private async void DownloadUnidic()

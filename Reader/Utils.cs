@@ -10,6 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats;
+#if ANDROID
+using Java.Util;
+#endif
 
 namespace Mio.Reader
 {
@@ -89,6 +92,7 @@ namespace Mio.Reader
 
         public static async Task<string> ParseImageEntryToBase64(ZipArchiveEntry coverEntry, int newWidth, int newHeight)
         {
+#if WINDOWS
             if (coverEntry != null)
             {
                 try
@@ -119,10 +123,60 @@ namespace Mio.Reader
             }
 
             return "";
+#elif ANDROID
+            if (coverEntry != null)
+            {
+                try
+                {
+                    using (var stream = coverEntry.Open())
+                    {
+                        // Convert the ZipArchiveEntry stream to a byte array
+                        byte[] imageBytes;
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            stream.CopyTo(memoryStream);
+                            imageBytes = memoryStream.ToArray();
+                        }
+
+                        // Decode the byte array to a Bitmap
+                        var bitmap = Android.Graphics.BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
+
+                        // Determine the image format
+                        var imageFormat = coverEntry.FullName.Split('.')[^1] switch
+                        {
+                            "jpg" => Android.Graphics.Bitmap.CompressFormat.Jpeg,
+
+                            "jpeg" => Android.Graphics.Bitmap.CompressFormat.Jpeg,
+                            "png" => Android.Graphics.Bitmap.CompressFormat.Png,
+                            "gif" => Android.Graphics.Bitmap.CompressFormat.Webp,
+                            _ => Android.Graphics.Bitmap.CompressFormat.Jpeg
+                        };
+
+                        // Convert the Bitmap to a byte array
+                        using (var byteArrayOutputStream = new MemoryStream())
+                        {
+                            bitmap.Compress(imageFormat, 100, byteArrayOutputStream);
+                            byte[] bitmapData = byteArrayOutputStream.ToArray();
+
+                            // Encode the byte array to a Base64 string
+                            string base64String = Android.Util.Base64.EncodeToString(bitmapData, Android.Util.Base64Flags.Default);
+                            return base64String;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+
+            return "";
+#endif
         }
 
         public static async Task<string> ParseImageEntryToBase64(ZipArchiveEntry imageEntry)
         {
+#if WINDOWS
             if (imageEntry != null)
             {
                 try
@@ -152,6 +206,55 @@ namespace Mio.Reader
             }
 
             return "";
+#elif ANDROID
+            if (imageEntry != null)
+            {
+                try
+                {
+                    using (var stream = imageEntry.Open())
+                    {
+                        // Convert the ZipArchiveEntry stream to a byte array
+                        byte[] imageBytes;
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            stream.CopyTo(memoryStream);
+                            imageBytes = memoryStream.ToArray();
+                        }
+
+                        // Decode the byte array to a Bitmap
+                        var bitmap = Android.Graphics.BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
+
+                        // Determine the image format
+                        var imageFormat = imageEntry.FullName.Split('.')[^1] switch
+                        {
+                            "jpg" => Android.Graphics.Bitmap.CompressFormat.Jpeg,
+
+                        "jpeg" => Android.Graphics.Bitmap.CompressFormat.Jpeg,
+                            "png" => Android.Graphics.Bitmap.CompressFormat.Png,
+                            "gif" => Android.Graphics.Bitmap.CompressFormat.Webp,
+                            _ => Android.Graphics.Bitmap.CompressFormat.Jpeg
+                        };
+
+                        // Convert the Bitmap to a byte array
+                        using (var byteArrayOutputStream = new MemoryStream())
+                        {
+                            bitmap.Compress(imageFormat, 100, byteArrayOutputStream);
+                            byte[] bitmapData = byteArrayOutputStream.ToArray();
+
+                            // Encode the byte array to a Base64 string
+                            string base64String = Android.Util.Base64.EncodeToString(bitmapData, Android.Util.Base64Flags.Default);
+                            return base64String;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+
+            return "";
+#endif
         }
 
         public static async Task<Image> ParseImage(ZipArchiveEntry imageEntry)
