@@ -88,59 +88,5 @@ namespace Mio.Reader
             return GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
         }
 
-        public static async Task<bool> RequestStoragePermissions()
-        {
-            var status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
-
-            if (status != PermissionStatus.Granted)
-            {
-                status = await Permissions.RequestAsync<Permissions.StorageRead>();
-
-                if (status == PermissionStatus.Granted)
-                {
-                    status = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
-
-                    if (status != PermissionStatus.Granted)
-                    {
-                        status = await Permissions.RequestAsync<Permissions.StorageWrite>();
-                    }
-                }
-            }
-
-            return status == PermissionStatus.Granted;
-        }
-
-        public static async Task<string> PickFileAndroid()
-        {
-            try
-            {
-                var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                {
-                    { DevicePlatform.Android, new[] { "application/epub+zip" } }, // MIME type for EPUB files
-                    // Add other platforms if necessary
-                });
-
-                var options = new PickOptions
-                {
-                    PickerTitle = "Please select an EPUB file",
-                    FileTypes = customFileType,
-                };
-
-                var result = await FilePicker.Default.PickAsync(options);
-                if (result != null)
-                {
-                    return result.FullPath;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions if any
-                Debug.WriteLine($"Error picking file: {ex.Message}");
-            }
-
-            return null; 
-        }
-
-
     }
 }

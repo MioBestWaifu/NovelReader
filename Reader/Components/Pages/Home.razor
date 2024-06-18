@@ -66,9 +66,10 @@ else
 
     private async void PickLibraryFolder()
     {
+
         if (plataform == DevicePlatform.Android)
         {
-            if (!await Utils.RequestStoragePermissions())
+            if (!await DataManager.RequestStoragePermissions())
                 return;
             /*
             * This is a workaraound and should ideally not exist. The problem is that Android refuses to list the files in the directory.
@@ -76,7 +77,9 @@ else
             * The odd things are that the exact same call on the exact same folder works on another project, and that here one file (jpg) is listed.
             * Until i can figure out what the hell is going on, android only allows to pick specific files, not a library.
             */
-            string filePath = await Utils.PickFileAndroid();
+            string? filePath = await DataManager.PickBook();
+            if(string.IsNullOrEmpty(filePath))
+                return;
             Task task = Task.Run(async () => Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath))));
             await task;
             Navigator.NavigateTo("/reader?bookIndex=0");
