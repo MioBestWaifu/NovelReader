@@ -72,8 +72,8 @@ else
                 return;
             /*
             * This is a workaraound and should ideally not exist. The problem is that Android refuses to list the files in the directory.
-            * I have permissions, have used differente permissions and APIS (including Intent and Java), but the system just refuses to return all file sin the library fodler.
-            * The odd things are that the exact same call on the exact same folder works on another project, and that one file (jpg) is listed.
+            * I have permissions, have used differente permissions and API's (including Intent and Java), but the system just refuses to return all files in the library fodler.
+            * The odd things are that the exact same call on the exact same folder works on another project, and that here one file (jpg) is listed.
             * Until i can figure out what the hell is going on, android only allows to pick specific files, not a library.
             */
             string filePath = await Utils.PickFileAndroid();
