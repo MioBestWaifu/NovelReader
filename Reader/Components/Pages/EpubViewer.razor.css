@@ -79,20 +79,14 @@ p{
     animation-fill-mode: forwards;
 }
 
-.toc {
+.toc-japanese {
     max-height: 90vh;
     overflow-y: auto;
 }
 
-.toc-mobile {
+.toc-western {
     max-height: 100vh;
     overflow-y: auto;
-}
-
-#toc-close {
-    position: absolute;
-    right: 0;
-    top: 0
 }
 
 #translation-card {
