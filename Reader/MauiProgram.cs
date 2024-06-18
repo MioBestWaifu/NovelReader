@@ -8,8 +8,12 @@ using Mio.Reader.Services;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Text.Json;
 
+#if ANDROID
+using Mio.Reader.Platforms.Android;
+#endif
 
 #if WINDOWS
+using Mio.Reader.Platforms.Windows;
 using Microsoft.UI.Windowing;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -60,6 +64,11 @@ namespace Mio.Reader
             builder.Services.AddSingleton(configurationsService!);
             builder.Services.AddSingleton<DataManagementService>();
             builder.Services.AddSingleton<LibraryService>();
+#if WINDOWS
+            builder.Services.AddSingleton<ImageParsingService, WindowsImageParsingService>();
+#elif ANDROID
+            builder.Services.AddSingleton<ImageParsingService, AndroidImageParsingService>();
+#endif
 
             builder.Services.AddFluentUIComponents();
             builder.Services.AddMauiBlazorWebView();
