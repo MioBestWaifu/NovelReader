@@ -475,8 +475,14 @@ namespace Mio.Reader.Components.Pages
 
         private async void HandleTouchEnd(TouchEventArgs e)
         {
-            if (plataform != DevicePlatform.Android)
+            //The lastTouch comparisons are needed because if the user simply taps the screen a TouchStart and TouchEnd will throw
+            //But TouchMove will not, leading to lastTouch's being zero and this method not working
+            if (plataform != DevicePlatform.Android || (lastTouchX == 0 && lastTouchY == 0))
+            {
+                firstTouchX = 0;
+                firstTouchY = 0;
                 return;
+            }
             try
             {
                 double minDeltaX = await JS.InvokeAsync<double>("getWindowWidth") / 4;

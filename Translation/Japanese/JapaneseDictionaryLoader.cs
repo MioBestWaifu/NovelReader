@@ -26,6 +26,8 @@ namespace Mio.Translation.Japanese
                 }
             }
 
+            //This one call is upwards of 50% of chapter load time. Optmization so far not needed, if needed 
+            //use a cache with this thing.
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
 

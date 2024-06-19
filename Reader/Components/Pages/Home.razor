@@ -11,21 +11,33 @@
 
 <!--Should have different pages instead of a if-else-->
 <FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configurations.MainColor />
-@if (string.IsNullOrEmpty(Configurations.PathToLibrary))
+@if (plataform == DevicePlatform.WinUI)
 {
-    <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
-        <h4>No library folder/file has been chosen. Please choose one.</h4>
-        <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder/File</FluentButton>
-    </div>
-}
-else
-{
-    if (plataform == DevicePlatform.WinUI || UnidicDetermined)
+    if (string.IsNullOrEmpty(Configurations.PathToLibrary))
+    {
+        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+            <h4>No library folder. Please choose one.</h4>
+            <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
+        </div>
+    }
+    else
     {
         <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
     }
+    
+}
+else
+{
+    if (UnidicDetermined)
+    {
+        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+            <h4>Choose the Book.</h4>
+            <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick File</FluentButton>
+        </div>
+    }
     else 
     {
+        
         <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
             <h4>Download the Unidic to proceed. It may take a few minute.</h4>
             @{
