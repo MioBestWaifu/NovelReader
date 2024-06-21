@@ -1,4 +1,5 @@
-﻿using Mio.Reader.Services;
+﻿using Mio.Reader.Parsing;
+using Mio.Reader.Services;
 using System.Diagnostics;
 
 namespace Mio.Reader
@@ -6,8 +7,10 @@ namespace Mio.Reader
     public partial class App : Application
     {
         LibraryService library;
-        public App(LibraryService library)
+        public App(LibraryService library, ImageParsingService imageParsingService)
         {
+            EpubMetadataResolver.Initialize(imageParsingService);
+            EpubParser.Initialize(imageParsingService);
             InitializeComponent();
             this.library = library;
 

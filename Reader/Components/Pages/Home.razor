@@ -11,21 +11,33 @@
 
 <!--Should have different pages instead of a if-else-->
 <FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configurations.MainColor />
-@if (string.IsNullOrEmpty(Configurations.PathToLibrary))
+@if (plataform == DevicePlatform.WinUI)
 {
-    <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
-        <h4>No library folder/file has been chosen. Please choose one.</h4>
-        <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder/File</FluentButton>
-    </div>
-}
-else
-{
-    if (plataform == DevicePlatform.WinUI || UnidicDetermined)
+    if (string.IsNullOrEmpty(Configurations.PathToLibrary))
+    {
+        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+            <h4>No library folder. Please choose one.</h4>
+            <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
+        </div>
+    }
+    else
     {
         <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
     }
+    
+}
+else
+{
+    if (UnidicDetermined)
+    {
+        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+            <h4>Choose the Book.</h4>
+            <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick File</FluentButton>
+        </div>
+    }
     else 
     {
+        
         <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
             <h4>Download the Unidic to proceed. It may take a few minute.</h4>
             @{
@@ -66,17 +78,20 @@ else
 
     private async void PickLibraryFolder()
     {
+
         if (plataform == DevicePlatform.Android)
         {
-            if (!await Utils.RequestStoragePermissions())
+            if (!await DataManager.RequestStoragePermissions())
                 return;
             /*
             * This is a workaraound and should ideally not exist. The problem is that Android refuses to list the files in the directory.
-            * I have permissions, have used differente permissions and APIS (including Intent and Java), but the system just refuses to return all file sin the library fodler.
-            * The odd things are that the exact same call on the exact same folder works on another project, and that one file (jpg) is listed.
+            * I have permissions, have used differente permissions and API's (including Intent and Java), but the system just refuses to return all files in the library fodler.
+            * The odd things are that the exact same call on the exact same folder works on another project, and that here one file (jpg) is listed.
             * Until i can figure out what the hell is going on, android only allows to pick specific files, not a library.
             */
-            string filePath = await Utils.PickFileAndroid();
+            string? filePath = await DataManager.PickBook();
+            if(string.IsNullOrEmpty(filePath))
+                return;
             Task task = Task.Run(async () => Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath))));
             await task;
             Navigator.NavigateTo("/reader?bookIndex=0");

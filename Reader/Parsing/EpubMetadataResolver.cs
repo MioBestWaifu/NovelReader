@@ -1,4 +1,5 @@
 ﻿using Mio.Reader.Parsing.Structure;
+using Mio.Reader.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +13,13 @@ namespace Mio.Reader.Parsing
 {
     internal static class EpubMetadataResolver
     {
+        private static ImageParsingService imageParser;
+
+        public static void Initialize(ImageParsingService imageParsingService)
+        {
+            imageParser = imageParsingService;
+        }
+
         public async static Task<string> ResolveStandardsFile(string originalXml)
         {
             // Parse the original XML content as an XML document
@@ -56,7 +64,7 @@ namespace Mio.Reader.Parsing
             try
             {
                 ZipArchiveEntry coverEntry = Utils.GetRelativeEntry(namedEntries[standardOpfPath], pathToCover);
-                coverBase64 = await Utils.ParseImageEntryToBase64(coverEntry,440,660);
+                coverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry,440,660);
             }
             catch (Exception e)
             {

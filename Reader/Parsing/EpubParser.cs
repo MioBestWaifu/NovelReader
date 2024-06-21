@@ -37,8 +37,12 @@ namespace Mio.Reader.Parsing
 
         private static JapaneseTranslator translator = new JapaneseTranslator();
 
+        private static ImageParsingService imageParser;
 
-
+        public static void Initialize(ImageParsingService imageParsingService)
+        {
+            imageParser = imageParsingService;
+        }
         public static Task<List<Node>> ParseLine(Chapter chapter, XElement line)
         {
             try
@@ -167,7 +171,7 @@ namespace Mio.Reader.Parsing
 
         private static List<Node> ParseImageElement(ZipArchiveEntry imageEntry)
         {
-            Task<string> base64Task = Utils.ParseImageEntryToBase64(imageEntry);
+            Task<string> base64Task = imageParser.ParseImageEntryToBase64(imageEntry);
             base64Task.Wait();
             string base64 = base64Task.Result;
             string type = imageEntry.FullName.Split('.')[^1];
