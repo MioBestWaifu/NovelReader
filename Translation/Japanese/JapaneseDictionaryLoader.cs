@@ -1,5 +1,7 @@
 ﻿using MessagePack;
+using Mio.Translation.Japanese.Edrdg;
 using System.Reflection;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Mio.Translation.Japanese
 {
@@ -54,6 +56,29 @@ namespace Mio.Translation.Japanese
             //This one call is upwards of 50% of chapter load time. Optmization so far not needed, if needed 
             //use a cache with this thing.
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
+        }
+
+        public static KanjiEntry LoadKanjiEntry(int index)
+        {
+            int file = Math.DivRem(index, 1000, out int offset);
+            string resourceName = $"Mio.Translation.Kanjidic.{file}.bin";
+            byte[] data;
+
+            using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            {
+                if (resourceStream == null)
+                {
+                    throw new FileNotFoundException($"Resource {resourceName} not found.");
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    resourceStream.CopyToAsync(memoryStream).Wait();
+                    data = memoryStream.ToArray();
+                }
+            }
+
+            return MessagePackSerializer.Deserialize<KanjiEntry[]>(data)![offset];
         }
 
     }

@@ -11,6 +11,7 @@
   <ItemGroup>
     <EmbeddedResource Include="JMDict\**\*.*" />
 	<EmbeddedResource Include="JMnedict\**\*.*" />
+	<EmbeddedResource Include="Kanjidic\**\*.*" />
    </ItemGroup>
 
   <ItemGroup>

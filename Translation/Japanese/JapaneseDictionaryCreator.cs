@@ -76,8 +76,8 @@ namespace Mio.Translation.Japanese
             settings.MaxCharactersInDocument = 0;
             settings.DtdProcessing = DtdProcessing.Parse;
             XmlReader reader = XmlReader.Create(pathToJmnedict, settings);
-            XDocument jmdict = XDocument.Load(reader);
-            IEnumerable<XElement> elements = jmdict.Element("JMnedict")!.Elements("entry");
+            XDocument jmnedict = XDocument.Load(reader);
+            IEnumerable<XElement> elements = jmnedict.Element("JMnedict")!.Elements("entry");
             int argumentExisting = 0;
             ConcurrentDictionary<string, List<(NameEntry, int)>> toReturn = [];
             Parallel.ForEach(elements, element =>
@@ -249,6 +249,37 @@ namespace Mio.Translation.Japanese
             return entriesBrokenByIndex;
         }
 
+        private static KanjiEntry[] CreateKanjiEntries(string pathToKanjidict)
+        {
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.MaxCharactersFromEntities = 0;
+            settings.MaxCharactersInDocument = 0;
+            settings.DtdProcessing = DtdProcessing.Parse;
+            XmlReader reader = XmlReader.Create(pathToKanjidict, settings);
+            XDocument kanjidict = XDocument.Load(reader);
+            IEnumerable<XElement> elements = kanjidict.Element("kanjidic2")!.Elements("character");
+            //The largest possible value for the got from DetermineKanjiNumber is supposed be 79-odd thousand.
+            KanjiEntry[] entries = new KanjiEntry[80000];
+            int exceptionCount = 0;
+            foreach(XElement element in elements)
+            {
+                //There is one kanji here making problem: 𠀋. Something to do with bytes and encoding.
+                //There may be others.
+                try
+                {
+                    KanjiEntry entry = new KanjiEntry(element);
+                    Console.WriteLine(entry.Literal);
+                    int code = JapaneseAnalyzer.DetermineKanjiNumber(entry.Literal);
+                    entries[code] = entry;
+                } catch (Exception e)
+                {
+                    exceptionCount++;
+                    Console.WriteLine(exceptionCount);
+                }
+            }
+            return entries;
+        }
+
         public static void CreateDictionary(string pathToOriginal, string pathToOutput, EdrdgDictionary dictionary)
         {
             Directory.CreateDirectory(pathToOutput);
@@ -268,6 +299,16 @@ namespace Mio.Translation.Japanese
                     {
                         byte[] jmnedictMsgPack = MessagePackSerializer.Serialize(jmnedictEntriesBrokenByFile[i]);
                         File.WriteAllBytes($@"{pathToOutput}{i}.bin", jmnedictMsgPack);
+                    }
+                    break;
+                case EdrdgDictionary.Kanjidic:
+                    KanjiEntry[] kanjiEntries = CreateKanjiEntries(pathToOriginal);
+                    for (int i = 0; i < 79; i++)
+                    {
+                        int startRange = i * 1000;
+                        int endRange = startRange + 999;
+                        byte[] kanjidicMsgPack = MessagePackSerializer.Serialize(kanjiEntries[startRange..endRange]);
+                        File.WriteAllBytes($@"{pathToOutput}{i}.bin", kanjidicMsgPack);
                     }
                     break;
                 

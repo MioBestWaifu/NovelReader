@@ -68,5 +68,42 @@ namespace Mio.Translation.Japanese
                 _ => GrammaticalCategory.Unknown,
             };
         }
+
+        public static int DetermineKanjiNumber(char kanji)
+        {
+            int unicodeValue = kanji;
+
+            // Define the start and end of each Unicode range for kanji
+            int range1Start = 0x4E00, range1End = 0x9FFF;
+            int range2Start = 0x3400, range2End = 0x4DBF;
+            int range3Start = 0x20000, range3End = 0x2A6DF;
+            int range4Start = 0x2A700, range4End = 0x2EBEF;
+
+            // Calculate the offsets for the starting indices of each range
+            int range1Size = range1End - range1Start + 1;
+            int range2Size = range2End - range2Start + 1;
+            int range3Size = range3End - range3Start + 1;
+
+            if (unicodeValue >= range1Start && unicodeValue <= range1End)
+            {
+                return unicodeValue - range1Start;
+            }
+            else if (unicodeValue >= range2Start && unicodeValue <= range2End)
+            {
+                return range1Size + (unicodeValue - range2Start);
+            }
+            else if (unicodeValue >= range3Start && unicodeValue <= range3End)
+            {
+                return range1Size + range2Size + (unicodeValue - range3Start);
+            }
+            else if (unicodeValue >= range4Start && unicodeValue <= range4End)
+            {
+                return range1Size + range2Size + range3Size + (unicodeValue - range4Start);
+            }
+            else
+            {
+                throw new ArgumentException("The provided character is not a kanji within the specified ranges.");
+            }
+        }
     }
 }

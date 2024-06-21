@@ -79,5 +79,11 @@ namespace Mio.Translation.Japanese
             //Revise wether it should return null, throw an exception or return an empty list.
             return [null];
         }
+
+        public KanjiEntry TranslateKanji(char kanji)
+        {
+            int code = JapaneseAnalyzer.DetermineKanjiNumber(kanji);
+            return JapaneseDictionaryLoader.LoadKanjiEntry(code);
+        }
     }
 }
