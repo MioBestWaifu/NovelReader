@@ -10,13 +10,12 @@ using Mio.Translation.Japanese.Edrdg;
 namespace Mio.Translation.Japanese
 {
     /// <summary>
-    /// Takes the EDRDG database and creates files with it to be read by Maria. It is not supposed to be run in the final product.
+    /// Takes the EDRDG database and creates translation files. It is not supposed to be run in the final product.
     /// Is also not supposed to be run all the time in development, only when the database is updated.
     /// </summary>
-    internal static class JapaneseDictionaryCreator
+    public static class JapaneseDictionaryCreator
     {
-
-        private static ConcurrentDictionary<string, EdrdgEntry> LoadOriginalJMdict(string pathToJmdict)
+        private static ConcurrentDictionary<string, List<EdrdgEntry>> LoadOriginalJMdict(string pathToJmdict)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.MaxCharactersFromEntities = 0;
@@ -26,7 +25,7 @@ namespace Mio.Translation.Japanese
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
             int argumentExisting = 0;
-            ConcurrentDictionary<string, EdrdgEntry> toReturn = new ConcurrentDictionary<string, EdrdgEntry>();
+            ConcurrentDictionary<string, List<EdrdgEntry>> toReturn = [];
             Parallel.ForEach(elements, element =>
             {
                 //Two important things should be done here:
@@ -35,12 +34,17 @@ namespace Mio.Translation.Japanese
                 EdrdgEntry entry = new EdrdgEntry(element);
                 if (entry.KanjiElements != null)
                 {
-                    foreach (var kanjiElemnt in entry.KanjiElements)
+                    foreach (var kanjiElement in entry.KanjiElements)
                     {
                         try
                         {
-                            if (!toReturn.TryAdd(kanjiElemnt.Kanji, entry))
-                                argumentExisting++;
+                            List<EdrdgEntry> entries;
+                            if (!toReturn.TryGetValue(kanjiElement.Kanji, out entries))
+                            {
+                                entries = new List<EdrdgEntry>();
+                                toReturn.TryAdd(kanjiElement.Kanji, entries);
+                            }
+                            entries.Add(entry);
                         }
                         catch (ArgumentException)
                         {
@@ -52,12 +56,17 @@ namespace Mio.Translation.Japanese
                 }
                 else
                 {
-                    foreach (var readingElemnt in entry.ReadingElements)
+                    foreach (var readingElement in entry.ReadingElements)
                     {
                         try
                         {
-                            if (!toReturn.TryAdd(readingElemnt.Reading, entry))
-                                argumentExisting++;
+                            List<EdrdgEntry> entries;
+                            if (!toReturn.TryGetValue(readingElement.Reading, out entries))
+                            {
+                                entries = new List<EdrdgEntry>();
+                                toReturn.TryAdd(readingElement.Reading, entries);
+                            }
+                            entries.Add(entry);
                         }
                         catch (ArgumentException)
                         {
@@ -77,8 +86,8 @@ namespace Mio.Translation.Japanese
         {
             List<List<List<ConversionEntry>>> jmdictiesBrokenByIndex = new List<List<List<ConversionEntry>>>();
 
-            ConcurrentDictionary<string, EdrdgEntry> originalJMdict = LoadOriginalJMdict(pathToJmdict);
-
+            ConcurrentDictionary<string, List<EdrdgEntry>> originalJMdict = LoadOriginalJMdict(pathToJmdict);
+            var x = originalJMdict.TryGetValue("そんな", out var y);
             for (int i = 0; i < 256; i++)
             {
 
@@ -92,21 +101,21 @@ namespace Mio.Translation.Japanese
 
             int file = 0;
             SHA256 sha256 = SHA256.Create();
-            foreach (var entry in originalJMdict)
+            foreach (var entryList in originalJMdict)
             {
-                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entry.Key));
+                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entryList.Key));
                 int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
-
-                jmdictiesBrokenByIndex[number / 256][number % 256].Add(new ConversionEntry(entry.Key, entry.Value));
+                foreach (var entry in entryList.Value)
+                {       
+                    jmdictiesBrokenByIndex[number / 256][number % 256].Add(new ConversionEntry(entryList.Key, entry));
+                }
             }
 
             return jmdictiesBrokenByIndex;
         }
 
-        public static void CreateDictionary(string pathToOriginalJmdict)
+        public static void CreateJmdict(string pathToOriginalJmdict, string pathToOutput)
         {
-            //Did not revise
-            string pathToOutput = @"..\..\Services\Translation\JMDict\";
             Directory.CreateDirectory(pathToOutput);
             List<List<List<ConversionEntry>>> jmdictiesBrokenByFile = CreateHashes(pathToOriginalJmdict);
             for (int i = 0; i < jmdictiesBrokenByFile.Count; i++)

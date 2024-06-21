@@ -2,6 +2,7 @@
 using Mio.Translation.Japanese.Edrdg;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Mio.Translation.Japanese
 {
@@ -28,13 +29,15 @@ namespace Mio.Translation.Japanese
 
             //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list (rarely >6)
             //it doesn't matter.
-            //Also, this only takes one entry, because right know there can be only one unique key. This will change.
-            ConversionEntry? match = possibleEntries.Find(x => x.Key == term);
+            List<ConversionEntry>? matches = possibleEntries.FindAll(x => x.Key == term);
             List<EdrdgEntry> dictionaryEntries = new List<EdrdgEntry>();
 
-            if (match is not null)
+            if (matches is not null)
             {
-                dictionaryEntries.Add(match.Value);
+                foreach (var item in matches)
+                {
+                    dictionaryEntries.Add(item.Value);
+                }
                 return dictionaryEntries;
             }
 
