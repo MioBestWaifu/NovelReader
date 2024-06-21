@@ -38,7 +38,7 @@
 
         @if (showPopup)
         {
-            <FluentPopover Style="max-height:45vh;max-width:80vw;overflow:auto;direction:ltr" VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset" 
+            <FluentPopover Style="max-height:45vh;max-width:45vw;overflow:auto;direction:ltr" VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset" 
                 AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})" 
                 HorizontalInset=false Id="translation-card">
                 <Header>

@@ -257,11 +257,11 @@ namespace Mio.Reader.Components.Pages
                 CurrentChapter--;
                 interaction.LastChapter = CurrentChapter;
                 interaction.LastPage = 0;
-                Task.Run(() => LoadChapter(CurrentChapter));
+                Task.Run(() => LoadChapter(CurrentChapter,setPageToLast:true));
             }
         }
 
-        private async Task LoadChapter(int index, bool firstLoad = false)
+        private async Task LoadChapter(int index, bool firstLoad = false, bool setPageToLast = false)
         {
             Chapter chapter = Book.TableOfContents[index].Item2;
             //To keep track of if the user went to another chapter while the current one was loading
@@ -277,7 +277,11 @@ namespace Mio.Reader.Components.Pages
                 {
                     CurrentPage = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
                 }
-                else
+                else if (setPageToLast)
+                {
+                    CurrentPage = Pages.Count - 1;
+                }
+                else 
                 {
                     CurrentPage = 0;
                 }
@@ -322,7 +326,14 @@ namespace Mio.Reader.Components.Pages
             else
             {
                 Pages = await BreakChapterToPages(chapter);
-                CurrentPage = 0;
+                if(setPageToLast)
+                {
+                    CurrentPage = Pages.Count - 1;
+                }
+                else
+                {
+                    CurrentPage = 0;
+                }
                 InvokeAsync(() =>
                 {
                     StateHasChanged();
