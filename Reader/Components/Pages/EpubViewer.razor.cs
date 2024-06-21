@@ -93,7 +93,7 @@ namespace Mio.Reader.Components.Pages
         private int animationCounter = 0;
 
         private string selectedWordId = "";
-        private EdrdgEntry? selectedEdrdgEntry;
+        private JmdictEntry? selectedEdrdgEntry;
 
         private int fuckedLines = 0;
 
@@ -418,7 +418,7 @@ namespace Mio.Reader.Components.Pages
             return pages;
         }
 
-        private async void ShowPopup(string id, EdrdgEntry? edrdgEntry)
+        private async void ShowPopup(string id, JmdictEntry? edrdgEntry)
         {
 
             if (edrdgEntry is null)
@@ -445,7 +445,7 @@ namespace Mio.Reader.Components.Pages
             await RemovePreviousElementBackgroundColor();
         }
 
-        private void HandleClickOnElement(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
+        private void HandleClickOnElement(MouseEventArgs e, string id, JmdictEntry edrdgEntry)
         {
             if (plataform != DevicePlatform.WinUI)
                 return;
@@ -456,7 +456,7 @@ namespace Mio.Reader.Components.Pages
             ShowPopup(id, edrdgEntry);
         }
 
-        private async void HandleTouchStart(TouchEventArgs e , string elementId, EdrdgEntry? edrdgEntry)
+        private async void HandleTouchStart(TouchEventArgs e , string elementId, JmdictEntry? edrdgEntry)
         {
             if (plataform != DevicePlatform.Android)
                 return;

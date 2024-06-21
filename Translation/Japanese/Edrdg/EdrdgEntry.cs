@@ -1,12 +1,18 @@
 ﻿using MessagePack;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Mio.Translation.Japanese.Edrdg
 {
-    //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
     [MessagePackObject]
-    public class EdrdgEntry
+    [Union(0, typeof(JmdictEntry))]
+    [Union(1, typeof(NameEntry))]
+    public abstract class EdrdgEntry
     {
         [Key(0)]
         public int EntryId { get; private set; }

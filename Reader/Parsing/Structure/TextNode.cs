@@ -9,6 +9,6 @@ namespace Mio.Reader.Parsing.Structure
 {
     public class TextNode : Node
     {
-        public EdrdgEntry? EdrdgEntry { get; set; }
+        public JmdictEntry? EdrdgEntry { get; set; }
     }
 }
