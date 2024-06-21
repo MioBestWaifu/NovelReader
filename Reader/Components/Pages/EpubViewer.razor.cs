@@ -84,10 +84,7 @@ namespace Mio.Reader.Components.Pages
         private bool Initialized { get; set; } = false;
 
         private string previousElementId = "";
-        private double firstTouchX = 0;
-        private double firstTouchY = 0;
-        private double lastTouchX = 0;
-        private double lastTouchY = 0;
+        private int touchId = 0;
 
         private bool showPopup = false;
         private bool showTableOfContents = false;
@@ -410,7 +407,7 @@ namespace Mio.Reader.Components.Pages
             return pages;
         }
 
-        private async void ShowPopup(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
+        private async void ShowPopup(string id, EdrdgEntry? edrdgEntry)
         {
 
             if (edrdgEntry is null)
@@ -437,82 +434,33 @@ namespace Mio.Reader.Components.Pages
             await RemovePreviousElementBackgroundColor();
         }
 
-        private void HandleTouchStart(TouchEventArgs e)
+        private void HandleClickOnElement(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
         {
-            if (plataform != DevicePlatform.Android)
+            if (plataform != DevicePlatform.WinUI)
                 return;
-
             if (showPopup)
             {
                 ClosePopup();
             }
-
-            try
-            {
-                firstTouchX = e.Touches[0].ScreenX;
-                firstTouchY = e.Touches[0].ScreenY;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Touch start event error: " + ex.Message);
-            }
+            ShowPopup(id, edrdgEntry);
         }
 
-        private void HandleTouchMove(TouchEventArgs e)
+        private async void HandleTouchStart(TouchEventArgs e , string elementId, EdrdgEntry? edrdgEntry)
         {
             if (plataform != DevicePlatform.Android)
                 return;
-            try
-            {
-                lastTouchX = e.Touches[0].ScreenX;
-                lastTouchY = e.Touches[0].ScreenY;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Touch move event error: " + ex.Message);
-            }
-        }
+            this.touchId++;
+            int currentTouchId = this.touchId;
 
-        private async void HandleTouchEnd(TouchEventArgs e)
-        {
-            //The lastTouch comparisons are needed because if the user simply taps the screen a TouchStart and TouchEnd will throw
-            //But TouchMove will not, leading to lastTouch's being zero and this method not working
-            if (plataform != DevicePlatform.Android || (lastTouchX == 0 && lastTouchY == 0))
+            await Task.Delay(750);
+            if (currentTouchId == this.touchId)
             {
-                firstTouchX = 0;
-                firstTouchY = 0;
+                if (showPopup)
+                {
+                   await InvokeAsync(()=>ClosePopup());
+                }
+                await InvokeAsync(() => ShowPopup(elementId, edrdgEntry));
                 return;
-            }
-            try
-            {
-                double minDeltaX = await JS.InvokeAsync<double>("getWindowWidth") / 4;
-                double minDeltaY = await JS.InvokeAsync<double>("getWindowHeight") / 4;
-                double deltaX = lastTouchX - firstTouchX;
-                double deltaY = lastTouchY - firstTouchY;
-                firstTouchX = 0;
-                firstTouchY = 0;
-                lastTouchX = 0;
-                lastTouchY = 0;
-
-                if (ReadingManner == ReadingManner.Japanese)
-                {
-                    if (deltaY > minDeltaY)
-                        PreviousPage();
-                    else if (deltaY < -minDeltaY)
-                        NextPage();
-
-                }
-                else
-                {
-                    if (deltaX > minDeltaX)
-                        PreviousPage();
-                    else if (deltaX < -minDeltaX)
-                        NextPage();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Touch end event error: " + ex.Message);
             }
         }
 
@@ -550,6 +498,35 @@ namespace Mio.Reader.Components.Pages
         {
             await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
             previousElementId = "";
+        }
+
+        public async void HandleDoubleClick(MouseEventArgs e)
+        {
+            //I think this is undesirable on Windows, but it might actually not be
+            if(plataform != DevicePlatform.Android)
+            {
+                return;
+            }
+
+            double x = e.ScreenX;
+
+            double windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
+            double maxXToLeft = 0.33 * windowWidth;
+            double minXToRight = 0.66 * windowWidth;
+
+            if(x < maxXToLeft)
+            {
+                if(ReadingManner == ReadingManner.Japanese)
+                    NextPage();
+                else
+                    PreviousPage();
+            } else if (x > minXToRight)
+            {
+                if (ReadingManner == ReadingManner.Japanese)
+                    PreviousPage();
+                else
+                    NextPage();
+            }
         }
 
         private string JoinKanjis(List<KanjiElement>? kanjis)

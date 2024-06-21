@@ -14,7 +14,7 @@
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
-    <div id="viewer" class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ontouchstart="HandleTouchStart" @ontouchmove="HandleTouchMove" @ontouchend="HandleTouchEnd" tabindex="0">
+    <div id="viewer" class="@(ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
         @{
             Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
         }
@@ -72,15 +72,14 @@
                 @if (line[0] is TextNode)
                 {
                     <!--Separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
-                    //May seem strange to have p's inside p's, but this is done because on the one hand individual words need to be clickable, and on the other hand the mobile webview was not rendering vertical text properly in a div in landscape mode. This achieves both.
                     <div class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
                         @for (int j = 0; j < line.Count; j++)
                         {
                             TextNode node = (TextNode)line[j];
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
                             string id = $"p{i:D2}{j}";
-                        <p class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => ShowPopup(e,id,node.EdrdgEntry)"
-                            @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                        <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => HandleClickOnElement(e,id,node.EdrdgEntry)"
+                           @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node.EdrdgEntry));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </div>
                 }
