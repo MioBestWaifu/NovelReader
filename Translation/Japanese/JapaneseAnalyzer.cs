@@ -105,5 +105,15 @@ namespace Mio.Translation.Japanese
                 throw new ArgumentException("The provided character is not a kanji within the specified ranges.");
             }
         }
+
+        public static bool IsKana(char c)
+        {
+            return c >= 0x3040 && c <= 0x309F || c >= 0x30A0 && c <= 0x30FF;
+        }
+
+        public static bool IsRomaji(char c)
+        {
+            return c >= 0x0041 && c <= 0x005A || c >= 0x0061 && c <= 0x007A;
+        }
     }
 }

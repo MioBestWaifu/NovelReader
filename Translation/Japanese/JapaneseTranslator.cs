@@ -1,5 +1,6 @@
 ﻿using Mio.Translation;
 using Mio.Translation.Japanese.Edrdg;
+using MyNihongo.KanaConverter;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -84,6 +85,11 @@ namespace Mio.Translation.Japanese
         {
             int code = JapaneseAnalyzer.DetermineKanjiNumber(kanji);
             return JapaneseDictionaryLoader.LoadKanjiEntry(code);
+        }
+
+        public string TranslateKana(string kana)
+        {           
+            return kana.ToRomaji();
         }
     }
 }
