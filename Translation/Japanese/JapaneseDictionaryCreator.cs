@@ -15,7 +15,7 @@ namespace Mio.Translation.Japanese
     /// </summary>
     public static class JapaneseDictionaryCreator
     {
-        private static ConcurrentDictionary<string, List<EdrdgEntry>> LoadOriginalJMdict(string pathToJmdict)
+        private static ConcurrentDictionary<string, List<(EdrdgEntry, int)>> LoadOriginalJMdict(string pathToJmdict)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.MaxCharactersFromEntities = 0;
@@ -25,55 +25,43 @@ namespace Mio.Translation.Japanese
             XDocument jmdict = XDocument.Load(reader);
             IEnumerable<XElement> elements = jmdict.Element("JMdict")!.Elements("entry");
             int argumentExisting = 0;
-            ConcurrentDictionary<string, List<EdrdgEntry>> toReturn = [];
+            ConcurrentDictionary<string, List<(EdrdgEntry, int)>> toReturn = [];
             Parallel.ForEach(elements, element =>
             {
                 //Two important things should be done here:
                 //1 - it should check if the entry is usually in kana. this info is contained in the dict but ignored. if it is, then kana keys should be added irrespective of the kanji keys.
                 //2 - the values should be a list of entries, and the user gets all of them as answers.
                 EdrdgEntry entry = new EdrdgEntry(element);
+                int baseKanjiPriority = 0;
                 if (entry.KanjiElements != null)
                 {
                     foreach (var kanjiElement in entry.KanjiElements)
                     {
-                        try
+                        //this should take things such as commonality, archaism, etc, into account.
+                        int priority = baseKanjiPriority;
+                        List<(EdrdgEntry, int)> entries;
+                        if (!toReturn.TryGetValue(kanjiElement.Kanji, out entries))
                         {
-                            List<EdrdgEntry> entries;
-                            if (!toReturn.TryGetValue(kanjiElement.Kanji, out entries))
-                            {
-                                entries = new List<EdrdgEntry>();
-                                toReturn.TryAdd(kanjiElement.Kanji, entries);
-                            }
-                            entries.Add(entry);
+                            entries = new List<(EdrdgEntry, int)>();
+                            toReturn.TryAdd(kanjiElement.Kanji, entries);
                         }
-                        catch (ArgumentException)
-                        {
-                            //This is a very common exception, as many entries have the same kanji. It is not an error.
-                            //It will be dealt with eventually.
-                            argumentExisting++;
-                        }
+                        entries.Add((entry, priority));
                     }
                 }
-                else
+                if (entry.ReadingElements != null)
                 {
+                    int baseReadingPriority = entry.KanjiElements == null || entry.KanjiElements.Count == 0 ? 0 : 10;
                     foreach (var readingElement in entry.ReadingElements)
                     {
-                        try
+                        //again, should take things such as commonality, archaism, etc, into account.
+                        int priority = baseReadingPriority;
+                        List<(EdrdgEntry, int)> entries;
+                        if (!toReturn.TryGetValue(readingElement.Reading, out entries))
                         {
-                            List<EdrdgEntry> entries;
-                            if (!toReturn.TryGetValue(readingElement.Reading, out entries))
-                            {
-                                entries = new List<EdrdgEntry>();
-                                toReturn.TryAdd(readingElement.Reading, entries);
-                            }
-                            entries.Add(entry);
+                            entries = new List<(EdrdgEntry, int)>();
+                            toReturn.TryAdd(readingElement.Reading, entries);
                         }
-                        catch (ArgumentException)
-                        {
-                            //This is a very common exception, as many entries have the same kana. It is not an error.
-                            //It will be dealt with eventually.
-                            argumentExisting++;
-                        }
+                        entries.Add((entry, priority));
                     }
                 }
             });
@@ -86,8 +74,7 @@ namespace Mio.Translation.Japanese
         {
             List<List<List<ConversionEntry>>> jmdictiesBrokenByIndex = new List<List<List<ConversionEntry>>>();
 
-            ConcurrentDictionary<string, List<EdrdgEntry>> originalJMdict = LoadOriginalJMdict(pathToJmdict);
-            var x = originalJMdict.TryGetValue("そんな", out var y);
+            ConcurrentDictionary<string, List<(EdrdgEntry,int)>> originalJMdict = LoadOriginalJMdict(pathToJmdict);
             for (int i = 0; i < 256; i++)
             {
 
@@ -106,8 +93,8 @@ namespace Mio.Translation.Japanese
                 byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(entryList.Key));
                 int number = BitConverter.ToUInt16(hash, 0); // Convert the first two bytes to a number
                 foreach (var entry in entryList.Value)
-                {       
-                    jmdictiesBrokenByIndex[number / 256][number % 256].Add(new ConversionEntry(entryList.Key, entry));
+                {
+                    jmdictiesBrokenByIndex[number / 256][number % 256].Add(new ConversionEntry(entryList.Key, entry.Item1,entry.Item2));
                 }
             }
 

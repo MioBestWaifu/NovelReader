@@ -27,9 +27,9 @@ namespace Mio.Translation.Japanese
             int termIndex = BitConverter.ToUInt16(termHash, 0);
             List<ConversionEntry> possibleEntries = JapaneseDictionaryLoader.LoadPossibleEntries(termIndex);
 
-            //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list (rarely >6)
-            //it doesn't matter.
-            List<ConversionEntry>? matches = possibleEntries.FindAll(x => x.Key == term);
+            //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list
+            //it doesn't matter. The conversions might matter, tough.
+            List<ConversionEntry>? matches = possibleEntries.FindAll(x => x.Key == term).OrderBy(x => x.Priority).ToList();
             List<EdrdgEntry> dictionaryEntries = new List<EdrdgEntry>();
 
             if (matches is not null)
