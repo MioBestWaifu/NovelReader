@@ -28,36 +28,30 @@ namespace Mio.Translation.Japanese
         private static void AddKanjiAndReadingKeys<T>(T entry, ConcurrentDictionary<string, List<(T, int)>> dict) where T : EdrdgEntry
         {
             //Should check if the entry is usually in kana. this info is contained in the dict but ignored. if it is, then kana keys should be added irrespective of the kanji keys.
-            int baseKanjiPriority = 0;
             if (entry.KanjiElements != null)
             {
                 foreach (var kanjiElement in entry.KanjiElements)
                 {
-                    //this should take things such as commonality, archaism, etc, into account.
-                    int priority = baseKanjiPriority;
                     List<(T, int)> entries;
                     if (!dict.TryGetValue(kanjiElement.Kanji, out entries))
                     {
                         entries = new List<(T, int)>();
                         dict.TryAdd(kanjiElement.Kanji, entries);
                     }
-                    entries.Add((entry, priority));
+                    entries.Add((entry, kanjiElement.Priority));
                 }
             }
             if (entry.ReadingElements != null)
             {
-                int baseReadingPriority = entry.KanjiElements == null || entry.KanjiElements.Count == 0 ? 0 : 10;
                 foreach (var readingElement in entry.ReadingElements)
                 {
-                    //again, should take things such as commonality, archaism, etc, into account.
-                    int priority = baseReadingPriority;
                     List<(T, int)> entries;
                     if (!dict.TryGetValue(readingElement.Reading, out entries))
                     {
                         entries = new List<(T, int)>();
                         dict.TryAdd(readingElement.Reading, entries);
                     }
-                    entries.Add((entry, priority));
+                    entries.Add((entry, readingElement.Priority));
                 }
             }
         }

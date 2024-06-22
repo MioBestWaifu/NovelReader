@@ -32,8 +32,8 @@ namespace Mio.Translation.Japanese.Edrdg
         /// This is actually multiple tags. Should look in what to do about it later.
         /// </summary>
         /// 
-        [IgnoreMember]
-        private JapanesePriority Priority { get; set; }
+        [Key(2)]
+        public int Priority { get; set; }
 
         //There is also the re_nokanji tag, but i dont know what to do with it and cant make out how to declare it, so it will be missing here.
 
@@ -44,16 +44,21 @@ namespace Mio.Translation.Japanese.Edrdg
 
         [JsonConstructor]
         [SerializationConstructor]
-        public ReadingElement(string reading, string readingRestriction)
+        public ReadingElement(string reading, string readingRestriction, int priority)
         {
             Reading = reading;
             ReadingRestriction = readingRestriction;
+            Priority = priority;
         }
 
         public ReadingElement(XElement element)
         {
             Reading = element.Element("reb")!.Value;
             ReadingRestriction = element.Element("re_restr")?.Value;
+
+            List<string> priorityStrings = element.Elements("re_pri").Select(x => x.Value).ToList();
+            List<int> priorityInts = priorityStrings.Select(EdrdgEntry.ParsePriority).ToList();
+            Priority = priorityInts.Count == 0 ? 50 : priorityInts.Min();
         }
     }
 }

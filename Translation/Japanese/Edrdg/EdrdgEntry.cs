@@ -67,5 +67,34 @@ namespace Mio.Translation.Japanese.Edrdg
                 SenseElements.Add(new SenseElement(senseElement));
             }
         }
+
+        public static int ParsePriority(string notation)
+        {
+            return notation switch
+            {
+                //Values other than of nfXX are arbitrary and should be revised.
+                "ichi1" => 15,
+                "news1" => 15,
+                "spec1" => 15,
+                "gai1" => 15,
+                "ichi2" => 30,
+                "news2" => 30,
+                "spec2" => 30,
+                "gai2" => 30,
+                _ => DetermineNfPriority(notation)
+            };
+        }
+
+        public static int DetermineNfPriority(string notation)
+        {
+            try
+            {
+                string numericalPart = notation.Substring(2);
+                return int.Parse(numericalPart);
+            } catch (Exception e)
+            {
+                return 50;
+            }
+        }
     }
 }

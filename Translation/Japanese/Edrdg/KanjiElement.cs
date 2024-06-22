@@ -21,8 +21,8 @@ namespace Mio.Translation.Japanese.Edrdg
         [IgnoreMember]
         private string Info { get; set; }
         //This is actually multiple tags. Should look in what to do about it later.
-        [IgnoreMember]
-        private JapanesePriority Priority { get; set; }
+        [Key(1)]
+        public int Priority { get; set; }
 
         public KanjiElement()
         {
@@ -31,14 +31,20 @@ namespace Mio.Translation.Japanese.Edrdg
 
         [JsonConstructor]
         [SerializationConstructor]
-        public KanjiElement(string kanji)
+        public KanjiElement(string kanji, int priority)
         {
             Kanji = kanji;
+            Priority = priority;
         }
 
+        //All those constructors could use some refactoring.
         public KanjiElement(XElement element)
         {
             Kanji = element.Element("keb")!.Value;
+
+            List<string> priorityStrings = element.Elements("ke_pri").Select(x => x.Value).ToList();
+            List<int> priorityInts = priorityStrings.Select(EdrdgEntry.ParsePriority).ToList();
+            Priority = priorityInts.Count == 0 ? 50 : priorityInts.Min();
         }
     }
 }
