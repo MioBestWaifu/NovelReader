@@ -36,13 +36,11 @@ namespace Mio.Translation.Japanese.Edrdg
                                      .Select(r => r.Value)
                                      .ToList();
 
-                var jaOnReadings = rmElement.Elements("reading").Elements("r_type")
-                                    .Where(r => (string)r == "ja_on")
-                                    .Select(r => r.Parent.Value)
-                                    .ToList();
-                List<string> readings = new List<string>();
-                readings.AddRange(jaKunReadings);
-                readings.AddRange(jaOnReadings);
+                var jaOnReadings = rmElement.Elements("reading")
+                                     .Where(r => (string)r.Attribute("r_type") == "ja_on")
+                                     .Select(r => r.Value)
+                                     .ToList();
+                List<string> readings = [.. jaKunReadings, .. jaOnReadings];
 
                 var meanings = rmElement.Elements("meaning")
                         .Where(m => m.Attribute("m_lang") == null) // Filter elements without the m_lang attribute

@@ -7,7 +7,8 @@ namespace Mio.Translation.Japanese
 {
     internal static class JapaneseDictionaryLoader
     {
-        //Should determine the source (jmdict, names dict) once those other databases are implemented.
+        //The deserializer calls here are upwards of 60% of chapter load time on Windows. Optmization so far not needed, if needed 
+        //use a cache with this thing.
         public static List<ConversionEntry> LoadPossibleJmdictEntries(int index)
         {
             int file = Math.DivRem(index, 256, out int offset);
@@ -28,8 +29,6 @@ namespace Mio.Translation.Japanese
                 }
             }
 
-            //This one call is upwards of 50% of chapter load time. Optmization so far not needed, if needed 
-            //use a cache with this thing.
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
 

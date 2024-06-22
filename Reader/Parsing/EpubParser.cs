@@ -89,7 +89,7 @@ namespace Mio.Reader.Parsing
             string line = GetParagraphText(originalElement);
             if (line == string.Empty)
             {
-                return [new TextNode() { Text = "" }];
+                return [new TextNode()];
             }
             //Breaking lines into sentences for smoother morphological analysis
             string[] sentences = Regex.Split(line, separatorsRegex);
@@ -102,11 +102,13 @@ namespace Mio.Reader.Parsing
                 {
                     if (nodes.Count == 0)
                     {
-                        nodes.Add(new TextNode() { Text = sentences[i] });
+                        nodes.Add(new TextNode() { Characters = {new JapaneseCharacter(sentences[i][0])} });
                     }
                     else
                     {
-                        nodes[^1].Text += sentences[i];
+                        //This will break if the previoues node was not a textnode, but that should never happen.
+                        TextNode nodeToAppend = (TextNode)nodes[^1];
+                        nodeToAppend.Characters.Add(new JapaneseCharacter(sentences[i][0]));
                     }
                     continue;
                 }
@@ -115,7 +117,42 @@ namespace Mio.Reader.Parsing
                 foreach (var lexeme in lexemes)
                 {
                     TextNode node = new TextNode();
-                    node.Text = lexeme.Surface;
+                    List<JapaneseCharacter> chars = [];
+                    foreach (var character in lexeme.Surface)
+                    {
+                        if (character == ' ' || character == '\n')
+                        {
+                            continue;
+                        } else if (JapaneseAnalyzer.IsRomaji(character))
+                        {
+                            chars.Add(new Romaji(character));
+                        } else if (JapaneseAnalyzer.IsKana(character))
+                        {
+                            Kana kana = new Kana(character);
+                            chars.Add(kana);
+                            try
+                            {
+                                kana.Reading = translator.TranslateKana(character.ToString());
+                            } catch (Exception e)
+                            {                                
+                                Debug.WriteLine($"Error translating kana: {character}");
+                            }
+                        } else
+                        {
+                            //Presumes everything else is a kanji. This may or may not be a sound idea.
+                            Kanji kanji = new Kanji(character);
+                            chars.Add(kanji);
+                            try
+                            {
+                                kanji.Entry = translator.TranslateKanji(character);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine($"Error translating kanji: {character}");
+                            }
+                        }
+                    }
+                    node.Characters = chars;
                     nodes.Add(node);
                     if (JapaneseAnalyzer.signicantCategories.Contains(lexeme.Category))
                     {
@@ -147,16 +184,14 @@ namespace Mio.Reader.Parsing
                              */
                             Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
                         }
-                        if(lexeme.Category == Translation.GrammaticalCategory.Noun)
+                        try
                         {
-                            try
-                            {
-                                node.NameEntries = translator.TranslateName(lexeme.BaseForm);
-                            } catch (Exception)
-                            {
-                                //Expect this to throw a lot. Keeping this commented to not polute the output.
-                                //Debug.WriteLine($"Error trying to get JMnedict entries for {lexeme.Surface}");
-                            }
+                            node.NameEntries = translator.TranslateName(lexeme.BaseForm);
+                        }
+                        catch (Exception)
+                        {
+                            //Expect this to throw a lot. Keeping this commented to not polute the output.
+                            //Debug.WriteLine($"Error trying to get JMnedict entries for {lexeme.Surface}");
                         }
                     }
                 }

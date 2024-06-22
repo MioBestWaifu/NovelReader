@@ -57,6 +57,12 @@
                                 <NamedictCard Entries="selectedNode!.NameEntries"></NamedictCard>
                             </FluentTab>
                         }
+                        @if (selectedNode!.Characters is not null && selectedNode!.Characters.Count > 0)
+                        {
+                            <FluentTab Label="Chars">
+                                <CharsCard Chars="selectedNode!.Characters"></CharsCard>
+                            </FluentTab>
+                        }
 
                     </FluentTabs>
                 </Body>

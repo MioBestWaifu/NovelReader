@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class Node
+    public class JapaneseCharacter(char literal)
     {
-        public virtual string Text { get; set; } = "";
+        public char Literal { get; set; } = literal;
     }
 }
