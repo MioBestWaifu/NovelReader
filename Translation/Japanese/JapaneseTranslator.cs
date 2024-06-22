@@ -34,6 +34,11 @@ namespace Mio.Translation.Japanese
             return [null];
         }     
 
+        /// <summary>
+        /// To translate from the JMnedict
+        /// </summary>
+        /// <param name="term"></param>
+        /// <returns></returns>
         public List<NameEntry> TranslateName(string term)
         {    
             List<ConversionEntry>? matches = FindPossibleEntries(term, EdrdgDictionary.JMnedict);

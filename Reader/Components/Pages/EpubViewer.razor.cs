@@ -88,12 +88,13 @@ namespace Mio.Reader.Components.Pages
 
         private bool showPopup = false;
         private bool showTableOfContents = false;
+        
 
         private string navigatorClass;
         private int animationCounter = 0;
 
         private string selectedWordId = "";
-        private JmdictEntry? selectedEdrdgEntry;
+        private TextNode? selectedNode;
 
         private int fuckedLines = 0;
 
@@ -418,15 +419,15 @@ namespace Mio.Reader.Components.Pages
             return pages;
         }
 
-        private async void ShowPopup(string id, JmdictEntry? edrdgEntry)
+        private async void ShowPopup(string id, TextNode? node)
         {
-
-            if (edrdgEntry is null)
+            //remeber to check chars and names as well
+            if (node is null || (node.JmdictEntries is null))
             {
                 return;
             }
             selectedWordId = id;
-            selectedEdrdgEntry = edrdgEntry;
+            selectedNode = node;
             if (showPopup)
             {
                 await RemovePreviousElementBackgroundColor();
@@ -440,12 +441,12 @@ namespace Mio.Reader.Components.Pages
         private async void ClosePopup()
         {
             showPopup = false;
-            selectedEdrdgEntry = null;
+            selectedNode = null;
             selectedWordId = "";
             await RemovePreviousElementBackgroundColor();
         }
 
-        private void HandleClickOnElement(MouseEventArgs e, string id, JmdictEntry edrdgEntry)
+        private void HandleClickOnElement(MouseEventArgs e, string id, TextNode node)
         {
             if (plataform != DevicePlatform.WinUI)
                 return;
@@ -453,10 +454,10 @@ namespace Mio.Reader.Components.Pages
             {
                 ClosePopup();
             }
-            ShowPopup(id, edrdgEntry);
+            ShowPopup(id, node);
         }
 
-        private async void HandleTouchStart(TouchEventArgs e , string elementId, JmdictEntry? edrdgEntry)
+        private async void HandleTouchStart(TouchEventArgs e , string elementId, TextNode node)
         {
             if (plataform != DevicePlatform.Android)
                 return;
@@ -470,7 +471,7 @@ namespace Mio.Reader.Components.Pages
                 {
                    await InvokeAsync(()=>ClosePopup());
                 }
-                await InvokeAsync(() => ShowPopup(elementId, edrdgEntry));
+                await InvokeAsync(() => ShowPopup(elementId, node));
                 return;
             }
         }
@@ -538,16 +539,6 @@ namespace Mio.Reader.Components.Pages
                 else
                     NextPage();
             }
-        }
-
-        private string JoinKanjis(List<KanjiElement>? kanjis)
-        {
-            return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)) : string.Empty;
-        }
-
-        private string JoinReadings(List<ReadingElement> readings)
-        {
-            return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
         }
     }
 }

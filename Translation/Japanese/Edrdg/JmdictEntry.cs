@@ -4,6 +4,7 @@ using System.Xml.Linq;
 
 namespace Mio.Translation.Japanese.Edrdg
 {
+    //This is terrible inheritance, but is required for the MessagePack union serialization.
     [MessagePackObject]
     public class JmdictEntry : EdrdgEntry
     {

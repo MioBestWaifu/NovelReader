@@ -121,8 +121,7 @@ namespace Mio.Reader.Parsing
                     {
                         try
                         {
-                            //Only one entry because i dont want to deal with multiple entries in the UI now.
-                            node.EdrdgEntry = translator.TranslateWord(lexeme.BaseForm)![0];
+                            node.JmdictEntries = translator.TranslateWord(lexeme.BaseForm);
                         }
                         catch (Exception e)
                         {

@@ -1,0 +1,46 @@
+﻿@using Mio.Reader.Services
+<div class="d-flex justify-content-between align-content-center">
+    @if (Entries!.Count > 1)
+    {
+        <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.FillInverse"
+                    OnClick="(() => {if (currentEntry == 0) currentEntry = Entries!.Count -1; else currentEntry--;})"></FluentIcon>
+    }
+    @if (Entries[currentEntry].KanjiElements != null && Entries[currentEntry].KanjiElements.Count > 0)
+    {
+        <p style="font-weight: normal;font-size: 22px;">@Utils.JoinKanjis(Entries![currentEntry].KanjiElements)</p>
+    }
+    else
+    {
+        <p style="font-weight: normal;font-size: 22px;">@Utils.JoinReadings(Entries![currentEntry].ReadingElements)</p>
+    }
+    @if (Entries!.Count > 1)
+    {
+        <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.FillInverse"
+                    OnClick="(() => {if (currentEntry == Entries!.Count -1) currentEntry = 0; else currentEntry++;})"></FluentIcon>
+    }
+</div>
+<div class="d-flex flex-column gap-3" style="direction:ltr">
+    @if (Entries[currentEntry].KanjiElements != null && Entries[currentEntry].KanjiElements.Count > 0)
+    {
+        <div style="font-size:18px">
+            <p>@Utils.JoinReadings(Entries![currentEntry].ReadingElements)</p>
+        </div>
+    }
+    <div>
+        <ol class="list-unstyled">
+            @foreach (var (sense, index) in Entries![currentEntry].SenseElements.Select((value, i) => (value, i)))
+            {
+                <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
+            }
+        </ol>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<JmdictEntry> Entries { get; set; }
+    [Inject]
+    ConfigurationsService Configs { get; set; }
+
+    private int currentEntry = 0;
+}

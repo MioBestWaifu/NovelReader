@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats;
+using Mio.Translation.Japanese.Edrdg;
+
 #if ANDROID
 using Java.Util;
 #endif
@@ -86,6 +88,16 @@ namespace Mio.Reader
             string standardOpfPath = await EpubMetadataResolver.ResolveStandardsFile(containerXml);
 
             return GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
+        }
+
+        public static string JoinKanjis(List<KanjiElement>? kanjis)
+        {
+            return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)) : string.Empty;
+        }
+
+        public static string JoinReadings(List<ReadingElement> readings)
+        {
+            return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
         }
 
     }

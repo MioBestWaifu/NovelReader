@@ -14,7 +14,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Translation", "Translation\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reader", "Reader\Reader.csproj", "{0D3B9140-A6FD-46D2-86F1-EBD7076EF636}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TranslationRunner", "TranslationRunner\TranslationRunner.csproj", "{D92F59D9-8CDC-4D83-BF8B-C6C63790D1EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranslationRunner", "TranslationRunner\TranslationRunner.csproj", "{D92F59D9-8CDC-4D83-BF8B-C6C63790D1EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
