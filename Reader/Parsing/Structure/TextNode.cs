@@ -10,6 +10,6 @@ namespace Mio.Reader.Parsing.Structure
     public class TextNode : Node
     {
         public List<JmdictEntry>? JmdictEntries { get; set; }
-
+        public List<NameEntry>? NameEntries { get; set; }
     }
 }

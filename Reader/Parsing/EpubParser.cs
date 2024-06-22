@@ -147,6 +147,17 @@ namespace Mio.Reader.Parsing
                              */
                             Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
                         }
+                        if(lexeme.Category == Translation.GrammaticalCategory.Noun)
+                        {
+                            try
+                            {
+                                node.NameEntries = translator.TranslateName(lexeme.BaseForm);
+                            } catch (Exception)
+                            {
+                                //Expect this to throw a lot. Keeping this commented to not polute the output.
+                                //Debug.WriteLine($"Error trying to get JMnedict entries for {lexeme.Surface}");
+                            }
+                        }
                     }
                 }
             }

@@ -39,11 +39,26 @@
 
         @if (showPopup)
         {
-            <FluentPopover Style="max-height:45vh;max-width:45vw;overflow:auto;direction:ltr" VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset" 
-                AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})" 
-                HorizontalInset=false Id="translation-card">
+            <FluentPopover Style="max-height:45vh;max-width:45vw;overflow:auto;direction:ltr"
+                           VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset"
+                           AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})"
+                           HorizontalInset=false Id="translation-card">
                 <Body>
-                    <JmdictCard Entries="selectedNode!.JmdictEntries"></JmdictCard>
+                    <FluentTabs>
+                        @if (selectedNode!.JmdictEntries is not null && selectedNode!.JmdictEntries.Count > 0)
+                        {
+                            <FluentTab Label="Regular">
+                                <JmdictCard Entries="selectedNode!.JmdictEntries"></JmdictCard>
+                            </FluentTab>
+                        }
+                        @if (selectedNode!.NameEntries is not null && selectedNode!.NameEntries.Count > 0)
+                        {
+                            <FluentTab Label="Names">
+                                <NamedictCard Entries="selectedNode!.NameEntries"></NamedictCard>
+                            </FluentTab>
+                        }
+
+                    </FluentTabs>
                 </Body>
             </FluentPopover>
         }
@@ -65,8 +80,8 @@
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
                             //NOTE: そんな is not getting an edrdgentry. investigate. kuruma neither.
                             string id = $"p{i:D2}{j}";
-                        <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
-                           @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                            <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
+                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </div>
                 }
