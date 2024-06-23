@@ -22,18 +22,15 @@ namespace Mio.Translation.Japanese.Edrdg
         [Key(1)]
         public string? ReadingRestriction { get; private set; }
         /// <summary>
-        /// From the re_inf tag. I dont know what it means or what to do with it, so i will declare it but not use it.
-        /// </summary>
-        /// 
-        [IgnoreMember]
-        private string Info { get; set; }
-        /// <summary>
         /// From the re_pri tag.
         /// This is actually multiple tags. Should look in what to do about it later.
         /// </summary>
         /// 
         [Key(2)]
         public int Priority { get; set; }
+
+        [Key(3)]
+        public List<KanaProperty> Properties { get; set; }
 
         //There is also the re_nokanji tag, but i dont know what to do with it and cant make out how to declare it, so it will be missing here.
 
@@ -44,11 +41,12 @@ namespace Mio.Translation.Japanese.Edrdg
 
         [JsonConstructor]
         [SerializationConstructor]
-        public ReadingElement(string reading, string readingRestriction, int priority)
+        public ReadingElement(string reading, string readingRestriction, int priority, List<KanaProperty> properties)
         {
             Reading = reading;
             ReadingRestriction = readingRestriction;
             Priority = priority;
+            Properties = properties;
         }
 
         public ReadingElement(XElement element)
@@ -59,6 +57,21 @@ namespace Mio.Translation.Japanese.Edrdg
             List<string> priorityStrings = element.Elements("re_pri").Select(x => x.Value).ToList();
             List<int> priorityInts = priorityStrings.Select(EdrdgEntry.ParsePriority).ToList();
             Priority = priorityInts.Count == 0 ? 50 : priorityInts.Min();
+
+            Properties = new List<KanaProperty>();
+            var reInfs = element.Elements("re_inf");
+            foreach (var keInf in reInfs)
+            {
+                try
+                {
+                    var kanaProperty = PropertyConverter.StringToKanaProperty(keInf.Value);
+                    Properties.Add(kanaProperty);
+                }
+                catch
+                {
+                    //This catch is just to ignore errors. TODO log this to some 
+                }
+            }
         }
     }
 }
