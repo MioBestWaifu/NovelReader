@@ -51,11 +51,14 @@ namespace Mio.Translation.Japanese
 
         public static GrammaticalCategory ParseToCategory(string category)
         {
+            //There are missing categories here. Some translatable words will fall through.
             return category switch
             {
                 "名詞" => GrammaticalCategory.Noun,
                 "動詞" => GrammaticalCategory.Verb,
                 "形容詞" => GrammaticalCategory.Adjective,
+                "連体詞" => GrammaticalCategory.Adjective,
+                "形状詞" => GrammaticalCategory.Adjective,
                 "副詞" => GrammaticalCategory.Adverb,
                 "助詞" => GrammaticalCategory.Particle,
                 "助動詞" => GrammaticalCategory.AuxiliaryVerb,

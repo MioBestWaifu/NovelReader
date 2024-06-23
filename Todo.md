@@ -1,4 +1,4 @@
-# Major
+﻿# Major
 - Rework the current translation system to include multiple keys for one entry, as well as to include the names dictionary and KanjiDict
 - ~~Implement FluentUI across the project~~
 - ~~Implement library (picking books folder, saving progress)~~
@@ -13,3 +13,4 @@
 	- Display large vertical images vertically, the full-width on-demand-height scheme only works well for large screens.
 	- ~~Possibly, replace swipe pagination with tap pagination, and hold the text to translate~~
 - Display the furiganas (either from rb tags or from the translation pipeline) over kanjis in a easy way. Either by rendering them on top (rb tag) or by hovering with a tooltip. Both should be optional.
+- Expand the grammatical categories and rethink the way they are used in translations. Right now there is a workadround in place to deal with na-adjectives and things acting like suffixes in compound words mecab breaks, such as 車 in 自動車, get treated as unknown.

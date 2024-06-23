@@ -421,8 +421,7 @@ namespace Mio.Reader.Components.Pages
 
         private async void ShowPopup(string id, TextNode? node)
         {
-            //remeber to check chars and names as well
-            if (node is null || (node.JmdictEntries is null))
+            if (node is null || node.Characters is null)
             {
                 return;
             }
