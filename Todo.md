@@ -1,5 +1,5 @@
 ﻿# Major
-- Rework the current translation system to include multiple keys for one entry, as well as to include the names dictionary and KanjiDict
+- ~~Rework the current translation system to include multiple keys for one entry, as well as to include the names dictionary and KanjiDict~~
 - ~~Implement FluentUI across the project~~
 - ~~Implement library (picking books folder, saving progress)~~
 - Implement translation of entire sentence

@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace Mio.Translation
 {
+    /*
+     * This cache scheme halved deserializations on chapter load. The perfect solution would be to keep all already
+     * translated entries in cache. Given that they will be in memory anyway, it would not be a big memory overhead. But, as far
+     * as i know, the only way to get them in that case would be by string keys, which is bad.
+     * The entire Translation pipeline is done to avoid string comparisons as possible, because in earlier tests it was 
+     * found that they are slower than everything else, even deserialization (at least MessagePack).
+     * Maybe there is a way to do both and i just don't know it.
+     */
     internal class Cache<T>
     {
         private ConcurrentDictionary<int, T> indexValuePairs = [];
