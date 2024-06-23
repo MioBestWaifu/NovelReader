@@ -39,25 +39,46 @@
 
         @if (showPopup)
         {
-            <FluentPopover Style="max-height:45vh;max-width:45vw;overflow:auto;direction:ltr"
+            var showJmdict = false;
+            var showNamedict = false;
+            var showChars = false;
+            var minWidth = 15;
+            @if (selectedNode!.JmdictEntries is not null && selectedNode!.JmdictEntries.Count > 0)
+            {
+                minWidth += 75;
+                showJmdict = true;
+            }
+            @if (selectedNode!.NameEntry is not null)
+            {
+                minWidth += 75;
+                showNamedict = true;
+            }
+            @if (selectedNode!.Characters is not null && selectedNode!.Characters.Count > 0)
+            {
+                minWidth += 75;
+                showChars = true;
+            }
+            //The tabs panel gets a annoying button when the width is too small. The min-width is a workaround to that
+            //And to reduce the degree of variation on popover sizes, which imo is a good thing.
+            <FluentPopover Style="@($"max-height:45vh;min-width:{minWidth}px;max-width:45vw;overflow:auto;direction:ltr")"
                            VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset"
                            AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})"
                            HorizontalInset=false Id="translation-card">
                 <Body>
                     <FluentTabs>
-                        @if (selectedNode!.JmdictEntries is not null && selectedNode!.JmdictEntries.Count > 0)
+                        @if (showJmdict)
                         {
                             <FluentTab Label="Regular">
                                 <JmdictCard Entries="selectedNode!.JmdictEntries"></JmdictCard>
                             </FluentTab>
                         }
-                        @if (selectedNode!.NameEntry is not null)
+                        @if (showNamedict)
                         {
                             <FluentTab Label="Names">
                                 <NamedictCard Entry="selectedNode!.NameEntry"></NamedictCard>
                             </FluentTab>
                         }
-                        @if (selectedNode!.Characters is not null && selectedNode!.Characters.Count > 0)
+                        @if (showChars)
                         {
                             <FluentTab Label="Chars">
                                 <CharsCard Chars="selectedNode!.Characters"></CharsCard>
