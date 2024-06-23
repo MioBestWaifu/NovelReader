@@ -1,0 +1,41 @@
+﻿@using Mio.Reader.Services
+<div class="d-flex flex-column gap-3" style="direction:ltr">
+    @foreach (JapaneseCharacter character in Chars)
+    {
+        <div>
+            @if (character is Kanji kanji)
+            {
+                <div>
+                    <p>@kanji.Literal</p>
+                    @foreach (RmElement group in kanji.Entry.RmGroups)
+                    {
+                        try
+                        {
+                            <div>
+                                <p>@string.Join(", ", group.Readings)</p>
+                                <p>@string.Join(", ", group.Meanings)</p>
+                            </div>
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+                </div>
+            }
+            else if (character is Kana kana)
+            {
+                @($"{kana.Literal} - {kana.Reading}")
+            }
+            else
+            {
+                @character.Literal
+            }
+        </div>
+    }
+</div>
+@code {
+    [Parameter]
+    public List<JapaneseCharacter> Chars { get; set; }
+    [Inject]
+    ConfigurationsService Configs { get; set; }
+}

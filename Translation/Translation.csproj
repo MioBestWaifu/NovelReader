@@ -6,16 +6,20 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Mio.Translation</RootNamespace>
 	<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
+	<AppDesignerFolder>Information</AppDesignerFolder>
   </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="JMDict\**\*.*" />
+	<EmbeddedResource Include="JMnedict\**\*.*" />
+	<EmbeddedResource Include="Kanjidic\**\*.*" />
    </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MeCab.DotNet" Version="1.2.0" />
     <PackageReference Include="MessagePack" Version="2.5.168" />
     <PackageReference Include="MessagePack.Annotations" Version="2.5.168" />
+    <PackageReference Include="MyNihongo.KanaConverter" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

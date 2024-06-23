@@ -4,8 +4,6 @@ using Microsoft.JSInterop;
 using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Parsing;
 using Mio.Reader.Services;
-using Mio.Translation.Japanese.Edrdg;
-using Mio.Translation.Japanese;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +12,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Diagnostics;
 using TouchEventArgs = Microsoft.AspNetCore.Components.Web.TouchEventArgs;
+using Mio.Translation;
 
 namespace Mio.Reader.Components.Pages
 {
@@ -88,12 +87,13 @@ namespace Mio.Reader.Components.Pages
 
         private bool showPopup = false;
         private bool showTableOfContents = false;
+        
 
         private string navigatorClass;
         private int animationCounter = 0;
 
         private string selectedWordId = "";
-        private EdrdgEntry? selectedEdrdgEntry;
+        private TextNode? selectedNode;
 
         private int fuckedLines = 0;
 
@@ -104,7 +104,7 @@ namespace Mio.Reader.Components.Pages
             interaction = Library.Books[BookIndex];
             CurrentChapter = interaction.LastChapter;
             if (EpubParser.analyzer is null)
-                EpubParser.analyzer = new JapaneseAnalyzer(Configs.PathToUnidic);
+                EpubParser.analyzer = new Analyzer(Configs.PathToUnidic);
             Task.Run(() => SetBook());
             return base.OnInitializedAsync();
         }
@@ -418,15 +418,14 @@ namespace Mio.Reader.Components.Pages
             return pages;
         }
 
-        private async void ShowPopup(string id, EdrdgEntry? edrdgEntry)
+        private async void ShowPopup(string id, TextNode? node)
         {
-
-            if (edrdgEntry is null)
+            if (node is null || node.Characters is null)
             {
                 return;
             }
             selectedWordId = id;
-            selectedEdrdgEntry = edrdgEntry;
+            selectedNode = node;
             if (showPopup)
             {
                 await RemovePreviousElementBackgroundColor();
@@ -440,12 +439,12 @@ namespace Mio.Reader.Components.Pages
         private async void ClosePopup()
         {
             showPopup = false;
-            selectedEdrdgEntry = null;
+            selectedNode = null;
             selectedWordId = "";
             await RemovePreviousElementBackgroundColor();
         }
 
-        private void HandleClickOnElement(MouseEventArgs e, string id, EdrdgEntry edrdgEntry)
+        private void HandleClickOnElement(MouseEventArgs e, string id, TextNode node)
         {
             if (plataform != DevicePlatform.WinUI)
                 return;
@@ -453,10 +452,10 @@ namespace Mio.Reader.Components.Pages
             {
                 ClosePopup();
             }
-            ShowPopup(id, edrdgEntry);
+            ShowPopup(id, node);
         }
 
-        private async void HandleTouchStart(TouchEventArgs e , string elementId, EdrdgEntry? edrdgEntry)
+        private async void HandleTouchStart(TouchEventArgs e , string elementId, TextNode node)
         {
             if (plataform != DevicePlatform.Android)
                 return;
@@ -470,7 +469,7 @@ namespace Mio.Reader.Components.Pages
                 {
                    await InvokeAsync(()=>ClosePopup());
                 }
-                await InvokeAsync(() => ShowPopup(elementId, edrdgEntry));
+                await InvokeAsync(() => ShowPopup(elementId, node));
                 return;
             }
         }
@@ -538,16 +537,6 @@ namespace Mio.Reader.Components.Pages
                 else
                     NextPage();
             }
-        }
-
-        private string JoinKanjis(List<KanjiElement>? kanjis)
-        {
-            return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)) : string.Empty;
-        }
-
-        private string JoinReadings(List<ReadingElement> readings)
-        {
-            return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
         }
     }
 }

@@ -1,12 +1,19 @@
 ﻿using MessagePack;
+using Mio.Translation.Elements;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Entries
 {
-    //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
     [MessagePackObject]
-    public class EdrdgEntry
+    [Union(0, typeof(JmdictEntry))]
+    [Union(1, typeof(NamedictEntry))]
+    public abstract class DatabaseEntry
     {
         [Key(0)]
         public int EntryId { get; private set; }
@@ -14,17 +21,20 @@ namespace Mio.Translation.Japanese.Edrdg
         public List<KanjiElement>? KanjiElements { get; private set; }
         [Key(2)]
         public List<ReadingElement> ReadingElements { get; private set; }
-        [Key(3)]
         //I am yet to find an entry with multiple sense tags, but it is suposed to be possible.
+        [Key(3)]
         public List<SenseElement> SenseElements { get; private set; }
 
-        public EdrdgEntry()
+        [IgnoreMember]
+        public object readingElementsLock = new object();
+
+        public DatabaseEntry()
         {
 
         }
         [JsonConstructor]
         [SerializationConstructor]
-        public EdrdgEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, List<SenseElement> senseElements)
+        public DatabaseEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, List<SenseElement> senseElements)
         {
             EntryId = entryId;
             KanjiElements = kanjiElements;
@@ -32,7 +42,7 @@ namespace Mio.Translation.Japanese.Edrdg
             SenseElements = senseElements;
         }
 
-        public EdrdgEntry(XElement element)
+        public DatabaseEntry(XElement element)
         {
             ReadingElements = new List<ReadingElement>();
             SenseElements = new List<SenseElement>();
@@ -40,9 +50,9 @@ namespace Mio.Translation.Japanese.Edrdg
             EntryId = int.Parse(element.Element("ent_seq")!.Value);
 
             var kanjiElements = element.Elements("k_ele");
+            KanjiElements = new List<KanjiElement>();
             if (kanjiElements.Any())
             {
-                KanjiElements = new List<KanjiElement>();
                 foreach (var kanjiElement in kanjiElements)
                 {
                     KanjiElements.Add(new KanjiElement(kanjiElement));
@@ -59,6 +69,36 @@ namespace Mio.Translation.Japanese.Edrdg
             foreach (var senseElement in senseElements)
             {
                 SenseElements.Add(new SenseElement(senseElement));
+            }
+        }
+
+        public static int ParsePriority(string notation)
+        {
+            return notation switch
+            {
+                //Values other than of nfXX are arbitrary and should be revised.
+                "ichi1" => 15,
+                "news1" => 15,
+                "spec1" => 15,
+                "gai1" => 15,
+                "ichi2" => 30,
+                "news2" => 30,
+                "spec2" => 30,
+                "gai2" => 30,
+                _ => DetermineNfPriority(notation)
+            };
+        }
+
+        public static int DetermineNfPriority(string notation)
+        {
+            try
+            {
+                string numericalPart = notation.Substring(2);
+                return int.Parse(numericalPart);
+            }
+            catch (Exception e)
+            {
+                return 50;
             }
         }
     }

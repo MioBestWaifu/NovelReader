@@ -1,0 +1,34 @@
+﻿@using Mio.Reader.Services
+<!--There is a lot of redundant template between the cards. Maybe should generify them?-->
+<div class="d-flex justify-content-between align-content-center">
+    @if (Entry.KanjiElements != null && Entry.KanjiElements.Count > 0)
+    {
+        <p style="font-weight: normal;font-size: 20px;">@Entry.KanjiElements[0].Kanji</p>
+    }
+    else
+    {
+        <p style="font-weight: normal;font-size: 20px;">@Entry.ReadingElements[0].Reading</p>
+    }
+</div>
+<div class="d-flex flex-column gap-3" style="direction:ltr">
+    <!--The assumption of this if is that non-kanji entries are a single thing without variation-->
+    @if (Entry.KanjiElements != null && Entry.KanjiElements.Count > 0)
+    {
+        @for (int i = 0; i < Entry.ReadingElements.Count; i++)
+        {
+            <div style="margin-bottom: 1rem;">
+                <p style="margin-bottom: 0;">@i. @Entry.ReadingElements[i].Reading</p>
+                <p style="margin-bottom: 0;">@Utils.BuildNameTypeObservations(Entry.NameTypes[i])</p>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public NamedictEntry Entry { get; set; }
+    [Inject]
+    ConfigurationsService Configs { get; set; }
+
+    private int currentEntry = 0;
+}

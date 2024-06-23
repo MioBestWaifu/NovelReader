@@ -1,12 +1,6 @@
 ﻿using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
-using Mio.Translation.Japanese;
-using Mio.Translation.Japanese.Edrdg;
-using SixLabors.ImageSharp.Formats;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using Mio.Translation;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
@@ -14,9 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-#if WINDOWS
-using Windows.Graphics.Printing.Workflow;
-#endif
 
 namespace Mio.Reader.Parsing
 {
@@ -33,9 +24,9 @@ namespace Mio.Reader.Parsing
 
         //Obviouslt breaks if configs is not assigned before analyzer, but that should never happen because this field is assinged in the very ConfigurationsService constructor.
         public static ConfigurationsService Configs { get; set; }
-        public static JapaneseAnalyzer? analyzer;
+        public static Analyzer? analyzer;
 
-        private static JapaneseTranslator translator = new JapaneseTranslator();
+        private static Translator translator = new Translator();
 
         private static ImageParsingService imageParser;
 
@@ -43,13 +34,13 @@ namespace Mio.Reader.Parsing
         {
             imageParser = imageParsingService;
         }
-        public static Task<List<Node>> ParseLine(Chapter chapter, XElement line)
+        public static async Task<List<Node>> ParseLine(Chapter chapter, XElement line)
         {
             try
             {
                 if (line.Name == Namespaces.xhtmlNs + "p")
                 {
-                    return Task.FromResult(ParseTextElement(line));
+                    return await ParseTextElement(line);
                 }
 
                 else if (line.Name == Namespaces.xhtmlNs + "img" || line.Name == Namespaces.svgNs + "svg")
@@ -59,37 +50,37 @@ namespace Mio.Reader.Parsing
                         XElement imageElement = line.Element(Namespaces.svgNs + "image");
                         if (imageElement != null)
                         {
-                            return Task.FromResult(ParseImageElement(chapter, imageElement, Namespaces.xlinkNs + "href"));
+                            return await ParseImageElement(chapter, imageElement, Namespaces.xlinkNs + "href");
                         }
                     }
                     else
                     {
-                        return Task.FromResult(ParseImageElement(chapter, line, "src"));
+                        return await ParseImageElement(chapter, line, "src");
                     }
                 }
 
                 //What this means is that this invalid line will not throw an error when the UI renders, but the UI 
                 //will not render anything with it because it needs a child of Node, not Node itself. So it will count as a line but not take up space or throw errors.
-                return Task.FromResult(new List<Node>() { new Node() });
+                return [new Node()];
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"Error parsing line: {e.Message}");
                 Debug.WriteLine($"Line: {line}");
                 Debug.WriteLine(e.StackTrace);
-                return Task.FromResult(new List<Node>() { new Node() });
+                return [new Node()];
             }
 
         }
 
 
-        private static List<Node> ParseTextElement(XElement originalElement)
+        private static async Task<List<Node>> ParseTextElement(XElement originalElement)
         {
 
             string line = GetParagraphText(originalElement);
             if (line == string.Empty)
             {
-                return [new TextNode() { Text = "" }];
+                return [new TextNode()];
             }
             //Breaking lines into sentences for smoother morphological analysis
             string[] sentences = Regex.Split(line, separatorsRegex);
@@ -102,27 +93,63 @@ namespace Mio.Reader.Parsing
                 {
                     if (nodes.Count == 0)
                     {
-                        nodes.Add(new TextNode() { Text = sentences[i] });
+                        nodes.Add(new TextNode() { Characters = {new JapaneseCharacter(sentences[i][0])} });
                     }
                     else
                     {
-                        nodes[^1].Text += sentences[i];
+                        //This will break if the previoues node was not a textnode, but that should never happen.
+                        TextNode nodeToAppend = (TextNode)nodes[^1];
+                        nodeToAppend.Characters.Add(new JapaneseCharacter(sentences[i][0]));
                     }
                     continue;
                 }
 
-                List<JapaneseLexeme> lexemes = analyzer.Analyze(sentences[i]);
+                List<Lexeme> lexemes = analyzer.Analyze(sentences[i]);
                 foreach (var lexeme in lexemes)
                 {
                     TextNode node = new TextNode();
-                    node.Text = lexeme.Surface;
+                    List<JapaneseCharacter> chars = [];
+                    foreach (var character in lexeme.Surface)
+                    {
+                        if (character == ' ' || character == '\n')
+                        {
+                            continue;
+                        } else if (Analyzer.IsRomaji(character))
+                        {
+                            chars.Add(new Romaji(character));
+                        } else if (Analyzer.IsKana(character))
+                        {
+                            Kana kana = new Kana(character);
+                            chars.Add(kana);
+                            try
+                            {
+                                kana.Reading = translator.TranslateKana(character.ToString());
+                            } catch (Exception e)
+                            {                                
+                                Debug.WriteLine($"Error translating kana: {character}");
+                            }
+                        } else
+                        {
+                            //Presumes everything else is a kanji. This may or may not be a sound idea.
+                            Kanji kanji = new Kanji(character);
+                            chars.Add(kanji);
+                            try
+                            {
+                                kanji.Entry = await translator.TranslateKanji(character);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine($"Error translating kanji: {character}");
+                            }
+                        }
+                    }
+                    node.Characters = chars;
                     nodes.Add(node);
-                    if (JapaneseAnalyzer.signicantCategories.Contains(lexeme.Category))
+                    if (Analyzer.signicantCategories.Contains(lexeme.Category))
                     {
                         try
                         {
-                            //Only one entry because i dont want to deal with multiple entries in the UI now.
-                            node.EdrdgEntry = translator.Translate(lexeme.BaseForm)![0];
+                            node.JmdictEntries = await translator.TranslateWord(lexeme.BaseForm);
                         }
                         catch (Exception e)
                         {
@@ -148,6 +175,15 @@ namespace Mio.Reader.Parsing
                              */
                             Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
                         }
+                        try
+                        {
+                            node.NameEntry = await translator.TranslateName(lexeme.BaseForm);
+                        }
+                        catch (Exception)
+                        {
+                            //Expect this to throw a lot. Keeping this commented to not polute the output.
+                            //Debug.WriteLine($"Error trying to get JMnedict entries for {lexeme.Surface}");
+                        }
                     }
                 }
             }
@@ -155,14 +191,14 @@ namespace Mio.Reader.Parsing
             return nodes;
         }
 
-        private static List<Node> ParseImageElement(Chapter chapter, XElement originalElement, string srcAttribute)
+        private static async Task<List<Node>> ParseImageElement(Chapter chapter, XElement originalElement, string srcAttribute)
         {
             string path = originalElement.Attribute(srcAttribute)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
             return ParseImageElement(imageEntry);
         }
 
-        private static List<Node> ParseImageElement(Chapter chapter, XElement originalElement, XName srcName)
+        private static async Task<List<Node>> ParseImageElement(Chapter chapter, XElement originalElement, XName srcName)
         {
             string path = originalElement.Attribute(srcName)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);

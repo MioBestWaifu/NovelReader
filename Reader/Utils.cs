@@ -10,6 +10,36 @@ using System.Text;
 using System.Threading.Tasks;
 using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats;
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
+using Mio.Translation.Japanese.Edrdg;
+After:
+using Mio.Translation.Japanese.Edrdg;
+using Mio.Translation.Edrdg;
+*/
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
+using Mio.Translation.Edrdg;
+After:
+using Mio.Translation.Edrdg;
+using Mio.Translation.Elements;
+*/
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
+using Mio.Translation.Elements;
+After:
+using Mio.Translation.Elements;
+using Mio.Translation.Properties;
+*/
+using Mio.Translation.Elements;
+using Mio.Translation.Properties;
+
+
+
+
 #if ANDROID
 using Java.Util;
 #endif
@@ -88,5 +118,88 @@ namespace Mio.Reader
             return GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
         }
 
+        public static string JoinKanjis(List<KanjiElement>? kanjis)
+        {
+            return kanjis != null ? string.Join(", ", kanjis.Select(k => k.Kanji)) : string.Empty;
+        }
+
+        public static string JoinReadings(List<ReadingElement> readings)
+        {
+            return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
+        }
+
+        public static string BuildKanjiObservations(KanjiElement element)
+        {
+            IOrderedEnumerable<KanjiProperty> properties = element.Properties.Order();
+            if(properties.Count() == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", properties.Select(p => PropertyConverter.KanjiPropertyToShortString(p).ToLower()))})";
+        }
+
+        public static string BuildReadingObservations(ReadingElement element)
+        {
+            var properties = element.Properties.Order();
+            if (properties.Count() == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", properties.Select(p => InsertWhiteSpaceOnUpperCase(p.ToString()).ToLower()))})";
+        }
+
+        public static string BuildSenseObervations(SenseElement element)
+        {
+            var fields = element.Fields.Order();
+            var misc = element.MiscProperties.Order();
+            var allStrings = fields.Select(f => f.ToString()).ToList();
+            allStrings.AddRange(misc.Select(f => f.ToString()));
+            if (allStrings.Count == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", allStrings.Select(p => InsertWhiteSpaceOnUpperCase(p).ToLower()))})";
+        }
+
+        public static string BuildNameTypeObservations(List<NameType> types)
+        {
+            if (types.Count() == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", types.Order().Select(p => InsertWhiteSpaceOnUpperCase(p.ToString()).ToLower()))})";
+        }
+
+        public static string InsertWhiteSpaceOnUpperCase(string word)
+        {
+            if (string.IsNullOrEmpty(word))
+            {
+                return word;
+            }
+
+            StringBuilder sb = new StringBuilder(word.Length * 2);
+            sb.Append(word[0]); // Add the first character as is
+
+            for (int i = 1; i < word.Length; i++)
+            {
+                if (char.IsUpper(word[i]))
+                {
+                    sb.Append(' ');
+                }
+                sb.Append(word[i]);
+            }
+
+            return sb.ToString();
+        }
+
+        public static string CapitalizeFirstLetter(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            return char.ToUpper(input[0]) + input.Substring(1);
+        }
     }
 }

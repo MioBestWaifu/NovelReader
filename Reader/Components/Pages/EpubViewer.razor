@@ -4,6 +4,7 @@
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.JSInterop
 @using Microsoft.Maui.Devices
+@using Mio.Reader.Components.Cards
 @using Mio.Reader.Components.Pages
 @using Mio.Reader.Services
 
@@ -38,26 +39,53 @@
 
         @if (showPopup)
         {
-            <FluentPopover Style="max-height:45vh;max-width:45vw;overflow:auto;direction:ltr" VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset" 
-                AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})" 
-                HorizontalInset=false Id="translation-card">
-                <Header>
-                    <p style="font-weight: normal;font-size: 22px;">@JoinKanjis(selectedEdrdgEntry.KanjiElements)</p>
-                </Header>
+            var showJmdict = false;
+            var showNamedict = false;
+            var showChars = false;
+            var minWidth = 15;
+            @if (selectedNode!.JmdictEntries is not null && selectedNode!.JmdictEntries.Count > 0)
+            {
+                minWidth += 75;
+                showJmdict = true;
+            }
+            @if (selectedNode!.NameEntry is not null)
+            {
+                minWidth += 75;
+                showNamedict = true;
+            }
+            @if (selectedNode!.Characters is not null && selectedNode!.Characters.Count > 0)
+            {
+                minWidth += 75;
+                showChars = true;
+            }
+            //The tabs panel gets a annoying button when the width is too small. The min-width is a workaround to that
+            //And to reduce the degree of variation on popover sizes, which imo is a good thing.
+            <FluentPopover Style="@($"max-height:45vh;min-width:{minWidth}px;max-width:45vw;overflow:auto;direction:ltr")"
+                           VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset"
+                           AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})"
+                           HorizontalInset=false Id="translation-card">
                 <Body>
-                    <div class="card-body d-flex flex-column gap-3" style="direction:ltr">
-                        <div>
-                            <p>@JoinReadings(selectedEdrdgEntry.ReadingElements)</p>
-                        </div>
-                        <div>
-                            <ol class="list-unstyled">
-                                @foreach (var (sense, index) in selectedEdrdgEntry.SenseElements.Select((value, i) => (value, i)))
-                                {
-                                    <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
-                                }
-                            </ol>
-                        </div>
-                    </div>
+                    <FluentTabs>
+                        @if (showJmdict)
+                        {
+                            <FluentTab Label="Regular">
+                                <JmdictCard Entries="selectedNode!.JmdictEntries"></JmdictCard>
+                            </FluentTab>
+                        }
+                        @if (showNamedict)
+                        {
+                            <FluentTab Label="Names">
+                                <NamedictCard Entry="selectedNode!.NameEntry"></NamedictCard>
+                            </FluentTab>
+                        }
+                        @if (showChars)
+                        {
+                            <FluentTab Label="Chars">
+                                <CharsCard Chars="selectedNode!.Characters"></CharsCard>
+                            </FluentTab>
+                        }
+
+                    </FluentTabs>
                 </Body>
             </FluentPopover>
         }
@@ -77,9 +105,10 @@
                         {
                             TextNode node = (TextNode)line[j];
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
+                            //NOTE: そんな is not getting an edrdgentry. investigate. kuruma neither.
                             string id = $"p{i:D2}{j}";
-                        <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => HandleClickOnElement(e,id,node.EdrdgEntry)"
-                           @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node.EdrdgEntry));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                            <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
+                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </div>
                 }

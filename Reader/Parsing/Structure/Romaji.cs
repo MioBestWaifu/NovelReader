@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class Node
+    public class Romaji : JapaneseCharacter
     {
-        public virtual string Text { get; set; } = "";
+        public Romaji(char literal) : base(literal)
+        {
+        }
     }
 }
