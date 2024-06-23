@@ -109,6 +109,17 @@ namespace Mio.Reader.Components.Pages
             return base.OnInitializedAsync();
         }
 
+        protected override Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                JS.InvokeVoidAsync("setEpubViewerReference",DotNetObjectReference.Create(this));
+                DeviceDisplay.Current.MainDisplayInfoChanged += HandleMainDisplayInfoChanged;
+            }
+
+            return base.OnAfterRenderAsync(firstRender);
+        }
+
         private async Task SetBook()
         {
 
@@ -348,21 +359,21 @@ namespace Mio.Reader.Components.Pages
             Pages[pageIndex][lineIndex] = line;
         }
 
-        private int GetLinesPerPage()
+        private async Task<int> GetLinesPerPage()
         {
             int linesPerPage;
             if (ReadingManner == ReadingManner.Japanese)
             {
                 //Value out of my ass, replace with something actual based on the used css + margins
                 int lineWidth = 40;
-                int windowWidth = JS.InvokeAsync<int>("getWindowWidth").GetAwaiter().GetResult();
+                int windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
                 linesPerPage = windowWidth / lineWidth;
             }
             else
             {
                 //Value out of my ass, replace with something actual based on the used css + margins
                 int lineHeight = 30;
-                int windowHeight = JS.InvokeAsync<int>("getWindowHeight").GetAwaiter().GetResult();
+                int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
                 linesPerPage = windowHeight / lineHeight;
             }
 
@@ -371,7 +382,7 @@ namespace Mio.Reader.Components.Pages
 
         private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
         {
-            int linesPerPage = GetLinesPerPage();
+            int linesPerPage = await GetLinesPerPage();
 
             List<List<List<Node>>> pages = new List<List<List<Node>>>();
 
@@ -395,7 +406,7 @@ namespace Mio.Reader.Components.Pages
         private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
         {
 
-            int linesPerPage = GetLinesPerPage();
+            int linesPerPage = await GetLinesPerPage();
             List<List<List<Node>>> pages = [];
             List<List<Node>> currentPage = [];
             foreach (List<Node> line in chapter.Lines)
@@ -537,6 +548,31 @@ namespace Mio.Reader.Components.Pages
                 else
                     NextPage();
             }
+        }
+
+        [JSInvokable]
+        public async void HandleWindowResize()
+        {
+            try
+            {
+                //Deactivated this because upon testing i felt like the lines per page can be kept as is, it feels ok.
+                //However, if this is to be used, two things must be done:
+                //1 - The lines calculation has to be reworked to account for height, which obviously affects the width of the line.
+                //2 - The page the user will end at has to be recalculated to be the equivalent of where he currently is.
+                //Pages = await BreakChapterToPages(Book!.TableOfContents[CurrentChapter].Item2);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine(e.InnerException);
+                Debug.WriteLine(e.StackTrace);
+            }
+        }
+
+        public void HandleMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs? e)
+        {
+            //Same as above, deactivated because it's not needed for now
+            Debug.WriteLine("Display info changed");
         }
     }
 }
