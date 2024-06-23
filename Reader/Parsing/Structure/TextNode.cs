@@ -1,4 +1,4 @@
-﻿using Mio.Translation.Japanese.Edrdg;
+﻿using Mio.Translation.Entries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace Mio.Reader.Parsing.Structure
             set => throw new NotImplementedException();
         }
         public List<JmdictEntry>? JmdictEntries { get; set; }
-        public NameEntry? NameEntry { get; set; }
+        public NamedictEntry? NameEntry { get; set; }
         public List<JapaneseCharacter> Characters { get; set; } = [];
 
         private string JoinLiterals()

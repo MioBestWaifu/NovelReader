@@ -1,8 +1,9 @@
 ﻿using MessagePack;
+using Mio.Translation.Properties;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Elements
 {
     //A bunch of information contained in the sense tag has been ignored for simplicity's sake. Some of them ARE important 
     //for a full implementation, but they are not essential for a basic, working one and so will be left for later.

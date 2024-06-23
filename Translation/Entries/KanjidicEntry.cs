@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Mio.Translation.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,30 +7,30 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Entries
 {
     [MessagePackObject]
-    public class KanjiEntry
+    public class KanjidicEntry
     {
         [Key(0)]
         public char Literal { get; private set; }
         [Key(1)]
-        public List<RmGroup> RmGroups { get; private set; }
+        public List<RmElement> RmGroups { get; private set; }
 
         [SerializationConstructor]
-        public KanjiEntry(char literal, List<RmGroup> rmGroups)
+        public KanjidicEntry(char literal, List<RmElement> rmGroups)
         {
             Literal = literal;
             RmGroups = rmGroups;
         }
 
-        public KanjiEntry(XElement element)
+        public KanjidicEntry(XElement element)
         {
             Literal = element.Element("literal")!.Value[0];
             RmGroups = [];
             var rmElements = element.Element("reading_meaning").Elements("rmgroup");
             //nanori is being ignored here.
-            foreach(var rmElement in rmElements)
+            foreach (var rmElement in rmElements)
             {
                 var jaKunReadings = rmElement.Elements("reading")
                                      .Where(r => (string)r.Attribute("r_type") == "ja_kun")
@@ -47,7 +48,7 @@ namespace Mio.Translation.Japanese.Edrdg
                         .Select(m => m.Value)
                         .ToList();
 
-                RmGroups.Add(new RmGroup(readings, meanings));
+                RmGroups.Add(new RmElement(readings, meanings));
             }
         }
     }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Properties
 {
     public static class PropertyConverter
     {

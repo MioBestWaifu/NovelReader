@@ -1,12 +1,13 @@
 ﻿using MessagePack;
+using Mio.Translation.Elements;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Entries
 {
     //This is terrible inheritance, but is required for the MessagePack union serialization.
     [MessagePackObject]
-    public class JmdictEntry : EdrdgEntry
+    public class JmdictEntry : DatabaseEntry
     {
         public JmdictEntry()
         {

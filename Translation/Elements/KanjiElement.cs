@@ -1,8 +1,10 @@
 ﻿using MessagePack;
+using Mio.Translation.Entries;
+using Mio.Translation.Properties;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Elements
 {
     /// <summary>
     /// From the k_ele tag.
@@ -43,7 +45,7 @@ namespace Mio.Translation.Japanese.Edrdg
             Kanji = element.Element("keb")!.Value;
 
             List<string> priorityStrings = element.Elements("ke_pri").Select(x => x.Value).ToList();
-            List<int> priorityInts = priorityStrings.Select(EdrdgEntry.ParsePriority).ToList();
+            List<int> priorityInts = priorityStrings.Select(DatabaseEntry.ParsePriority).ToList();
             Priority = priorityInts.Count == 0 ? 50 : priorityInts.Min();
 
             Properties = new List<KanjiProperty>();

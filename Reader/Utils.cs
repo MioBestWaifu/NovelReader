@@ -10,7 +10,35 @@ using System.Text;
 using System.Threading.Tasks;
 using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats;
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
 using Mio.Translation.Japanese.Edrdg;
+After:
+using Mio.Translation.Japanese.Edrdg;
+using Mio.Translation.Edrdg;
+*/
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
+using Mio.Translation.Edrdg;
+After:
+using Mio.Translation.Edrdg;
+using Mio.Translation.Elements;
+*/
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
+using Mio.Translation.Elements;
+After:
+using Mio.Translation.Elements;
+using Mio.Translation.Properties;
+*/
+using Mio.Translation.Elements;
+using Mio.Translation.Properties;
+
+
+
 
 #if ANDROID
 using Java.Util;

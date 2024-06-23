@@ -1,12 +1,6 @@
 ﻿using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
-using Mio.Translation.Japanese;
-using Mio.Translation.Japanese.Edrdg;
-using SixLabors.ImageSharp.Formats;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using Mio.Translation;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
@@ -14,9 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-#if WINDOWS
-using Windows.Graphics.Printing.Workflow;
-#endif
 
 namespace Mio.Reader.Parsing
 {
@@ -33,9 +24,9 @@ namespace Mio.Reader.Parsing
 
         //Obviouslt breaks if configs is not assigned before analyzer, but that should never happen because this field is assinged in the very ConfigurationsService constructor.
         public static ConfigurationsService Configs { get; set; }
-        public static JapaneseAnalyzer? analyzer;
+        public static Analyzer? analyzer;
 
-        private static JapaneseTranslator translator = new JapaneseTranslator();
+        private static Translator translator = new Translator();
 
         private static ImageParsingService imageParser;
 
@@ -113,7 +104,7 @@ namespace Mio.Reader.Parsing
                     continue;
                 }
 
-                List<JapaneseLexeme> lexemes = analyzer.Analyze(sentences[i]);
+                List<Lexeme> lexemes = analyzer.Analyze(sentences[i]);
                 foreach (var lexeme in lexemes)
                 {
                     TextNode node = new TextNode();
@@ -123,10 +114,10 @@ namespace Mio.Reader.Parsing
                         if (character == ' ' || character == '\n')
                         {
                             continue;
-                        } else if (JapaneseAnalyzer.IsRomaji(character))
+                        } else if (Analyzer.IsRomaji(character))
                         {
                             chars.Add(new Romaji(character));
-                        } else if (JapaneseAnalyzer.IsKana(character))
+                        } else if (Analyzer.IsKana(character))
                         {
                             Kana kana = new Kana(character);
                             chars.Add(kana);
@@ -154,7 +145,7 @@ namespace Mio.Reader.Parsing
                     }
                     node.Characters = chars;
                     nodes.Add(node);
-                    if (JapaneseAnalyzer.signicantCategories.Contains(lexeme.Category))
+                    if (Analyzer.signicantCategories.Contains(lexeme.Category))
                     {
                         try
                         {

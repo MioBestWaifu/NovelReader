@@ -4,8 +4,6 @@ using Microsoft.JSInterop;
 using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Parsing;
 using Mio.Reader.Services;
-using Mio.Translation.Japanese.Edrdg;
-using Mio.Translation.Japanese;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +12,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Diagnostics;
 using TouchEventArgs = Microsoft.AspNetCore.Components.Web.TouchEventArgs;
+using Mio.Translation;
 
 namespace Mio.Reader.Components.Pages
 {
@@ -105,7 +104,7 @@ namespace Mio.Reader.Components.Pages
             interaction = Library.Books[BookIndex];
             CurrentChapter = interaction.LastChapter;
             if (EpubParser.analyzer is null)
-                EpubParser.analyzer = new JapaneseAnalyzer(Configs.PathToUnidic);
+                EpubParser.analyzer = new Analyzer(Configs.PathToUnidic);
             Task.Run(() => SetBook());
             return base.OnInitializedAsync();
         }

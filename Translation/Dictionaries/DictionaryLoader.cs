@@ -1,11 +1,11 @@
 ﻿using MessagePack;
-using Mio.Translation.Japanese.Edrdg;
+using Mio.Translation.Entries;
 using System.Reflection;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Mio.Translation.Japanese
+namespace Mio.Translation.Dictionaries
 {
-    internal static class JapaneseDictionaryLoader
+    internal static class DictionaryLoader
     {
         //The deserializer calls here are upwards of 60% of chapter load time on Windows. Optmization so far not needed, if needed 
         //use a cache with this thing.
@@ -57,7 +57,7 @@ namespace Mio.Translation.Japanese
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
 
-        public static KanjiEntry LoadKanjiEntry(int index)
+        public static KanjidicEntry LoadKanjiEntry(int index)
         {
             int file = Math.DivRem(index, 1000, out int offset);
             string resourceName = $"Mio.Translation.Kanjidic.{file}.bin";
@@ -77,7 +77,7 @@ namespace Mio.Translation.Japanese
                 }
             }
 
-            return MessagePackSerializer.Deserialize<KanjiEntry[]>(data)![offset];
+            return MessagePackSerializer.Deserialize<KanjidicEntry[]>(data)![offset];
         }
 
     }

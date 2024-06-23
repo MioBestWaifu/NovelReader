@@ -1,15 +1,14 @@
 ﻿using MeCab;
-using Mio.Translation;
 
-namespace Mio.Translation.Japanese
+namespace Mio.Translation
 {
-    public class JapaneseAnalyzer
+    public class Analyzer
     {
         readonly MeCabTagger tagger;
 
         public static readonly GrammaticalCategory[] signicantCategories = { GrammaticalCategory.Noun, GrammaticalCategory.Verb, GrammaticalCategory.Adjective, GrammaticalCategory.Adverb, GrammaticalCategory.Pronoun };
 
-        public JapaneseAnalyzer(string pathToUnidic)
+        public Analyzer(string pathToUnidic)
         {
             //<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
             var parameter = new MeCabParam();
@@ -23,10 +22,10 @@ namespace Mio.Translation.Japanese
         /// </summary>
         /// <param name="text"></param>
         /// <returns>Always a initialized list</returns>
-        public List<JapaneseLexeme> Analyze(string text)
+        public List<Lexeme> Analyze(string text)
         {
             var nodes = tagger.ParseToNodes(text);
-            var lexemes = new List<JapaneseLexeme>();
+            var lexemes = new List<Lexeme>();
             foreach (var node in nodes)
             {
                 if (node.Feature is not null)
@@ -35,14 +34,14 @@ namespace Mio.Translation.Japanese
                     try
                     {
                         //Some interesting thins are being ignored here. Like, it says the conjugation form and type.
-                        var lexeme = new JapaneseLexeme(node.Surface, features);
+                        var lexeme = new Lexeme(node.Surface, features);
                         lexemes.Add(lexeme);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"Error parsing node: {node.Surface} {node.Feature}");
                         Console.WriteLine(e.Message);
-                        lexemes.Add(new JapaneseLexeme(node.Surface));
+                        lexemes.Add(new Lexeme(node.Surface));
                     }
                 }
             }

@@ -1,4 +1,6 @@
 ﻿using MessagePack;
+using Mio.Translation.Elements;
+using Mio.Translation.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,10 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Entries
 {
     [MessagePackObject]
-    public class NameEntry : EdrdgEntry
+    public class NamedictEntry : DatabaseEntry
     {
         //The document definition says it may be more than one, but in practice i have only seen one. Maybe some has, but i dont know.
         [Key(4)]
@@ -17,19 +19,19 @@ namespace Mio.Translation.Japanese.Edrdg
 
         private object nameTypesLock = new object();
 
-        public NameEntry()
+        public NamedictEntry()
         {
 
         }
 
         [SerializationConstructor]
-        public NameEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, 
-            List<SenseElement> senseElements, List<List<NameType>> types): base(entryId, kanjiElements, readingElements, senseElements)
+        public NamedictEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements,
+            List<SenseElement> senseElements, List<List<NameType>> types) : base(entryId, kanjiElements, readingElements, senseElements)
         {
             NameTypes = types;
         }
 
-        public NameEntry(XElement element) : base(element)
+        public NamedictEntry(XElement element) : base(element)
         {
             //To ensure the linking of reading to name type.
             ReadingElements.Clear();
@@ -38,25 +40,27 @@ namespace Mio.Translation.Japanese.Edrdg
             var readingElement = element.Element("r_ele");
             ReadingElements.Add(new ReadingElement(readingElement));
             var nameTypeElements = element.Element("trans").Elements("name_type");
-            if(nameTypeElements != null)
+            if (nameTypeElements != null)
             {
-                foreach(var nameTypeElement in nameTypeElements)
+                foreach (var nameTypeElement in nameTypeElements)
                 {
                     NameTypes[0].Add(PropertyConverter.StringToNameType(nameTypeElement.Value));
                 }
-            } else
+            }
+            else
             {
                 NameTypes.Add([NameType.UnclassifiedName]);
             }
         }
 
-        public void Append(NameEntry entry)
+        public void Append(NamedictEntry entry)
         {
             lock (nameTypesLock)
             {
                 NameTypes.Add(entry.NameTypes[0]);
             }
-            lock (readingElementsLock) {
+            lock (readingElementsLock)
+            {
                 ReadingElements.Add(entry.ReadingElements[0]);
             }
 

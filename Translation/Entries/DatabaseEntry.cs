@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Mio.Translation.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,12 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Entries
 {
     [MessagePackObject]
     [Union(0, typeof(JmdictEntry))]
-    [Union(1, typeof(NameEntry))]
-    public abstract class EdrdgEntry
+    [Union(1, typeof(NamedictEntry))]
+    public abstract class DatabaseEntry
     {
         [Key(0)]
         public int EntryId { get; private set; }
@@ -27,13 +28,13 @@ namespace Mio.Translation.Japanese.Edrdg
         [IgnoreMember]
         public object readingElementsLock = new object();
 
-        public EdrdgEntry()
+        public DatabaseEntry()
         {
 
         }
         [JsonConstructor]
         [SerializationConstructor]
-        public EdrdgEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, List<SenseElement> senseElements)
+        public DatabaseEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, List<SenseElement> senseElements)
         {
             EntryId = entryId;
             KanjiElements = kanjiElements;
@@ -41,7 +42,7 @@ namespace Mio.Translation.Japanese.Edrdg
             SenseElements = senseElements;
         }
 
-        public EdrdgEntry(XElement element)
+        public DatabaseEntry(XElement element)
         {
             ReadingElements = new List<ReadingElement>();
             SenseElements = new List<SenseElement>();
@@ -94,7 +95,8 @@ namespace Mio.Translation.Japanese.Edrdg
             {
                 string numericalPart = notation.Substring(2);
                 return int.Parse(numericalPart);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return 50;
             }

@@ -1,17 +1,15 @@
-﻿using Mio.Translation;
-
-namespace Mio.Translation.Japanese
+﻿namespace Mio.Translation
 {
-    public class JapaneseLexeme
+    public class Lexeme
     {
         public string Surface { get; private set; }
         public string BaseForm { get; private set; }
         public GrammaticalCategory Category { get; private set; }
 
-        public JapaneseLexeme(string surface, string[] features)
+        public Lexeme(string surface, string[] features)
         {
             Surface = surface;
-            Category = JapaneseAnalyzer.ParseToCategory(features[0]);
+            Category = Analyzer.ParseToCategory(features[0]);
             switch (Category)
             {
                 case GrammaticalCategory.Noun:
@@ -31,7 +29,7 @@ namespace Mio.Translation.Japanese
         /// Only use for errored lexemes
         /// </summary>
         /// <param name="surface"></param>
-        public JapaneseLexeme(string surface)
+        public Lexeme(string surface)
         {
             Surface = surface;
             Category = GrammaticalCategory.Error;

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Mio.Translation</RootNamespace>
 	<MeCabUseDefaultDictionary>False</MeCabUseDefaultDictionary>
+	<AppDesignerFolder>Information</AppDesignerFolder>
   </PropertyGroup>
 
   <ItemGroup>

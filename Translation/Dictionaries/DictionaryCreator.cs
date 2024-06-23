@@ -4,16 +4,15 @@ using System.Xml.Linq;
 using System.Xml;
 using MessagePack;
 using System.Security.Cryptography;
-using Mio.Translation;
-using Mio.Translation.Japanese.Edrdg;
+using Mio.Translation.Entries;
 
-namespace Mio.Translation.Japanese
+namespace Mio.Translation.Dictionaries
 {
     /// <summary>
     /// Takes the EDRDG database and creates translation files. It is not supposed to be run in the final product.
     /// Is also not supposed to be run all the time in development, only when the database is updated.
     /// </summary>
-    public static class JapaneseDictionaryCreator
+    public static class DictionaryCreator
     {
         private static XDocument LoadOriginal(string path)
         {
@@ -25,7 +24,7 @@ namespace Mio.Translation.Japanese
             return XDocument.Load(reader);
         }
 
-        private static void AddKanjiAndReadingKeys<T>(T entry, ConcurrentDictionary<string, List<(T, int)>> dict) where T : EdrdgEntry
+        private static void AddKanjiAndReadingKeys<T>(T entry, ConcurrentDictionary<string, List<(T, int)>> dict) where T : DatabaseEntry
         {
             //Should check if the entry is usually in kana. this info is contained in the dict but ignored. if it is, then kana keys should be added irrespective of the kanji keys.
             if (entry.KanjiElements != null)
@@ -74,17 +73,17 @@ namespace Mio.Translation.Japanese
 
             return toReturn;
         }
-        private static ConcurrentDictionary<string, List<(NameEntry, int)>> LoadOriginalJMnedict(string pathToJmnedict)
+        private static ConcurrentDictionary<string, List<(NamedictEntry, int)>> LoadOriginalJMnedict(string pathToJmnedict)
         {
             XDocument jmnedict = LoadOriginal(pathToJmnedict);
             IEnumerable<XElement> elements = jmnedict.Element("JMnedict")!.Elements("entry");
-            ConcurrentDictionary<string, List<(NameEntry, int)>> toReturn = [];
+            ConcurrentDictionary<string, List<(NamedictEntry, int)>> toReturn = [];
             Parallel.ForEach(elements, element =>
             {
-                NameEntry entry = new NameEntry(element);
+                NamedictEntry entry = new NamedictEntry(element);
                 //This is to optimize storage, serialization, deserialization and display.
                 //The logic here is that if a name has the same kanji, it is the same name, but Jmnedict has multiple entries for it.
-                if (entry.KanjiElements.Count > 0 && toReturn.TryGetValue(entry.KanjiElements[0].Kanji,out var list))
+                if (entry.KanjiElements.Count > 0 && toReturn.TryGetValue(entry.KanjiElements[0].Kanji, out var list))
                 {
                     list[0].Item1.Append(entry);
                     return;
@@ -96,7 +95,7 @@ namespace Mio.Translation.Japanese
         }
 
         //Yes, thats a lot of lists. No, it is not a better to use other structure. It represents file > content > index.
-        private static List<List<List<ConversionEntry>>> CreateHashes<T>(ConcurrentDictionary<string,List<(T,int)>> originalDict) where T: EdrdgEntry
+        private static List<List<List<ConversionEntry>>> CreateHashes<T>(ConcurrentDictionary<string, List<(T, int)>> originalDict) where T : DatabaseEntry
         {
             List<List<List<ConversionEntry>>> entriesBrokenByIndex = new List<List<List<ConversionEntry>>>();
             for (int i = 0; i < 256; i++)
@@ -125,24 +124,25 @@ namespace Mio.Translation.Japanese
             return entriesBrokenByIndex;
         }
 
-        private static KanjiEntry[] CreateKanjiEntries(string pathToKanjidict)
+        private static KanjidicEntry[] CreateKanjiEntries(string pathToKanjidict)
         {
             XDocument kanjidict = LoadOriginal(pathToKanjidict);
             IEnumerable<XElement> elements = kanjidict.Element("kanjidic2")!.Elements("character");
             //The largest possible value got from DetermineKanjiNumber is supposed be 79-odd thousand.
-            KanjiEntry[] entries = new KanjiEntry[80000];
+            KanjidicEntry[] entries = new KanjidicEntry[80000];
             int exceptionCount = 0;
-            foreach(XElement element in elements)
+            foreach (XElement element in elements)
             {
                 //There is one kanji here making problem: 𠀋. Something to do with bytes and encoding.
                 //There may be others. Seem to be unusual kanji at the end of kanjidic with incomplete information.
                 try
                 {
-                    KanjiEntry entry = new KanjiEntry(element);
+                    KanjidicEntry entry = new KanjidicEntry(element);
                     Console.WriteLine(entry.Literal);
-                    int code = JapaneseAnalyzer.DetermineKanjiNumber(entry.Literal);
+                    int code = Analyzer.DetermineKanjiNumber(entry.Literal);
                     entries[code] = entry;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     exceptionCount++;
                     Console.WriteLine(exceptionCount);
@@ -151,13 +151,13 @@ namespace Mio.Translation.Japanese
             return entries;
         }
 
-        public static void CreateDictionary(string pathToOriginal, string pathToOutput, EdrdgDictionary dictionary)
+        public static void CreateDictionary(string pathToOriginal, string pathToOutput, DatabaseDictionary dictionary)
         {
             Directory.CreateDirectory(pathToOutput);
             switch (dictionary)
             {
-                case EdrdgDictionary.JMdict:
-                    List<List<List<ConversionEntry>>> entriesBrokenByFile = 
+                case DatabaseDictionary.JMdict:
+                    List<List<List<ConversionEntry>>> entriesBrokenByFile =
                         CreateHashes(LoadOriginalJMdict(pathToOriginal));
                     for (int i = 0; i < entriesBrokenByFile.Count; i++)
                     {
@@ -165,8 +165,8 @@ namespace Mio.Translation.Japanese
                         File.WriteAllBytes($@"{pathToOutput}{i}.bin", jmdictMsgPack);
                     }
                     break;
-                case EdrdgDictionary.JMnedict:
-                    List<List<List<ConversionEntry>>> jmnedictEntriesBrokenByFile = 
+                case DatabaseDictionary.JMnedict:
+                    List<List<List<ConversionEntry>>> jmnedictEntriesBrokenByFile =
                         CreateHashes(LoadOriginalJMnedict(pathToOriginal));
                     for (int i = 0; i < jmnedictEntriesBrokenByFile.Count; i++)
                     {
@@ -174,8 +174,8 @@ namespace Mio.Translation.Japanese
                         File.WriteAllBytes($@"{pathToOutput}{i}.bin", jmnedictMsgPack);
                     }
                     break;
-                case EdrdgDictionary.Kanjidic:
-                    KanjiEntry[] kanjiEntries = CreateKanjiEntries(pathToOriginal);
+                case DatabaseDictionary.Kanjidic:
+                    KanjidicEntry[] kanjiEntries = CreateKanjiEntries(pathToOriginal);
                     for (int i = 0; i < 79; i++)
                     {
                         int startRange = i * 1000;
@@ -184,7 +184,7 @@ namespace Mio.Translation.Japanese
                         File.WriteAllBytes($@"{pathToOutput}{i}.bin", kanjidicMsgPack);
                     }
                     break;
-                
+
             }
         }
     }

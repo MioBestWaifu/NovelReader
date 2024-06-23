@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Properties
 {
     /// <summary>
     /// The possible values in field tags of the JMdict. Could also be used for other categorization, its a very broad list.

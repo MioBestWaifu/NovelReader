@@ -1,4 +1,4 @@
-﻿using Mio.Translation.Japanese.Edrdg;
+﻿using Mio.Translation.Entries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,6 @@ namespace Mio.Reader.Parsing.Structure
         {
         }
 
-        public KanjiEntry Entry { get; set; }
+        public KanjidicEntry Entry { get; set; }
     }
 }

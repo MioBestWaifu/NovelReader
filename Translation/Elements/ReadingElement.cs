@@ -1,8 +1,10 @@
 ﻿using MessagePack;
+using Mio.Translation.Entries;
+using Mio.Translation.Properties;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Elements
 {
     //Public due the needs of MessagePack. Altough maybe this should be in Common anyway.
     [MessagePackObject]
@@ -55,7 +57,7 @@ namespace Mio.Translation.Japanese.Edrdg
             ReadingRestriction = element.Element("re_restr")?.Value;
 
             List<string> priorityStrings = element.Elements("re_pri").Select(x => x.Value).ToList();
-            List<int> priorityInts = priorityStrings.Select(EdrdgEntry.ParsePriority).ToList();
+            List<int> priorityInts = priorityStrings.Select(DatabaseEntry.ParsePriority).ToList();
             Priority = priorityInts.Count == 0 ? 50 : priorityInts.Min();
 
             Properties = new List<KanaProperty>();

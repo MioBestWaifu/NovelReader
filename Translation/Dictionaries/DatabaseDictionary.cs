@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Translation.Japanese
+namespace Mio.Translation.Dictionaries
 {
-    public enum EdrdgDictionary
+    public enum DatabaseDictionary
     {
         JMdict,
         JMnedict,

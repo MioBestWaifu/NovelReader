@@ -5,17 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Elements
 {
     [MessagePackObject]
-    public class RmGroup
+    public class RmElement
     {
         [Key(0)]
         public List<string> Readings { get; private set; }
         [Key(1)]
         public List<string> Meanings { get; private set; }
 
-        public RmGroup(List<string> readings, List<string> meanings)
+        public RmElement(List<string> readings, List<string> meanings)
         {
             Readings = readings;
             Meanings = meanings;

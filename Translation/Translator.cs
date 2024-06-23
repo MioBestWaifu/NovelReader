@@ -1,14 +1,14 @@
-﻿using Mio.Translation;
-using Mio.Translation.Japanese.Edrdg;
+﻿using Mio.Translation.Dictionaries;
+using Mio.Translation.Entries;
 using MyNihongo.KanaConverter;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Mio.Translation.Japanese
+namespace Mio.Translation
 {
 
-    public class JapaneseTranslator
+    public class Translator
     {
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace Mio.Translation.Japanese
         /// <exception cref="ArgumentException"></exception>
         public List<JmdictEntry> TranslateWord(string term)
         {
-            List<ConversionEntry>? matches = FindPossibleEntries(term, EdrdgDictionary.JMdict);
+            List<ConversionEntry>? matches = FindPossibleEntries(term, DatabaseDictionary.JMdict);
             if (matches is not null)
             {
                 List<JmdictEntry> dictionaryEntries = new List<JmdictEntry>();
@@ -32,27 +32,27 @@ namespace Mio.Translation.Japanese
 
             //Revise wether it should return null, throw an exception or return an empty list.
             return [null];
-        }     
+        }
 
         /// <summary>
         /// To translate from the JMnedict
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        public NameEntry TranslateName(string term)
-        {    
-            List<ConversionEntry>? matches = FindPossibleEntries(term, EdrdgDictionary.JMnedict);
+        public NamedictEntry TranslateName(string term)
+        {
+            List<ConversionEntry>? matches = FindPossibleEntries(term, DatabaseDictionary.JMnedict);
 
             if (matches is not null)
             {
-                return(NameEntry)matches[0].Value;
+                return (NamedictEntry)matches[0].Value;
             }
 
             //Revise wether it should return null, throw an exception or return an empty list.
             return null;
         }
 
-        private List<ConversionEntry>? FindPossibleEntries(string term, EdrdgDictionary dictionary)
+        private List<ConversionEntry>? FindPossibleEntries(string term, DatabaseDictionary dictionary)
         {
             if (string.IsNullOrEmpty(term))
             {
@@ -65,11 +65,16 @@ namespace Mio.Translation.Japanese
             byte[] termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(term));
             int termIndex = BitConverter.ToUInt16(termHash, 0);
             List<ConversionEntry> possibleEntries;
-            if (dictionary == EdrdgDictionary.JMdict) {
-                possibleEntries = JapaneseDictionaryLoader.LoadPossibleJmdictEntries(termIndex);
-            } else if (dictionary == EdrdgDictionary.JMnedict) {
-                possibleEntries = JapaneseDictionaryLoader.LoadPossibleJmnedictEntries(termIndex);
-            } else {
+            if (dictionary == DatabaseDictionary.JMdict)
+            {
+                possibleEntries = DictionaryLoader.LoadPossibleJmdictEntries(termIndex);
+            }
+            else if (dictionary == DatabaseDictionary.JMnedict)
+            {
+                possibleEntries = DictionaryLoader.LoadPossibleJmnedictEntries(termIndex);
+            }
+            else
+            {
                 throw new ArgumentException("Dictionary not supported");
             }
             //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list
@@ -78,14 +83,14 @@ namespace Mio.Translation.Japanese
             return matches;
         }
 
-        public KanjiEntry TranslateKanji(char kanji)
+        public KanjidicEntry TranslateKanji(char kanji)
         {
-            int code = JapaneseAnalyzer.DetermineKanjiNumber(kanji);
-            return JapaneseDictionaryLoader.LoadKanjiEntry(code);
+            int code = Analyzer.DetermineKanjiNumber(kanji);
+            return DictionaryLoader.LoadKanjiEntry(code);
         }
 
         public string TranslateKana(string kana)
-        {           
+        {
             return kana.ToRomaji();
         }
     }

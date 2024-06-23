@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mio.Translation.Japanese.Edrdg
+namespace Mio.Translation.Properties
 {
     /// <summary>
     /// The possible values of the misc tag of the JMdict. Some of those are also the name categories of the JMnedict.
