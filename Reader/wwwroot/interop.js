@@ -44,6 +44,15 @@ window.focusOnElement = function (id) {
     document.getElementById(id).focus();
 }
 
+let epubViewerReference = null;
+
+window.setEpubViewerReference = function (instance) {
+    epubViewerReference = instance;
+}
+
+window.onresize = function () {
+    epubViewerReference.invokeMethodAsync("HandleWindowResize");
+};
 /*window.resizeHandler = {
     initialize: function (dotnetHelper) {
         window.addEventListener('resize', function () {
