@@ -234,5 +234,39 @@ namespace Mio.Translation.Japanese.Edrdg
             };
         }
 
+        public static NameType StringToNameType(string property)
+        {
+            return property switch
+            {
+                "character" => NameType.Character,
+                "company name" => NameType.CompanyName,
+                "creature" => NameType.Creature,
+                "deity" => NameType.Deity,
+                "document" => NameType.Document,
+                "event" => NameType.Event,
+                "female given name or forename" => NameType.FemaleGivenName,
+                "fiction" => NameType.Fiction,
+                "given name or forename, gender not specified" => NameType.GivenNameOrForename,
+                "group" => NameType.Group,
+                "legend" => NameType.Legend,
+                "male given name or forename" => NameType.MaleGivenName,
+                "mythology" => NameType.Mythology,
+                "object" => NameType.Object,
+                "organization name" => NameType.OrganizationName,
+                "other" => NameType.Other,
+                "full name of a particular person" => NameType.Person,
+                "place name" => NameType.PlaceName,
+                "product name" => NameType.ProductName,
+                "religion" => NameType.Religion,
+                "service" => NameType.Service,
+                "ship name" => NameType.ShipName,
+                "railway station" => NameType.RailwayStation,
+                "family or surname" => NameType.Surname,
+                "unclassified name" => NameType.UnclassifiedName,
+                "work of art, literature, music, etc. name" => NameType.WorkOfArtOrLiteratureName,
+                _ => throw new ArgumentException("Invalid name type property", nameof(property))
+            };
+        }
+
     }
 }

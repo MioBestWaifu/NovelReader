@@ -39,22 +39,17 @@ namespace Mio.Translation.Japanese
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        public List<NameEntry> TranslateName(string term)
+        public NameEntry TranslateName(string term)
         {    
             List<ConversionEntry>? matches = FindPossibleEntries(term, EdrdgDictionary.JMnedict);
 
             if (matches is not null)
             {
-                List<NameEntry> dictionaryEntries = new List<NameEntry>();
-                foreach (var item in matches)
-                {
-                    dictionaryEntries.Add((NameEntry)item.Value);
-                }
-                return dictionaryEntries;
+                return(NameEntry)matches[0].Value;
             }
 
             //Revise wether it should return null, throw an exception or return an empty list.
-            return [null];
+            return null;
         }
 
         private List<ConversionEntry>? FindPossibleEntries(string term, EdrdgDictionary dictionary)

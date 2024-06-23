@@ -11,9 +11,11 @@ namespace Mio.Translation.Japanese.Edrdg
     [MessagePackObject]
     public class NameEntry : EdrdgEntry
     {
-        //I think there is always only one, making it a list because if it isnt its easier to change.
+        //The document definition says it may be more than one, but in practice i have only seen one. Maybe some has, but i dont know.
         [Key(4)]
-        public List<TranslationElement> TranslationElements { get; private set; }
+        public List<List<NameType>> NameTypes { get; private set; }
+
+        private object nameTypesLock = new object();
 
         public NameEntry()
         {
@@ -22,22 +24,42 @@ namespace Mio.Translation.Japanese.Edrdg
 
         [SerializationConstructor]
         public NameEntry(int entryId, List<KanjiElement>? kanjiElements, List<ReadingElement> readingElements, 
-            List<SenseElement> senseElements, List<TranslationElement> translationElements): base(entryId, kanjiElements, readingElements, senseElements)
+            List<SenseElement> senseElements, List<List<NameType>> types): base(entryId, kanjiElements, readingElements, senseElements)
         {
-            TranslationElements = translationElements;
+            NameTypes = types;
         }
 
         public NameEntry(XElement element) : base(element)
         {
-            TranslationElements = new List<TranslationElement>();
-            var translations = element.Elements("trans");
-            if(translations.Any())
+            //To ensure the linking of reading to name type.
+            ReadingElements.Clear();
+            NameTypes = new List<List<NameType>>();
+            NameTypes.Add(new List<NameType>());
+            var readingElement = element.Element("r_ele");
+            ReadingElements.Add(new ReadingElement(readingElement));
+            var nameTypeElements = element.Element("trans").Elements("name_type");
+            if(nameTypeElements != null)
             {
-                foreach (var translation in translations)
+                foreach(var nameTypeElement in nameTypeElements)
                 {
-                    TranslationElements.Add(new TranslationElement(translation.Element("trans_det")!.Value));
+                    NameTypes[0].Add(PropertyConverter.StringToNameType(nameTypeElement.Value));
                 }
+            } else
+            {
+                NameTypes.Add([NameType.UnclassifiedName]);
             }
+        }
+
+        public void Append(NameEntry entry)
+        {
+            lock (nameTypesLock)
+            {
+                NameTypes.Add(entry.NameTypes[0]);
+            }
+            lock (readingElementsLock) {
+                ReadingElements.Add(entry.ReadingElements[0]);
+            }
+
         }
     }
 }

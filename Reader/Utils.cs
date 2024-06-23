@@ -133,6 +133,15 @@ namespace Mio.Reader
             return $"({string.Join(", ", allStrings.Select(p => InsertWhiteSpaceOnUpperCase(p).ToLower()))})";
         }
 
+        public static string BuildNameTypeObservations(List<NameType> types)
+        {
+            if (types.Count() == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", types.Order().Select(p => InsertWhiteSpaceOnUpperCase(p.ToString()).ToLower()))})";
+        }
+
         public static string InsertWhiteSpaceOnUpperCase(string word)
         {
             if (string.IsNullOrEmpty(word))
@@ -155,6 +164,14 @@ namespace Mio.Reader
             return sb.ToString();
         }
 
+        public static string CapitalizeFirstLetter(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
 
+            return char.ToUpper(input[0]) + input.Substring(1);
+        }
     }
 }

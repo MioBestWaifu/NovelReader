@@ -20,9 +20,12 @@ namespace Mio.Translation.Japanese.Edrdg
         public List<KanjiElement>? KanjiElements { get; private set; }
         [Key(2)]
         public List<ReadingElement> ReadingElements { get; private set; }
-        [Key(3)]
         //I am yet to find an entry with multiple sense tags, but it is suposed to be possible.
+        [Key(3)]
         public List<SenseElement> SenseElements { get; private set; }
+
+        [IgnoreMember]
+        public object readingElementsLock = new object();
 
         public EdrdgEntry()
         {
@@ -46,9 +49,9 @@ namespace Mio.Translation.Japanese.Edrdg
             EntryId = int.Parse(element.Element("ent_seq")!.Value);
 
             var kanjiElements = element.Elements("k_ele");
+            KanjiElements = new List<KanjiElement>();
             if (kanjiElements.Any())
             {
-                KanjiElements = new List<KanjiElement>();
                 foreach (var kanjiElement in kanjiElements)
                 {
                     KanjiElements.Add(new KanjiElement(kanjiElement));

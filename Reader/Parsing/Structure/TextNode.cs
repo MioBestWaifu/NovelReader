@@ -15,7 +15,7 @@ namespace Mio.Reader.Parsing.Structure
             set => throw new NotImplementedException();
         }
         public List<JmdictEntry>? JmdictEntries { get; set; }
-        public List<NameEntry>? NameEntries { get; set; }
+        public NameEntry? NameEntry { get; set; }
         public List<JapaneseCharacter> Characters { get; set; } = [];
 
         private string JoinLiterals()

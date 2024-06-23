@@ -51,10 +51,10 @@
                                 <JmdictCard Entries="selectedNode!.JmdictEntries"></JmdictCard>
                             </FluentTab>
                         }
-                        @if (selectedNode!.NameEntries is not null && selectedNode!.NameEntries.Count > 0)
+                        @if (selectedNode!.NameEntry is not null)
                         {
                             <FluentTab Label="Names">
-                                <NamedictCard Entries="selectedNode!.NameEntries"></NamedictCard>
+                                <NamedictCard Entry="selectedNode!.NameEntry"></NamedictCard>
                             </FluentTab>
                         }
                         @if (selectedNode!.Characters is not null && selectedNode!.Characters.Count > 0)

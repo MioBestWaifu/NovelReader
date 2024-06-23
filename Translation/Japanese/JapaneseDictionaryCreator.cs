@@ -43,15 +43,19 @@ namespace Mio.Translation.Japanese
             }
             if (entry.ReadingElements != null)
             {
-                foreach (var readingElement in entry.ReadingElements)
+                //There is probably a better sync mechanism, but this is good enough because this thing wont run often.
+                lock (entry.readingElementsLock)
                 {
-                    List<(T, int)> entries;
-                    if (!dict.TryGetValue(readingElement.Reading, out entries))
+                    foreach (var readingElement in entry.ReadingElements)
                     {
-                        entries = new List<(T, int)>();
-                        dict.TryAdd(readingElement.Reading, entries);
+                        List<(T, int)> entries;
+                        if (!dict.TryGetValue(readingElement.Reading, out entries))
+                        {
+                            entries = new List<(T, int)>();
+                            dict.TryAdd(readingElement.Reading, entries);
+                        }
+                        entries.Add((entry, readingElement.Priority));
                     }
-                    entries.Add((entry, readingElement.Priority));
                 }
             }
         }
@@ -78,18 +82,14 @@ namespace Mio.Translation.Japanese
             Parallel.ForEach(elements, element =>
             {
                 NameEntry entry = new NameEntry(element);
-                AddKanjiAndReadingKeys(entry, toReturn);
-                foreach (var translationElement in entry.TranslationElements)
+                //This is to optimize storage, serialization, deserialization and display.
+                //The logic here is that if a name has the same kanji, it is the same name, but Jmnedict has multiple entries for it.
+                if (entry.KanjiElements.Count > 0 && toReturn.TryGetValue(entry.KanjiElements[0].Kanji,out var list))
                 {
-                    //Should this have priority too?
-                    List<(NameEntry, int)> entries;
-                    if (!toReturn.TryGetValue(translationElement.Translation, out entries))
-                    {
-                        entries = new List<(NameEntry, int)>();
-                        toReturn.TryAdd(translationElement.Translation, entries);
-                    }
-                    entries.Add((entry, 0));
+                    list[0].Item1.Append(entry);
+                    return;
                 }
+                AddKanjiAndReadingKeys(entry, toReturn);
             });
 
             return toReturn;

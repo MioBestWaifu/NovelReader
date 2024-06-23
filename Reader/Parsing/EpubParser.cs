@@ -186,7 +186,7 @@ namespace Mio.Reader.Parsing
                         }
                         try
                         {
-                            node.NameEntries = translator.TranslateName(lexeme.BaseForm);
+                            node.NameEntry = translator.TranslateName(lexeme.BaseForm);
                         }
                         catch (Exception)
                         {
