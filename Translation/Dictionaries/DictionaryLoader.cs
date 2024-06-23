@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using Mio.Translation.Entries;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Mio.Translation.Dictionaries
@@ -14,20 +15,7 @@ namespace Mio.Translation.Dictionaries
             int file = Math.DivRem(index, 256, out int offset);
             string resourceName = $"Mio.Translation.JMDict.{file}.bin";
 
-            byte[] data;
-            using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
-            {
-                if (resourceStream == null)
-                {
-                    throw new FileNotFoundException($"Resource {resourceName} not found.");
-                }
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    resourceStream.CopyToAsync(memoryStream).Wait();
-                    data = memoryStream.ToArray();
-                }
-            }
+            byte[] data = LoadResourceToBytes(resourceName);
 
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
@@ -37,23 +25,8 @@ namespace Mio.Translation.Dictionaries
             int file = Math.DivRem(index, 256, out int offset);
             string resourceName = $"Mio.Translation.JMnedict.{file}.bin";
 
-            byte[] data;
-            using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
-            {
-                if (resourceStream == null)
-                {
-                    throw new FileNotFoundException($"Resource {resourceName} not found.");
-                }
+            byte[] data = LoadResourceToBytes(resourceName);
 
-                using (var memoryStream = new MemoryStream())
-                {
-                    resourceStream.CopyToAsync(memoryStream).Wait();
-                    data = memoryStream.ToArray();
-                }
-            }
-
-            //This one call is upwards of 50% of chapter load time. Optmization so far not needed, if needed 
-            //use a cache with this thing.
             return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
         }
 
@@ -61,8 +34,13 @@ namespace Mio.Translation.Dictionaries
         {
             int file = Math.DivRem(index, 1000, out int offset);
             string resourceName = $"Mio.Translation.Kanjidic.{file}.bin";
-            byte[] data;
+            byte[] data = LoadResourceToBytes(resourceName);
 
+            return MessagePackSerializer.Deserialize<KanjidicEntry[]>(data)![offset];
+        }
+
+        private static byte[] LoadResourceToBytes(string resourceName)
+        {
             using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
             {
                 if (resourceStream == null)
@@ -73,11 +51,9 @@ namespace Mio.Translation.Dictionaries
                 using (var memoryStream = new MemoryStream())
                 {
                     resourceStream.CopyToAsync(memoryStream).Wait();
-                    data = memoryStream.ToArray();
+                    return memoryStream.ToArray();
                 }
             }
-
-            return MessagePackSerializer.Deserialize<KanjidicEntry[]>(data)![offset];
         }
 
     }

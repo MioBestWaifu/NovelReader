@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Mio.Translation
 {
-
+    //This could be static as is,but if a cache is implemented it might be a instance so keeping it as is for now
     public class Translator
     {
 
