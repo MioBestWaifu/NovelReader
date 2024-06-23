@@ -299,6 +299,7 @@ namespace Mio.Reader.Components.Pages
                     int currentIndex = i; // Capture the current index
                     children.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
                     {
+                        Console.WriteLine("Parsing line " + currentIndex);
                         Debug.WriteLine("Parsing line " + currentIndex);
                         List<Node> line = parseLineTask.Result;
                         chapter.PushLineToIndex(currentIndex, line);

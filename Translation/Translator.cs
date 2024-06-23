@@ -10,20 +10,36 @@ namespace Mio.Translation
     //This could be static as is,but if a cache is implemented it might be a instance so keeping it as is for now
     public class Translator
     {
-
+        private Cache<List<ConversionEntry>> jmdictCache = new Cache<List<ConversionEntry>>();
+        private Cache<List<ConversionEntry>> namesdictCache = new Cache<List<ConversionEntry>>();
+        private Cache<KanjidicEntry> kanjidicCache = new Cache<KanjidicEntry>();
         /// <summary>
         /// To translate into from the JMdict
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public List<JmdictEntry> TranslateWord(string term)
+        public async Task<List<JmdictEntry>> TranslateWord(string term)
         {
-            List<ConversionEntry>? matches = FindPossibleEntries(term, DatabaseDictionary.JMdict);
-            if (matches is not null)
+            List<ConversionEntry>? possibleMatches;
+            int termIndex = GetHash(term);
+
+            var cacheSearchResult = await jmdictCache.TryGetIndex(termIndex);
+            if (cacheSearchResult.Item1)
             {
+                possibleMatches = cacheSearchResult.Item2;
+            }
+            else
+            {
+                possibleMatches = FindPossibleEntries(termIndex, DatabaseDictionary.JMdict);
+            }
+
+            if (possibleMatches is not null)
+            {
+                jmdictCache.Insert(termIndex, possibleMatches);
+                possibleMatches = possibleMatches.FindAll(x => x.Key == term).OrderBy(x => x.Priority).ToList();
                 List<JmdictEntry> dictionaryEntries = new List<JmdictEntry>();
-                foreach (var item in matches)
+                foreach (var item in possibleMatches)
                 {
                     dictionaryEntries.Add((JmdictEntry)item.Value);
                 }
@@ -39,54 +55,64 @@ namespace Mio.Translation
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        public NamedictEntry TranslateName(string term)
+        public async Task<NamedictEntry> TranslateName(string term)
         {
-            List<ConversionEntry>? matches = FindPossibleEntries(term, DatabaseDictionary.JMnedict);
+            List<ConversionEntry>? possibleMatches;
+            int termIndex = GetHash(term);
 
-            if (matches is not null)
+            var cacheSearchResult = await namesdictCache.TryGetIndex(termIndex);
+            if (cacheSearchResult.Item1)
             {
-                return (NamedictEntry)matches[0].Value;
+                possibleMatches = cacheSearchResult.Item2;
+            }
+            else
+            {
+                possibleMatches = FindPossibleEntries(termIndex, DatabaseDictionary.JMnedict);
+            }
+            if (possibleMatches is not null)
+            {
+                namesdictCache.Insert(termIndex, possibleMatches);
+                ConversionEntry? conversionEntry = possibleMatches.Find(x => x.Key == term);
+                return conversionEntry != null ? (NamedictEntry)conversionEntry.Value : null;
             }
 
-            //Revise wether it should return null, throw an exception or return an empty list.
             return null;
         }
 
-        private List<ConversionEntry>? FindPossibleEntries(string term, DatabaseDictionary dictionary)
+        private List<ConversionEntry>? FindPossibleEntries(int termIndex, DatabaseDictionary dictionary)
         {
-            if (string.IsNullOrEmpty(term))
-            {
-                throw new ArgumentException("Term cannot be null or empty");
-            }
-
-            SHA256 sha256 = SHA256.Create();
-
-            //Here there could be a check on the size of term to send it to Analyzer straight away
-            byte[] termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(term));
-            int termIndex = BitConverter.ToUInt16(termHash, 0);
             List<ConversionEntry> possibleEntries;
             if (dictionary == DatabaseDictionary.JMdict)
             {
-                possibleEntries = DictionaryLoader.LoadPossibleJmdictEntries(termIndex);
+                return DictionaryLoader.LoadPossibleJmdictEntries(termIndex);
             }
             else if (dictionary == DatabaseDictionary.JMnedict)
             {
-                possibleEntries = DictionaryLoader.LoadPossibleJmnedictEntries(termIndex);
+                return DictionaryLoader.LoadPossibleJmnedictEntries(termIndex);
             }
             else
             {
                 throw new ArgumentException("Dictionary not supported");
             }
-            //LINQ's are less efficient than foreach and especially parallel foreach, but at the size of this list
-            //it doesn't matter. The conversions might matter, tough.
-            List<ConversionEntry>? matches = possibleEntries.FindAll(x => x.Key == term).OrderBy(x => x.Priority).ToList();
-            return matches;
         }
 
-        public KanjidicEntry TranslateKanji(char kanji)
+        private int GetHash(string term){
+            SHA256 sha256 = SHA256.Create();
+            byte[] termHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(term));
+            return BitConverter.ToUInt16(termHash, 0);
+        }
+
+        public async Task<KanjidicEntry> TranslateKanji(char kanji)
         {
             int code = Analyzer.DetermineKanjiNumber(kanji);
-            return DictionaryLoader.LoadKanjiEntry(code);
+            var cacheSearchResult = await kanjidicCache.TryGetIndex(code);
+            if (cacheSearchResult.Item1)
+            {
+                return cacheSearchResult.Item2;
+            }
+            var toReturn = DictionaryLoader.LoadKanjiEntry(code);
+            kanjidicCache.Insert(code, toReturn);
+            return toReturn;
         }
 
         public string TranslateKana(string kana)

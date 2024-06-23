@@ -34,13 +34,13 @@ namespace Mio.Reader.Parsing
         {
             imageParser = imageParsingService;
         }
-        public static Task<List<Node>> ParseLine(Chapter chapter, XElement line)
+        public static async Task<List<Node>> ParseLine(Chapter chapter, XElement line)
         {
             try
             {
                 if (line.Name == Namespaces.xhtmlNs + "p")
                 {
-                    return Task.FromResult(ParseTextElement(line));
+                    return await ParseTextElement(line);
                 }
 
                 else if (line.Name == Namespaces.xhtmlNs + "img" || line.Name == Namespaces.svgNs + "svg")
@@ -50,31 +50,31 @@ namespace Mio.Reader.Parsing
                         XElement imageElement = line.Element(Namespaces.svgNs + "image");
                         if (imageElement != null)
                         {
-                            return Task.FromResult(ParseImageElement(chapter, imageElement, Namespaces.xlinkNs + "href"));
+                            return await ParseImageElement(chapter, imageElement, Namespaces.xlinkNs + "href");
                         }
                     }
                     else
                     {
-                        return Task.FromResult(ParseImageElement(chapter, line, "src"));
+                        return await ParseImageElement(chapter, line, "src");
                     }
                 }
 
                 //What this means is that this invalid line will not throw an error when the UI renders, but the UI 
                 //will not render anything with it because it needs a child of Node, not Node itself. So it will count as a line but not take up space or throw errors.
-                return Task.FromResult(new List<Node>() { new Node() });
+                return [new Node()];
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"Error parsing line: {e.Message}");
                 Debug.WriteLine($"Line: {line}");
                 Debug.WriteLine(e.StackTrace);
-                return Task.FromResult(new List<Node>() { new Node() });
+                return [new Node()];
             }
 
         }
 
 
-        private static List<Node> ParseTextElement(XElement originalElement)
+        private static async Task<List<Node>> ParseTextElement(XElement originalElement)
         {
 
             string line = GetParagraphText(originalElement);
@@ -135,7 +135,7 @@ namespace Mio.Reader.Parsing
                             chars.Add(kanji);
                             try
                             {
-                                kanji.Entry = translator.TranslateKanji(character);
+                                kanji.Entry = await translator.TranslateKanji(character);
                             }
                             catch (Exception e)
                             {
@@ -149,7 +149,7 @@ namespace Mio.Reader.Parsing
                     {
                         try
                         {
-                            node.JmdictEntries = translator.TranslateWord(lexeme.BaseForm);
+                            node.JmdictEntries = await translator.TranslateWord(lexeme.BaseForm);
                         }
                         catch (Exception e)
                         {
@@ -177,7 +177,7 @@ namespace Mio.Reader.Parsing
                         }
                         try
                         {
-                            node.NameEntry = translator.TranslateName(lexeme.BaseForm);
+                            node.NameEntry = await translator.TranslateName(lexeme.BaseForm);
                         }
                         catch (Exception)
                         {
@@ -191,14 +191,14 @@ namespace Mio.Reader.Parsing
             return nodes;
         }
 
-        private static List<Node> ParseImageElement(Chapter chapter, XElement originalElement, string srcAttribute)
+        private static async Task<List<Node>> ParseImageElement(Chapter chapter, XElement originalElement, string srcAttribute)
         {
             string path = originalElement.Attribute(srcAttribute)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
             return ParseImageElement(imageEntry);
         }
 
-        private static List<Node> ParseImageElement(Chapter chapter, XElement originalElement, XName srcName)
+        private static async Task<List<Node>> ParseImageElement(Chapter chapter, XElement originalElement, XName srcName)
         {
             string path = originalElement.Attribute(srcName)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
