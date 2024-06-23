@@ -3,7 +3,7 @@
 <div class="d-flex justify-content-between align-content-center">
     @if (Entries!.Count > 1)
     {
-        <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.FillInverse"
+        <FluentIcon Value="@(new Icons.Regular.Size24.ArrowLeft())" Color="Color.FillInverse"
                     OnClick="(() => {if (currentEntry == 0) currentEntry = Entries!.Count -1; else currentEntry--;})"></FluentIcon>
     }
     @if (Entries[currentEntry].KanjiElements != null && Entries[currentEntry].KanjiElements.Count > 0)
@@ -16,7 +16,7 @@
     }
     @if (Entries!.Count > 1)
     {
-        <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.FillInverse"
+        <FluentIcon Value="@(new Icons.Regular.Size24.ArrowRight())" Color="Color.FillInverse"
                     OnClick="(() => {if (currentEntry == Entries!.Count -1) currentEntry = 0; else currentEntry++;})"></FluentIcon>
     }
 </div>

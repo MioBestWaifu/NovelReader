@@ -38,6 +38,21 @@ namespace Mio.Translation.Japanese.Edrdg
             };
         }
 
+        public static string KanjiPropertyToShortString(KanjiProperty property)
+        {
+            return property switch
+            {
+                KanjiProperty.Ateji => "Ateji",
+                KanjiProperty.IrregularKanaUsage => "Irr. kana",
+                KanjiProperty.IrregularKanjiUsage => "Irr. kanji",
+                KanjiProperty.IrregularOkuriganaUsage => "Irr. okurigana",
+                KanjiProperty.OutdatedKanjiUsage => "Outdated",
+                KanjiProperty.RarelyUsedKanji => "Rare",
+                KanjiProperty.SearchOnlyKanji => "Search-only",
+                _ => throw new ArgumentException("Invalid kanji property")
+            };
+        }
+
         public static FieldProperty StringToFieldProperty(string property)
         {
             return property switch

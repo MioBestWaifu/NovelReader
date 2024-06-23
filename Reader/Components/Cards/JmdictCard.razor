@@ -2,37 +2,51 @@
 <div class="d-flex justify-content-between align-content-center">
     @if (Entries!.Count > 1)
     {
-        <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.FillInverse"
+        <FluentIcon Value="@(new Icons.Regular.Size24.ArrowLeft())" Color="Color.FillInverse"
                     OnClick="(() => {if (currentEntry == 0) currentEntry = Entries!.Count -1; else currentEntry--;})"></FluentIcon>
     }
     @if (Entries[currentEntry].KanjiElements != null && Entries[currentEntry].KanjiElements.Count > 0)
     {
-        <p style="font-weight: normal;font-size: 22px;">@Utils.JoinKanjis(Entries![currentEntry].KanjiElements)</p>
+        <div style="display:flex;flex-wrap:wrap;column-gap:5px;">
+        @for (int i = 0; i < Entries[currentEntry].KanjiElements.Count; i++)
+        {
+                <p style="font-size: 20px;">@Entries[currentEntry].KanjiElements[i].Kanji<p style="font-size:12px;display:inline">@Utils.BuildKanjiObservations(Entries[currentEntry].KanjiElements[i])</p>@(i < Entries[currentEntry].KanjiElements.Count - 1? ",":"")</p>
+        }
+        </div>
     }
     else
     {
-        <p style="font-weight: normal;font-size: 22px;">@Utils.JoinReadings(Entries![currentEntry].ReadingElements)</p>
+        <div style="display:flex;flex-wrap:wrap;column-gap:5px;">
+            @for (int i = 0; i < Entries[currentEntry].ReadingElements.Count; i++)
+            {
+                <p style="font-size: 20px;">@Entries[currentEntry].ReadingElements[i].Reading<p style="font-size:12px;display:inline">@Utils.BuildReadingObservations(Entries[currentEntry].ReadingElements[i])</p>@(i < Entries[currentEntry].ReadingElements.Count - 1 ? "," : "")</p>
+            }
+        </div>
     }
     @if (Entries!.Count > 1)
     {
-        <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.FillInverse"
+        <FluentIcon Value="@(new Icons.Regular.Size24.ArrowRight())" Color="Color.FillInverse"
                     OnClick="(() => {if (currentEntry == Entries!.Count -1) currentEntry = 0; else currentEntry++;})"></FluentIcon>
     }
 </div>
 <div class="d-flex flex-column gap-3" style="direction:ltr">
     @if (Entries[currentEntry].KanjiElements != null && Entries[currentEntry].KanjiElements.Count > 0)
     {
-        <div style="font-size:18px">
-            <p>@Utils.JoinReadings(Entries![currentEntry].ReadingElements)</p>
+        <div style="display:flex;flex-wrap:wrap;column-gap:5px;">
+            @for (int i = 0; i < Entries[currentEntry].ReadingElements.Count; i++)
+        {
+            <p style="font-size: 20px;">@Entries[currentEntry].ReadingElements[i].Reading<p style="font-size:12px;display:inline">@Utils.BuildReadingObservations(Entries[currentEntry].ReadingElements[i])</p>@(i < Entries[currentEntry].ReadingElements.Count - 1? ",":"")</p>
+        }
         </div>
     }
     <div>
-        <ol class="list-unstyled">
             @foreach (var (sense, index) in Entries![currentEntry].SenseElements.Select((value, i) => (value, i)))
             {
-                <li>@(index + 1). @string.Join(", ", sense.Glosses)</li>
+            <div style="margin-bottom: 1rem;">
+                <p style="margin-bottom: 0;">@(index + 1). @string.Join(", ", sense.Glosses)</p>
+                <p style="margin-bottom: 0;">@Utils.BuildSenseObervations(sense)</p>
+            </div>
             }
-        </ol>
     </div>
 </div>
 

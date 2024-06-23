@@ -100,5 +100,61 @@ namespace Mio.Reader
             return readings != null ? string.Join(", ", readings.Select(r => r.Reading)) : string.Empty;
         }
 
+        public static string BuildKanjiObservations(KanjiElement element)
+        {
+            IOrderedEnumerable<KanjiProperty> properties = element.Properties.Order();
+            if(properties.Count() == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", properties.Select(p => PropertyConverter.KanjiPropertyToShortString(p).ToLower()))})";
+        }
+
+        public static string BuildReadingObservations(ReadingElement element)
+        {
+            var properties = element.Properties.Order();
+            if (properties.Count() == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", properties.Select(p => InsertWhiteSpaceOnUpperCase(p.ToString()).ToLower()))})";
+        }
+
+        public static string BuildSenseObervations(SenseElement element)
+        {
+            var fields = element.Fields.Order();
+            var misc = element.MiscProperties.Order();
+            var allStrings = fields.Select(f => f.ToString()).ToList();
+            allStrings.AddRange(misc.Select(f => f.ToString()));
+            if (allStrings.Count == 0)
+            {
+                return string.Empty;
+            }
+            return $"({string.Join(", ", allStrings.Select(p => InsertWhiteSpaceOnUpperCase(p).ToLower()))})";
+        }
+
+        public static string InsertWhiteSpaceOnUpperCase(string word)
+        {
+            if (string.IsNullOrEmpty(word))
+            {
+                return word;
+            }
+
+            StringBuilder sb = new StringBuilder(word.Length * 2);
+            sb.Append(word[0]); // Add the first character as is
+
+            for (int i = 1; i < word.Length; i++)
+            {
+                if (char.IsUpper(word[i]))
+                {
+                    sb.Append(' ');
+                }
+                sb.Append(word[i]);
+            }
+
+            return sb.ToString();
+        }
+
+
     }
 }
