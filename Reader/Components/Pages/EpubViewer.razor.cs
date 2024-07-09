@@ -13,6 +13,10 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using TouchEventArgs = Microsoft.AspNetCore.Components.Web.TouchEventArgs;
 using Mio.Translation;
+#if ANDROID
+using Xamarin.Google.Crypto.Tink.Proto;
+#endif
+using Mio.Reader.Utilitarians;
 
 namespace Mio.Reader.Components.Pages
 {
@@ -489,24 +493,24 @@ namespace Mio.Reader.Components.Pages
         {
             switch (e.Key)
             {
-                case "Escape":
+                case Keys.Escape:
                     if (showPopup)
                         ClosePopup();
                     break;
                 //These should be different on image-only pages, which is one more reason to have separate components for separate chapter types
-                case "ArrowLeft":
+                case Keys.ArrowLeft:
                     if (ReadingManner == ReadingManner.Western)
                         PreviousPage();
                     break;
-                case "ArrowRight":
+                case Keys.ArrowRight:
                     if (ReadingManner == ReadingManner.Western)
                         NextPage();
                     break;
-                case "ArrowUp":
+                case Keys.ArrowUp:
                     if (ReadingManner == ReadingManner.Japanese)
                         PreviousPage();
                     break;
-                case "ArrowDown":
+                case Keys.ArrowDown:
                     if (ReadingManner == ReadingManner.Japanese)
                         NextPage();
                     break;

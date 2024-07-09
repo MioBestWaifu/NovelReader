@@ -1,3 +1,9 @@
+document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+    }
+});
+
 window.getWindowWidth = function () {
     return window.innerWidth;
 };

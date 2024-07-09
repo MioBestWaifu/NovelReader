@@ -10,108 +10,44 @@
 
 
 <!--Should have different pages instead of a if-else-->
-<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configurations.MainColor />
-@if (plataform == DevicePlatform.WinUI)
-{
-    if (string.IsNullOrEmpty(Configurations.PathToLibrary))
+
+<div tabindex="1" @onkeydown=@(e => ShortcutResponder.HandleKeyDown(e))>
+    <FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configurations.MainColor />
+    @if (plataform == DevicePlatform.WinUI)
     {
-        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
-            <h4>No library folder. Please choose one.</h4>
-            <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
-        </div>
+        if (string.IsNullOrEmpty(Configurations.PathToLibrary))
+        {
+            <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+                <h4>No library folder. Please choose one.</h4>
+                <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick Folder</FluentButton>
+            </div>
+        }
+        else
+        {
+            <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
+        }
+
     }
     else
     {
-        <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
-    }
-    
-}
-else
-{
-    if (UnidicDetermined)
-    {
-        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
-            <h4>Choose the Book.</h4>
-            <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick File</FluentButton>
-        </div>
-    }
-    else 
-    {
-        
-        <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
-            <h4>Download the Unidic to proceed. It may take a few minute.</h4>
-            @{
-                bool disabled = false;
-            }
-            <!--Not sure if the StateHasChanged call there is needed-->
-            <FluentButton Class="rdr-standard-button" OnClick="(() => {disabled = true; StateHasChanged();Task.Run(() => DownloadUnidic());})" IconStart="@(new Icons.Regular.Size20.ArrowDownload())" Appearance="Appearance.Accent" Disabled=@disabled>Download</FluentButton>
-        </div>
-    }
-}
-
-
-@code {
-    [Inject]
-    IJSRuntime JS { get; set; }
-    [Inject]
-    NavigationManager Navigator{ get; set; }
-    [Inject]
-    ConfigurationsService Configurations { get; set; }
-    [Inject]
-    DataManagementService DataManager { get; set; }
-    [Inject]
-    LibraryService Lib { get; set; }
-
-    DevicePlatform plataform = DeviceInfo.Current.Platform;
-    bool UnidicDetermined { get; set; } = false;
-
-    protected override Task OnInitializedAsync()
-    {
-        JS.InvokeVoidAsync("changeDirectionToLTR");
-        if (plataform == DevicePlatform.Android)
+        if (UnidicDetermined)
         {
-            UnidicDetermined = Directory.Exists(Configurations.PathToUnidic);
-            InvokeAsync(() => { StateHasChanged(); });
+            <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+                <h4>Choose the Book.</h4>
+                <FluentButton Class="rdr-standard-button" OnClick="PickLibraryFolder" IconStart="@(new Icons.Regular.Size20.FolderAdd())" Appearance="Appearance.Accent">Pick File</FluentButton>
+            </div>
         }
-        return base.OnInitializedAsync();
-    }
-
-    private async void PickLibraryFolder()
-    {
-
-        if (plataform == DevicePlatform.Android)
+        else
         {
-            if (!await DataManager.RequestStoragePermissions())
-                return;
-            /*
-            * This is a workaraound and should ideally not exist. The problem is that Android refuses to list the files in the directory.
-            * I have permissions, have used differente permissions and API's (including Intent and Java), but the system just refuses to return all files in the library fodler.
-            * The odd things are that the exact same call on the exact same folder works on another project, and that here one file (jpg) is listed.
-            * Until i can figure out what the hell is going on, android only allows to pick specific files, not a library.
-            */
-            string? filePath = await DataManager.PickBook();
-            if(string.IsNullOrEmpty(filePath))
-                return;
-            Task task = Task.Run(async () => Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath))));
-            await task;
-            Navigator.NavigateTo("/reader?bookIndex=0");
-            return;
+
+            <div class="mx-auto d-flex flex-column align-items-center" style="width:fit-content">
+                <h4>Download the Unidic to proceed. It may take a few minute.</h4>
+                @{
+                    bool disabled = false;
+                }
+                <!--Not sure if the StateHasChanged call there is needed-->
+                <FluentButton Class="rdr-standard-button" OnClick="(() => {disabled = true; StateHasChanged();Task.Run(() => DownloadUnidic());})" IconStart="@(new Icons.Regular.Size20.ArrowDownload())" Appearance="Appearance.Accent" Disabled=@disabled>Download</FluentButton>
+            </div>
         }
-
-        FolderPickerResult result = await FolderPicker.Default.PickAsync();
-        if (!result.IsSuccessful)
-            return;
-
-        Configurations.PathToLibrary = result.Folder.Path;
-        Configurations.Save();
-        Debug.WriteLine(Configurations.PathToLibrary);
-        InvokeAsync(() => StateHasChanged());
     }
-
-    private async void DownloadUnidic()
-    {
-        UnidicDetermined = await DataManager.DownloadUnidic();
-
-        InvokeAsync(() => StateHasChanged());
-    }
-}
+</div>
