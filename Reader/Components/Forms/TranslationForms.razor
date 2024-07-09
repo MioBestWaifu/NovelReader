@@ -1,0 +1,42 @@
+﻿@using Mio.Reader.Services
+<h4>Translations</h4>
+
+<EditForm Model="Configs" FormName="translationOptionsForm" OnSubmit="OnSubmitHandler" novalidate>
+    <FluentStack HorizontalAlignment="HorizontalAlignment.Start" VerticalAlignment="VerticalAlignment.Center" Orientation="Orientation.Horizontal" Wrap=true>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Translate sentences</FluentLabel>
+            <FluentSwitch @bind-Value="Configs.TranslateSentences"></FluentSwitch>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Translate terms</FluentLabel>
+            <FluentSwitch @bind-Value="Configs.TranslateGeneral"></FluentSwitch>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Translate names</FluentLabel>
+            <FluentSwitch @bind-Value="Configs.TranslateNames"></FluentSwitch>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Translate characters</FluentLabel>
+            <FluentSwitch @bind-Value="Configs.TranslateCharacters"></FluentSwitch>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Display furigana</FluentLabel>
+            <FluentSwitch @bind-Value="Configs.ShowFurigana"></FluentSwitch>
+        </FluentStack>
+        <FluentButton Type="ButtonType.Submit">Save</FluentButton>
+    </FluentStack>
+</EditForm>
+
+@code {
+    [Parameter]
+    public ConfigurationsService Configs { get; set; }
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    void OnSubmitHandler()
+    {
+        OnSubmit.InvokeAsync();
+    }
+
+}

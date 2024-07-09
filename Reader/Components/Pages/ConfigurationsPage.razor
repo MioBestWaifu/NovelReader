@@ -8,6 +8,7 @@
 <div style="min-height:90vh">
     <h3>ConfigurationsPage</h3>
     <RenderingForms Configs="configsCopy" OnSubmit="RenderFormsSubmitted"></RenderingForms>
+    <TranslationForms Configs="configsCopy" OnSubmit="TranslationFormsSubmitted"></TranslationForms>
 </div>
 
 
@@ -49,6 +50,21 @@
     }
 
     void RenderFormsCanceled()
+    {
+        configsCopy = ConfigsService.Copy();
+    }
+
+    void TranslationFormsSubmitted()
+    {
+        ConfigsService.TranslateSentences = configsCopy.TranslateSentences;
+        ConfigsService.TranslateGeneral = configsCopy.TranslateGeneral;
+        ConfigsService.TranslateNames = configsCopy.TranslateNames;
+        ConfigsService.TranslateCharacters = configsCopy.TranslateCharacters;
+        ConfigsService.ShowFurigana = configsCopy.ShowFurigana;
+        ConfigsService.Save();
+    }
+
+    void TranslationFormsCanceled()
     {
         configsCopy = ConfigsService.Copy();
     }

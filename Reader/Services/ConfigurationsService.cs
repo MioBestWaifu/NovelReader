@@ -32,9 +32,15 @@ namespace Mio.Reader.Services
 
         //Useless right now because to implement properly would require to adjust icons sizes too
         public int FontSize { get; set; } = 20;
-
         public DesignThemeModes Theme { get; set; } = DesignThemeModes.Dark;
 
+        //Does nothing because this functionality is not implemented
+        public bool TranslateSentences { get; set; } = true;
+        public bool TranslateGeneral { get; set; } = true;
+        public bool TranslateNames { get; set; } = true;
+        public bool TranslateCharacters { get; set; } = true;
+        //Does nothing because this functionality is not implemented
+        public bool ShowFurigana { get; set; } = true;
 
         public ConfigurationsService()
         {

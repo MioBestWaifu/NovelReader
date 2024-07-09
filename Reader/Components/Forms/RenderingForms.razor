@@ -1,5 +1,5 @@
 ﻿@using Mio.Reader.Services
-<h3>Text and Rendering</h3>
+<h4>Text and Rendering</h4>
 
 <FluentDesignTheme @bind-Mode="Configs.Theme" @bind-CustomColor=@Configs.MainColor />
 <EditForm Model="Configs" OnSubmit="OnSubmitHandler" FormName="textAndRenderingForm" novalidate>
@@ -31,7 +31,6 @@
             <FluentButton Type="ButtonType.Submit">Save</FluentButton>
         </FluentStack>
     </FluentStack>
-
 </EditForm>
 
 @code {
