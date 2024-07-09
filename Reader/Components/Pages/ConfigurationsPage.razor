@@ -1,7 +1,55 @@
 ﻿@layout MainLayout
 @page "/settings"
+@using Mio.Reader.Components.Forms
+@using Mio.Reader.Services
 
-<h3>ConfigurationsPage</h3>
+<FluentDesignTheme @bind-Mode="configsCopy.Theme" @bind-CustomColor=@configsCopy.MainColor />
+
+<div style="min-height:90vh">
+    <h3>ConfigurationsPage</h3>
+    <RenderingForms Configs="configsCopy" OnSubmit="RenderFormsSubmitted"></RenderingForms>
+</div>
+
+
+
 @code {
+    [Inject]
+    public ConfigurationsService ConfigsService
+    {
+        get
+        {
+            return configsService;
+        }
+        set
+        {
+            configsService = value;
+            configsCopy = configsService.Copy();
+        }
+    }
 
+    [Inject]
+    public IJSRuntime JS { get; set; }
+
+    private ConfigurationsService configsService;
+    private ConfigurationsService configsCopy;
+
+    protected override Task OnInitializedAsync()
+    {
+        JS.InvokeVoidAsync("changeDirectionToLTR");
+        return base.OnInitializedAsync();
+    }
+
+    void RenderFormsSubmitted()
+    {
+        ConfigsService.FontSize = configsCopy.FontSize;
+        ConfigsService.Theme = configsCopy.Theme;
+        ConfigsService.MainColor = configsCopy.MainColor;
+        ConfigsService.ReadingManner = configsCopy.ReadingManner;
+        ConfigsService.Save();
+    }
+
+    void RenderFormsCanceled()
+    {
+        configsCopy = ConfigsService.Copy();
+    }
 }

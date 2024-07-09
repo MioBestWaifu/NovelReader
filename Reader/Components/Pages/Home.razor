@@ -8,11 +8,10 @@
 @layout MainLayout
 @page "/"
 
-
+<FluentDesignTheme @bind-Mode="Configurations.Theme" @bind-CustomColor=@Configurations.MainColor />
 <!--Should have different pages instead of a if-else-->
 
 <div tabindex="1" @onkeydown=@(e => ShortcutResponder.HandleKeyDown(e))>
-    <FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configurations.MainColor />
     @if (plataform == DevicePlatform.WinUI)
     {
         if (string.IsNullOrEmpty(Configurations.PathToLibrary))

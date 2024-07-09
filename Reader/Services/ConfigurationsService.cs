@@ -1,4 +1,7 @@
-﻿using Mio.Reader.Parsing;
+﻿using Microsoft.FluentUI.AspNetCore.Components;
+using Microsoft.JSInterop;
+using Mio.Reader.Components;
+using Mio.Reader.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +20,7 @@ namespace Mio.Reader.Services
 #if DEBUG
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
 #endif
-    };
+        };
 
         public string PathToUnidic { get; set; }
         //Multiple library folders to be implemented eventually, should be a list.
@@ -25,12 +28,21 @@ namespace Mio.Reader.Services
 
         public string MainColor { get; set; } = "#770737";
 
+        public ReadingManner ReadingManner { get; set; } = ReadingManner.Japanese;
+
+        //Useless right now because to implement properly would require to adjust icons sizes too
+        public int FontSize { get; set; } = 20;
+
+        public DesignThemeModes Theme { get; set; } = DesignThemeModes.Dark;
+
+
         public ConfigurationsService()
         {
+
 #if WINDOWS
             PathToUnidic = Path.Combine(AppContext.BaseDirectory, "Unidic");
 #else
-            PathToUnidic = Path.Combine(FileSystem.AppDataDirectory,"Unidic");
+            PathToUnidic = Path.Combine(FileSystem.AppDataDirectory, "Unidic");
 #endif
             EpubParser.Configs = this;
         }
@@ -38,6 +50,11 @@ namespace Mio.Reader.Services
         public async void Save()
         {
             await File.WriteAllTextAsync(Path.Combine(FileSystem.AppDataDirectory, "Configs.json"), JsonSerializer.Serialize(this, jsonOptions));
+        }
+
+        public ConfigurationsService Copy()
+        {
+            return MemberwiseClone() as ConfigurationsService;
         }
 
     }
