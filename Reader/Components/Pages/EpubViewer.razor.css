@@ -59,6 +59,10 @@ p{
     cursor:pointer;
 }
 
+.rdr-western-text {
+    cursor: pointer;
+}
+
 .rdr-navigator {
     position: fixed;
     bottom: 0;

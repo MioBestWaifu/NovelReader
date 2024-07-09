@@ -1,5 +1,14 @@
 ﻿using Mio.Reader.Parsing;
 using Mio.Reader.Parsing.Structure;
+
+/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
+Before:
+using System;
+After:
+using Mio.Reader.Utilitarians;
+using System;
+*/
+using Mio.Reader.Utilitarians;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

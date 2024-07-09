@@ -13,6 +13,10 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using TouchEventArgs = Microsoft.AspNetCore.Components.Web.TouchEventArgs;
 using Mio.Translation;
+#if ANDROID
+using Xamarin.Google.Crypto.Tink.Proto;
+#endif
+using Mio.Reader.Utilitarians;
 
 namespace Mio.Reader.Components.Pages
 {
@@ -26,24 +30,9 @@ namespace Mio.Reader.Components.Pages
         private LibraryService Library { get; set; }
 
         [Parameter]
-        public ReadingManner ReadingManner
-        {
-            get
-            {
-                return readingManner;
-            }
-            set
-            {
-                readingManner = value;
-                ReadingMannerChanged();
-            }
-        }
-
-        [Parameter]
         [SupplyParameterFromQuery]
         public int BookIndex { get; set; } = 0;
 
-        private ReadingManner readingManner;
 
         private readonly DevicePlatform plataform = DeviceInfo.Current.Platform;
 
@@ -87,7 +76,7 @@ namespace Mio.Reader.Components.Pages
 
         private bool showPopup = false;
         private bool showTableOfContents = false;
-        
+
 
         private string navigatorClass;
         private int animationCounter = 0;
@@ -99,7 +88,14 @@ namespace Mio.Reader.Components.Pages
 
         protected override Task OnInitializedAsync()
         {
-            ReadingManner = ReadingManner.Japanese;
+            if (Configs.ReadingManner == ReadingManner.Japanese)
+            {
+                JS.InvokeVoidAsync("changeDirectionToRTL");
+            }
+            else
+            {
+                JS.InvokeVoidAsync("changeDirectionToLTR");
+            }
             CurrentPage = 0;
             interaction = Library.Books[BookIndex];
             CurrentChapter = interaction.LastChapter;
@@ -113,7 +109,7 @@ namespace Mio.Reader.Components.Pages
         {
             if (firstRender)
             {
-                JS.InvokeVoidAsync("setEpubViewerReference",DotNetObjectReference.Create(this));
+                JS.InvokeVoidAsync("setEpubViewerReference", DotNetObjectReference.Create(this));
                 DeviceDisplay.Current.MainDisplayInfoChanged += HandleMainDisplayInfoChanged;
             }
 
@@ -136,17 +132,6 @@ namespace Mio.Reader.Components.Pages
             }
         }
 
-        private void ReadingMannerChanged()
-        {
-            if (ReadingManner == ReadingManner.Japanese)
-            {
-                JS.InvokeVoidAsync("changeDirectionToRTL");
-            }
-            else
-            {
-                JS.InvokeVoidAsync("changeDirectionToLTR");
-            }
-        }
 
         private async void StartOrResetNavigatorAnimation()
         {
@@ -180,7 +165,7 @@ namespace Mio.Reader.Components.Pages
                 NextChapter();
             }
 
-            if (ReadingManner == ReadingManner.Japanese)
+            if (Configs.ReadingManner == ReadingManner.Japanese)
                 JS.InvokeVoidAsync("scrollToHorizontalStart");
             else
                 JS.InvokeVoidAsync("scrollToVerticalStart");
@@ -202,7 +187,7 @@ namespace Mio.Reader.Components.Pages
                 PreviousChapter();
             }
 
-            if (ReadingManner == ReadingManner.Japanese)
+            if (Configs.ReadingManner == ReadingManner.Japanese)
                 JS.InvokeVoidAsync("scrollToHorizontalStart");
             else
                 JS.InvokeVoidAsync("scrollToVerticalStart");
@@ -228,7 +213,7 @@ namespace Mio.Reader.Components.Pages
             {
                 CurrentPage = page;
                 interaction.LastPage = CurrentPage;
-                if (ReadingManner == ReadingManner.Japanese)
+                if (Configs.ReadingManner == ReadingManner.Japanese)
                     JS.InvokeVoidAsync("scrollToHorizontalStart");
                 else
                     JS.InvokeVoidAsync("scrollToVerticalStart");
@@ -268,7 +253,7 @@ namespace Mio.Reader.Components.Pages
                 CurrentChapter--;
                 interaction.LastChapter = CurrentChapter;
                 interaction.LastPage = 0;
-                Task.Run(() => LoadChapter(CurrentChapter,setPageToLast:true));
+                Task.Run(() => LoadChapter(CurrentChapter, setPageToLast: true));
             }
         }
 
@@ -292,7 +277,7 @@ namespace Mio.Reader.Components.Pages
                 {
                     CurrentPage = Pages.Count - 1;
                 }
-                else 
+                else
                 {
                     CurrentPage = 0;
                 }
@@ -337,7 +322,7 @@ namespace Mio.Reader.Components.Pages
             else
             {
                 Pages = await BreakChapterToPages(chapter);
-                if(setPageToLast)
+                if (setPageToLast)
                 {
                     CurrentPage = Pages.Count - 1;
                 }
@@ -362,7 +347,7 @@ namespace Mio.Reader.Components.Pages
         private async Task<int> GetLinesPerPage()
         {
             int linesPerPage;
-            if (ReadingManner == ReadingManner.Japanese)
+            if (Configs.ReadingManner == ReadingManner.Japanese)
             {
                 //Value out of my ass, replace with something actual based on the used css + margins
                 int lineWidth = 40;
@@ -466,7 +451,7 @@ namespace Mio.Reader.Components.Pages
             ShowPopup(id, node);
         }
 
-        private async void HandleTouchStart(TouchEventArgs e , string elementId, TextNode node)
+        private async void HandleTouchStart(TouchEventArgs e, string elementId, TextNode node)
         {
             if (plataform != DevicePlatform.Android)
                 return;
@@ -478,7 +463,7 @@ namespace Mio.Reader.Components.Pages
             {
                 if (showPopup)
                 {
-                   await InvokeAsync(()=>ClosePopup());
+                    await InvokeAsync(() => ClosePopup());
                 }
                 await InvokeAsync(() => ShowPopup(elementId, node));
                 return;
@@ -489,25 +474,25 @@ namespace Mio.Reader.Components.Pages
         {
             switch (e.Key)
             {
-                case "Escape":
+                case Keys.Escape:
                     if (showPopup)
                         ClosePopup();
                     break;
                 //These should be different on image-only pages, which is one more reason to have separate components for separate chapter types
-                case "ArrowLeft":
-                    if (ReadingManner == ReadingManner.Western)
+                case Keys.ArrowLeft:
+                    if (Configs.ReadingManner == ReadingManner.Western)
                         PreviousPage();
                     break;
-                case "ArrowRight":
-                    if (ReadingManner == ReadingManner.Western)
+                case Keys.ArrowRight:
+                    if (Configs.ReadingManner == ReadingManner.Western)
                         NextPage();
                     break;
-                case "ArrowUp":
-                    if (ReadingManner == ReadingManner.Japanese)
+                case Keys.ArrowUp:
+                    if (Configs.ReadingManner == ReadingManner.Japanese)
                         PreviousPage();
                     break;
-                case "ArrowDown":
-                    if (ReadingManner == ReadingManner.Japanese)
+                case Keys.ArrowDown:
+                    if (Configs.ReadingManner == ReadingManner.Japanese)
                         NextPage();
                     break;
             }
@@ -524,7 +509,7 @@ namespace Mio.Reader.Components.Pages
         public async void HandleDoubleClick(MouseEventArgs e)
         {
             //I think this is undesirable on Windows, but it might actually not be
-            if(plataform != DevicePlatform.Android)
+            if (plataform != DevicePlatform.Android)
             {
                 return;
             }
@@ -535,15 +520,16 @@ namespace Mio.Reader.Components.Pages
             double maxXToLeft = 0.33 * windowWidth;
             double minXToRight = 0.66 * windowWidth;
 
-            if(x < maxXToLeft)
+            if (x < maxXToLeft)
             {
-                if(ReadingManner == ReadingManner.Japanese)
+                if (Configs.ReadingManner == ReadingManner.Japanese)
                     NextPage();
                 else
                     PreviousPage();
-            } else if (x > minXToRight)
+            }
+            else if (x > minXToRight)
             {
-                if (ReadingManner == ReadingManner.Japanese)
+                if (Configs.ReadingManner == ReadingManner.Japanese)
                     PreviousPage();
                 else
                     NextPage();

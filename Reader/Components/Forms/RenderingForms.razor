@@ -1,0 +1,85 @@
+﻿@using Mio.Reader.Services
+<h4>Text and Rendering</h4>
+
+<FluentDesignTheme @bind-Mode="Configs.Theme" @bind-CustomColor=@Configs.MainColor />
+<EditForm Model="Configs" OnSubmit="OnSubmitHandler" FormName="textAndRenderingForm" novalidate>
+    <FluentStack HorizontalAlignment="HorizontalAlignment.Start" VerticalAlignment="VerticalAlignment.Center" Orientation="Orientation.Horizontal" Wrap=true>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Layout manner</FluentLabel>
+            <FluentSelect TOption="string" @bind-Value=ReadingMannerProxy>
+                <FluentOption Value="0">Western</FluentOption>
+                <FluentOption Value="1">Japanese</FluentOption>
+            </FluentSelect>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Font size</FluentLabel>
+            <FluentNumberField Min="8" Max="99" @bind-Value=Configs.FontSize />
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Theme</FluentLabel>
+            <FluentSelect TOption="string" @bind-Value=ThemeProxy>
+                <FluentOption Value="0">System</FluentOption>
+                <FluentOption Value="1">Light</FluentOption>
+                <FluentOption Value="2">Dark</FluentOption>
+            </FluentSelect>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentLabel>Main color</FluentLabel>
+            <input style="cursor:pointer" type="color" @bind-value=Configs.MainColor/>
+        </FluentStack>
+        <FluentStack Width="25" Orientation="Orientation.Vertical">
+            <FluentButton Type="ButtonType.Submit">Save</FluentButton>
+        </FluentStack>
+    </FluentStack>
+</EditForm>
+
+@code {
+    [Parameter]
+    public ConfigurationsService Configs { get; set; }
+
+    public string ReadingMannerProxy
+    {
+        get
+        {
+
+            return readingMannerProxy;
+        }
+        set
+        {
+            readingMannerProxy = value;
+            Configs.ReadingManner = (ReadingManner)int.Parse(value);
+        }
+    }
+    private string readingMannerProxy;
+
+    public string ThemeProxy
+    {
+        get
+        {
+            return themeProxy;
+        }
+        set
+        {
+            themeProxy = value;
+            Configs.Theme = (DesignThemeModes)int.Parse(value);
+        }
+    }
+    private string themeProxy;
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    void OnSubmitHandler()
+    {
+        OnSubmit.InvokeAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Yes, this makes the setter on the property reassing the value to the same thing when parameter is first set
+        ReadingMannerProxy = ((int)Configs.ReadingManner).ToString();
+        ThemeProxy = ((int)Configs.Theme).ToString();
+    }
+}

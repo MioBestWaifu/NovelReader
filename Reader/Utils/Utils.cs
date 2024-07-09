@@ -11,31 +11,9 @@ using System.Threading.Tasks;
 using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats;
 
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using Mio.Translation.Japanese.Edrdg;
-After:
-using Mio.Translation.Japanese.Edrdg;
-using Mio.Translation.Edrdg;
-*/
-
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using Mio.Translation.Edrdg;
-After:
-using Mio.Translation.Edrdg;
-using Mio.Translation.Elements;
-*/
-
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using Mio.Translation.Elements;
-After:
 using Mio.Translation.Elements;
 using Mio.Translation.Properties;
-*/
-using Mio.Translation.Elements;
-using Mio.Translation.Properties;
+
 
 
 
@@ -44,7 +22,7 @@ using Mio.Translation.Properties;
 using Java.Util;
 #endif
 
-namespace Mio.Reader
+namespace Mio.Reader.Utilitarians
 {
     internal static class Utils
     {
@@ -56,7 +34,7 @@ namespace Mio.Reader
             if (relativePath.StartsWith('/'))
             {
                 directory = relativePath.Substring(1);
-            } 
+            }
             else if (lastSlash == -1)
             {
                 directory = relativePath;
@@ -75,7 +53,7 @@ namespace Mio.Reader
                     {
                         // Go up one level
                         lastSlash = directory.LastIndexOf('/');
-                        if(lastSlash == -1)
+                        if (lastSlash == -1)
                         {
                             directory = "";
                         }
@@ -131,7 +109,7 @@ namespace Mio.Reader
         public static string BuildKanjiObservations(KanjiElement element)
         {
             IOrderedEnumerable<KanjiProperty> properties = element.Properties.Order();
-            if(properties.Count() == 0)
+            if (properties.Count() == 0)
             {
                 return string.Empty;
             }

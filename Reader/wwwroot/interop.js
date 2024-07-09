@@ -1,3 +1,10 @@
+//Could use this same solution to prevent the selection browser behavior without removing selection entirely?
+document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+    }
+});
+
 window.getWindowWidth = function () {
     return window.innerWidth;
 };
