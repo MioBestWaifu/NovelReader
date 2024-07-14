@@ -28,6 +28,8 @@ namespace Mio.Reader.Components.Pages
         private ConfigurationsService Configs { get; set; }
         [Inject]
         private LibraryService Library { get; set; }
+        [Inject]
+        private Translator Translator { get; set; }
 
         [Parameter]
         [SupplyParameterFromQuery]
@@ -262,7 +264,7 @@ namespace Mio.Reader.Components.Pages
             Chapter chapter = Book.TableOfContents[index].Item2;
             //To keep track of if the user went to another chapter while the current one was loading
             int thisTaskChapterIndex = CurrentChapter;
-            List<Task> children = new List<Task>();
+            List<Task> parsingTasks = new List<Task>();
 
             //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
             if (chapter.LoadStatus == LoadingStatus.Unloaded)
@@ -293,7 +295,7 @@ namespace Mio.Reader.Components.Pages
                 for (int i = 0; i < lines.Count; i++)
                 {
                     int currentIndex = i; // Capture the current index
-                    children.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                    parsingTasks.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
                     {
                         Debug.WriteLine("Parsing line " + currentIndex);
                         List<Node> line = parseLineTask.Result;
@@ -309,14 +311,109 @@ namespace Mio.Reader.Components.Pages
                     }));
                 }
 
-                Task.WhenAll(children).ContinueWith(t =>
+                await Task.WhenAll(parsingTasks);
+                Debug.WriteLine("Starting translating general");
+                if (Configs.TranslateGeneral)
                 {
-                    chapter.LoadStatus = LoadingStatus.Loaded;
-                    InvokeAsync(() =>
+                    List<Task> generalTranslationTasks = new List<Task>();
+                    //As of right now, images are single-node lines of ImageNode, hence this comparison
+                    foreach (var line in chapter.Lines.Where(l => l[0] is TextNode))
                     {
-                        StateHasChanged();
-                    });
-                });
+                        foreach (TextNode word in line)
+                        {
+                            try
+                            {
+                                Task task = Translator.TranslateWord(word.Text).ContinueWith(translationTask =>
+                                {
+                                    word.JmdictEntries = translationTask.Result;
+                                });
+                                generalTranslationTasks.Add(task);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e.Message);
+                                Debug.WriteLine(e.InnerException);
+                                Debug.WriteLine(e.StackTrace);
+                            }
+                        }
+                    }
+
+                    await Task.WhenAll(generalTranslationTasks);
+                }
+
+                Debug.WriteLine("Starting translating names");
+                if (Configs.TranslateNames)
+                {
+                    List<Task> nameTranslationTasks = new List<Task>();
+                    // Assuming images are single-node lines of ImageNode, hence this comparison
+                    foreach (var line in chapter.Lines.Where(l => l[0] is TextNode))
+                    {
+                        foreach (TextNode word in line)
+                        {
+                            try
+                            {
+                                Task task = Translator.TranslateName(word.Text).ContinueWith(translationTask =>
+                                {
+                                    word.NameEntry = translationTask.Result;
+                                });
+                                nameTranslationTasks.Add(task);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e.Message);
+                                Debug.WriteLine(e.InnerException);
+                                Debug.WriteLine(e.StackTrace);
+                            }
+                        }
+                    }
+
+                    await Task.WhenAll(nameTranslationTasks);
+                }
+
+                Debug.WriteLine("Starting translating chars");
+                if (Configs.TranslateCharacters)
+                {
+                    List<Task> characterTasks = new List<Task>();
+
+                    List<Task> characterTranslationTasks = new List<Task>();
+                    // Assuming images are single-node lines of ImageNode, hence this comparison
+                    foreach (var line in chapter.Lines.Where(l => l[0] is TextNode))
+                    {
+                        foreach (TextNode word in line)
+                        {
+                            foreach (JapaneseCharacter character in word.Characters)
+                            {
+                                try
+                                {
+                                    if (character is Romaji)
+                                        break;
+                                    else if (character is Kana k)
+                                    {
+                                        k.Reading = Translator.TranslateKana(character.Literal.ToString());
+                                    }
+                                    else
+                                    {
+                                        Kanji kanji = (Kanji)character;
+                                        Task task = Translator.TranslateKanji(kanji.Literal).ContinueWith(translationTask =>
+                                        {
+                                            kanji.Entry = translationTask.Result;
+                                        });
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e.Message);
+                                    Debug.WriteLine(e.InnerException);
+                                    Debug.WriteLine(e.StackTrace);
+                                }
+                            }
+                        }
+                    }
+
+                    await Task.WhenAll(characterTranslationTasks);
+                }
+
+                chapter.LoadStatus = LoadingStatus.Loaded;
             }
 
             else

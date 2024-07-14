@@ -7,6 +7,8 @@ using CommunityToolkit.Maui.Core;
 using Mio.Reader.Services;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Text.Json;
+using Mio.Translation;
+
 
 #if ANDROID
 using Mio.Reader.Platforms.Android;
@@ -64,6 +66,7 @@ namespace Mio.Reader
             builder.Services.AddSingleton(configurationsService!);
             builder.Services.AddSingleton<DataManagementService>();
             builder.Services.AddSingleton<LibraryService>();
+            builder.Services.AddSingleton<Translator>();
 #if WINDOWS
             builder.Services.AddSingleton<ImageParsingService, WindowsImageParsingService>();
 #elif ANDROID

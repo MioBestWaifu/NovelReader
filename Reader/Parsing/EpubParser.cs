@@ -130,85 +130,15 @@ namespace Mio.Reader.Parsing
                         {
                             Kana kana = new Kana(character);
                             chars.Add(kana);
-                            if (Configs.TranslateCharacters)
-                            {
-                                try
-                                {
-                                    kana.Reading = translator.TranslateKana(character.ToString());
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.WriteLine($"Error translating kana: {character}");
-                                }
-                            }
                         } else
                         {
                             //Presumes everything else is a kanji. This may or may not be a sound idea.
                             Kanji kanji = new Kanji(character);
                             chars.Add(kanji);
-                            if (Configs.TranslateCharacters)
-                            {
-                                try
-                                {
-                                    kanji.Entry = await translator.TranslateKanji(character);
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.WriteLine($"Error translating kanji: {character}");
-                                }
-                            }
                         }
                     }
                     node.Characters = chars;
                     nodes.Add(node);
-                    if (Analyzer.signicantCategories.Contains(lexeme.Category))
-                    {
-                        if (Configs.TranslateGeneral)
-                        {
-                            try
-                            {
-
-                                node.JmdictEntries = await translator.TranslateWord(lexeme.BaseForm);
-                            }
-                            catch (Exception e)
-                            {
-                                /*
-                                 * One of the nodes that gets errored here is some hiragana MeCab turns into 踏ん反る. The JMDict
-                                 * does not contain an entry for that, and other EDRDG-based translators cannot find it either, so not my fault.
-                                 * Sometimes the same happens with other verbs written in hiragana that are found in ohter EDRDG-Based dictionaries, so that is my fault,
-                                 * most likely because the dictionary-building process only uses one key and is overall very faulty and simple.
-                                 * Also, there is a possibility that the Analyzer is fucking some things up by converting hiragana to kanji. 
-                                 * I do not understand fucks of Mecab inner workings, so it might actually do a good job of
-                                 * determining the correct kanjification when many kanji words have the same reading. But if it
-                                 * doesn't, then it may screw the translation over. Dont know what to do about it if true, 
-                                 * because even though it is the idea that at some point all possible keys to a word will be in the conversion table,
-                                 * it may be flexed even in hiragana and Mecab will be needed to deal with that. Maybe this is configurable but I dont know.
-                                 * 
-                                 * Another kind of common error is for weird ass fantasy names (testing this with Tensai Oujo to Tensei Reijou no Mahoukakumei) 
-                                 * and other things (mostly) written in katakana that the Translator cannot make sense of. It is not suposed to either.
-                                 * Those should: A) be inserted into the dictionary from a custom database or 
-                                 * B) be parsed to hiragana or C) be ignored.
-                                 * 
-                                 * Anyways, not fixing any of that now, this version is intended for the display parts only.
-                                 * 
-                                 */
-                                Debug.WriteLine($"Error translating node: {lexeme.Surface} {lexeme.Category}");
-                            }
-                        }
-
-                        if (Configs.TranslateNames)
-                        {
-                            try
-                            {
-                                node.NameEntry = await translator.TranslateName(lexeme.BaseForm);
-                            }
-                            catch (Exception)
-                            {
-                                //Expect this to throw a lot. Keeping this commented to not polute the output.
-                                //Debug.WriteLine($"Error trying to get JMnedict entries for {lexeme.Surface}");
-                            }
-                        }
-                    }
                 }
             }
 
