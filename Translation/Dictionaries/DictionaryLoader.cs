@@ -8,38 +8,39 @@ namespace Mio.Translation.Dictionaries
 {
     internal static class DictionaryLoader
     {
-        //The deserializer calls here are upwards of 60% of chapter load time on Windows. Optmization so far not needed, if needed 
-        //use a cache with this thing.
-        public static List<ConversionEntry> LoadPossibleJmdictEntries(int index)
+        public static async Task<List<ConversionEntry>> LoadPossibleJmdictEntries(int index)
         {
             int file = Math.DivRem(index, 256, out int offset);
             string resourceName = $"Mio.Translation.JMDict.{file}.bin";
 
-            byte[] data = LoadResourceToBytes(resourceName);
+            byte[] data = await LoadResourceToBytes(resourceName);
 
-            return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
+            var deserializedData = await MessagePackSerializer.DeserializeAsync<List<List<ConversionEntry>>>(new MemoryStream(data));
+            return deserializedData![offset];
         }
 
-        public static List<ConversionEntry> LoadPossibleJmnedictEntries(int index)
+        public static async Task<List<ConversionEntry>> LoadPossibleJmnedictEntries(int index)
         {
             int file = Math.DivRem(index, 256, out int offset);
             string resourceName = $"Mio.Translation.JMnedict.{file}.bin";
 
-            byte[] data = LoadResourceToBytes(resourceName);
+            byte[] data = await LoadResourceToBytes(resourceName);
 
-            return MessagePackSerializer.Deserialize<List<List<ConversionEntry>>>(data)![offset];
+            var deserializedData = await MessagePackSerializer.DeserializeAsync<List<List<ConversionEntry>>>(new MemoryStream(data));
+            return deserializedData![offset];
         }
 
-        public static KanjidicEntry LoadKanjiEntry(int index)
+        public static async Task<KanjidicEntry> LoadKanjiEntry(int index)
         {
             int file = Math.DivRem(index, 1000, out int offset);
             string resourceName = $"Mio.Translation.Kanjidic.{file}.bin";
-            byte[] data = LoadResourceToBytes(resourceName);
+            byte[] data = await LoadResourceToBytes(resourceName);
 
-            return MessagePackSerializer.Deserialize<KanjidicEntry[]>(data)![offset];
+            var deserializedData = await MessagePackSerializer.DeserializeAsync<List<KanjidicEntry>>(new MemoryStream(data));
+            return deserializedData![offset];
         }
 
-        private static byte[] LoadResourceToBytes(string resourceName)
+        private static async Task<byte[]> LoadResourceToBytes(string resourceName)
         {
             using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
             {
@@ -50,7 +51,7 @@ namespace Mio.Translation.Dictionaries
 
                 using (var memoryStream = new MemoryStream())
                 {
-                    resourceStream.CopyToAsync(memoryStream).Wait();
+                    await resourceStream.CopyToAsync(memoryStream);
                     return memoryStream.ToArray();
                 }
             }

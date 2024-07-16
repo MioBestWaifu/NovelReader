@@ -311,6 +311,7 @@ namespace Mio.Reader.Components.Pages
                     }));
                 }
 
+                
                 await Task.WhenAll(parsingTasks);
                 Debug.WriteLine("Starting translating general");
                 if (Configs.TranslateGeneral)
@@ -321,12 +322,13 @@ namespace Mio.Reader.Components.Pages
                     {
                         foreach (TextNode word in line)
                         {
+                            TextNode iterationValue = word;
                             try
                             {
-                                Task task = Translator.TranslateWord(word.Text).ContinueWith(translationTask =>
+                                Task task = Task.Run(() =>Translator.TranslateWord(iterationValue.Text).ContinueWith(translationTask =>
                                 {
-                                    word.JmdictEntries = translationTask.Result;
-                                });
+                                    iterationValue.JmdictEntries = translationTask.Result;
+                                }));
                                 generalTranslationTasks.Add(task);
                             }
                             catch (Exception e)
@@ -352,10 +354,11 @@ namespace Mio.Reader.Components.Pages
                         {
                             try
                             {
-                                Task task = Translator.TranslateName(word.Text).ContinueWith(translationTask =>
+                                TextNode iterationValue = word;
+                                Task task = Task.Run(() =>Translator.TranslateName(iterationValue.Text).ContinueWith(translationTask =>
                                 {
-                                    word.NameEntry = translationTask.Result;
-                                });
+                                    iterationValue.NameEntry = translationTask.Result;
+                                }));
                                 nameTranslationTasks.Add(task);
                             }
                             catch (Exception e)
@@ -381,23 +384,25 @@ namespace Mio.Reader.Components.Pages
                     {
                         foreach (TextNode word in line)
                         {
-                            foreach (JapaneseCharacter character in word.Characters)
+                            TextNode iterationText = word;
+                            foreach (JapaneseCharacter character in iterationText.Characters)
                             {
+                                JapaneseCharacter iterationCharacter = character;
                                 try
                                 {
-                                    if (character is Romaji)
+                                    if (iterationCharacter is Romaji)
                                         break;
-                                    else if (character is Kana k)
+                                    else if (iterationCharacter is Kana k)
                                     {
-                                        k.Reading = Translator.TranslateKana(character.Literal.ToString());
+                                        k.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
                                     }
                                     else
                                     {
-                                        Kanji kanji = (Kanji)character;
-                                        Task task = Translator.TranslateKanji(kanji.Literal).ContinueWith(translationTask =>
+                                        Kanji kanji = (Kanji)iterationCharacter;
+                                        Task task = Task.Run(() => Translator.TranslateKanji(kanji.Literal).ContinueWith(translationTask =>
                                         {
                                             kanji.Entry = translationTask.Result;
-                                        });
+                                        }));
                                     }
                                 }
                                 catch (Exception e)
