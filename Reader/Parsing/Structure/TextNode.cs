@@ -1,4 +1,5 @@
-﻿using Mio.Translation.Entries;
+﻿using Mio.Translation;
+using Mio.Translation.Entries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,18 @@ namespace Mio.Reader.Parsing.Structure
         public List<JmdictEntry>? JmdictEntries { get; set; }
         public NamedictEntry? NameEntry { get; set; }
         public List<JapaneseCharacter> Characters { get; set; } = [];
+
+        public readonly Lexeme? lexeme;
+
+        public TextNode()
+        {
+
+        }
+
+        public TextNode(Lexeme lexeme)
+        {
+            this.lexeme = lexeme;
+        }
 
         private string JoinLiterals()
         {

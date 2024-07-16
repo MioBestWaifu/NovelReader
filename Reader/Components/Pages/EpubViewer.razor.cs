@@ -322,20 +322,23 @@ namespace Mio.Reader.Components.Pages
                     {
                         foreach (TextNode word in line)
                         {
-                            TextNode iterationValue = word;
-                            try
+                            if (word.lexeme is not null && Analyzer.signicantCategories.Contains(word.lexeme.Category))
                             {
-                                Task task = Task.Run(() =>Translator.TranslateWord(iterationValue.Text).ContinueWith(translationTask =>
+                                TextNode iterationValue = word;
+                                try
                                 {
-                                    iterationValue.JmdictEntries = translationTask.Result;
-                                }));
-                                generalTranslationTasks.Add(task);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                                Debug.WriteLine(e.InnerException);
-                                Debug.WriteLine(e.StackTrace);
+                                    Task task = Task.Run(() => Translator.TranslateWord(iterationValue.lexeme.BaseForm).ContinueWith(translationTask =>
+                                    {
+                                        iterationValue.JmdictEntries = translationTask.Result;
+                                    }));
+                                    generalTranslationTasks.Add(task);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e.Message);
+                                    Debug.WriteLine(e.InnerException);
+                                    Debug.WriteLine(e.StackTrace);
+                                }
                             }
                         }
                     }
@@ -352,20 +355,23 @@ namespace Mio.Reader.Components.Pages
                     {
                         foreach (TextNode word in line)
                         {
-                            try
+                            if (word.lexeme is not null && Analyzer.signicantCategories.Contains(word.lexeme.Category))
                             {
-                                TextNode iterationValue = word;
-                                Task task = Task.Run(() =>Translator.TranslateName(iterationValue.Text).ContinueWith(translationTask =>
+                                try
                                 {
-                                    iterationValue.NameEntry = translationTask.Result;
-                                }));
-                                nameTranslationTasks.Add(task);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                                Debug.WriteLine(e.InnerException);
-                                Debug.WriteLine(e.StackTrace);
+                                    TextNode iterationValue = word;
+                                    Task task = Task.Run(() => Translator.TranslateName(iterationValue.Text).ContinueWith(translationTask =>
+                                    {
+                                        iterationValue.NameEntry = translationTask.Result;
+                                    }));
+                                    nameTranslationTasks.Add(task);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e.Message);
+                                    Debug.WriteLine(e.InnerException);
+                                    Debug.WriteLine(e.StackTrace);
+                                }
                             }
                         }
                     }
@@ -396,13 +402,13 @@ namespace Mio.Reader.Components.Pages
                                     {
                                         k.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
                                     }
-                                    else
+                                    else if (iterationCharacter is Kanji kanji)
                                     {
-                                        Kanji kanji = (Kanji)iterationCharacter;
                                         Task task = Task.Run(() => Translator.TranslateKanji(kanji.Literal).ContinueWith(translationTask =>
                                         {
                                             kanji.Entry = translationTask.Result;
                                         }));
+                                        characterTranslationTasks.Add(task);
                                     }
                                 }
                                 catch (Exception e)
@@ -418,6 +424,7 @@ namespace Mio.Reader.Components.Pages
                     await Task.WhenAll(characterTranslationTasks);
                 }
 
+                //This is not hitting ever
                 chapter.LoadStatus = LoadingStatus.Loaded;
             }
 

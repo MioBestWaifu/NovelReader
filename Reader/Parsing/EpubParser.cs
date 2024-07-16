@@ -116,7 +116,7 @@ namespace Mio.Reader.Parsing
                 List<Lexeme> lexemes = analyzer.Analyze(sentences[i]);
                 foreach (var lexeme in lexemes)
                 {
-                    TextNode node = new TextNode();
+                    TextNode node = new TextNode(lexeme);
                     List<JapaneseCharacter> chars = [];
                     foreach (var character in lexeme.Surface)
                     {
