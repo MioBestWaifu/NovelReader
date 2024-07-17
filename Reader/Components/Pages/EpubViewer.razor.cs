@@ -311,7 +311,7 @@ namespace Mio.Reader.Components.Pages
                     }));
                 }
 
-                
+
                 await Task.WhenAll(parsingTasks);
                 Debug.WriteLine("Starting translating general");
                 if (Configs.TranslateGeneral)
@@ -327,10 +327,10 @@ namespace Mio.Reader.Components.Pages
                                 TextNode iterationValue = word;
                                 try
                                 {
-                                    Task task = Task.Run(() => Translator.TranslateWord(iterationValue.lexeme.BaseForm).ContinueWith(translationTask =>
+                                    Task task = Task.Run(async () =>
                                     {
-                                        iterationValue.JmdictEntries = translationTask.Result;
-                                    }));
+                                        iterationValue.JmdictEntries = await Translator.TranslateWord(iterationValue.lexeme.BaseForm);
+                                    });
                                     generalTranslationTasks.Add(task);
                                 }
                                 catch (Exception e)
@@ -360,10 +360,10 @@ namespace Mio.Reader.Components.Pages
                                 try
                                 {
                                     TextNode iterationValue = word;
-                                    Task task = Task.Run(() => Translator.TranslateName(iterationValue.Text).ContinueWith(translationTask =>
-                                    {
-                                        iterationValue.NameEntry = translationTask.Result;
-                                    }));
+                                    Task task = Task.Run(async () =>
+                                        {
+                                            iterationValue.NameEntry = await Translator.TranslateName(iterationValue.lexeme.Surface);
+                                        });
                                     nameTranslationTasks.Add(task);
                                 }
                                 catch (Exception e)
@@ -376,7 +376,6 @@ namespace Mio.Reader.Components.Pages
                         }
                     }
 
-                    await Task.WhenAll(nameTranslationTasks);
                 }
 
                 Debug.WriteLine("Starting translating chars");
@@ -404,18 +403,19 @@ namespace Mio.Reader.Components.Pages
                                     }
                                     else if (iterationCharacter is Kanji kanji)
                                     {
-                                        Task task = Task.Run(() => Translator.TranslateKanji(kanji.Literal).ContinueWith(translationTask =>
+                                        Task task = Task.Run(async () =>
                                         {
-                                            kanji.Entry = translationTask.Result;
-                                        }));
+                                            kanji.Entry = await Translator.TranslateKanji(kanji.Literal);
+                                        }
+                                        );
                                         characterTranslationTasks.Add(task);
                                     }
                                 }
                                 catch (Exception e)
                                 {
-                                    Debug.WriteLine(e.Message);
+                                    /*Debug.WriteLine(e.Message);
                                     Debug.WriteLine(e.InnerException);
-                                    Debug.WriteLine(e.StackTrace);
+                                    Debug.WriteLine(e.StackTrace);*/
                                 }
                             }
                         }
