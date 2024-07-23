@@ -30,7 +30,7 @@ namespace Mio.Translation
             }
             else
             {
-                possibleMatches = FindPossibleEntries(termIndex, DatabaseDictionary.JMdict);
+                possibleMatches = await FindPossibleEntries(termIndex, DatabaseDictionary.JMdict);
             }
 
             if (possibleMatches is not null)
@@ -66,7 +66,7 @@ namespace Mio.Translation
             }
             else
             {
-                possibleMatches = FindPossibleEntries(termIndex, DatabaseDictionary.JMnedict);
+                possibleMatches = await FindPossibleEntries(termIndex, DatabaseDictionary.JMnedict);
             }
             if (possibleMatches is not null)
             {
@@ -78,16 +78,16 @@ namespace Mio.Translation
             return null;
         }
 
-        private List<ConversionEntry>? FindPossibleEntries(int termIndex, DatabaseDictionary dictionary)
+        private async Task<List<ConversionEntry>>? FindPossibleEntries(int termIndex, DatabaseDictionary dictionary)
         {
             List<ConversionEntry> possibleEntries;
             if (dictionary == DatabaseDictionary.JMdict)
             {
-                return DictionaryLoader.LoadPossibleJmdictEntries(termIndex);
+                return await DictionaryLoader.LoadPossibleJmdictEntries(termIndex);
             }
             else if (dictionary == DatabaseDictionary.JMnedict)
             {
-                return DictionaryLoader.LoadPossibleJmnedictEntries(termIndex);
+                return await DictionaryLoader.LoadPossibleJmnedictEntries(termIndex);
             }
             else
             {
@@ -109,7 +109,7 @@ namespace Mio.Translation
             {
                 return cacheSearchResult.Item2;
             }
-            var toReturn = DictionaryLoader.LoadKanjiEntry(code);
+            var toReturn = await DictionaryLoader.LoadKanjiEntry(code);
             kanjidicCache.Insert(code, toReturn);
             return toReturn;
         }

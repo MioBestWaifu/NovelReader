@@ -24,16 +24,16 @@ namespace Mio.Translation
 
         public async Task<(bool,T?)> TryGetIndex(int index)
         {
-            if(indexValuePairs.TryGetValue(index,out T result))
+            await availableIndexesSemaphore.WaitAsync();
+            if (indexValuePairs.TryGetValue(index,out T result))
             {
                 var node = indexNodes[index];
-                await availableIndexesSemaphore.WaitAsync();
                 availableIndexes.Remove(node);
                 availableIndexes.AddLast(node);
                 availableIndexesSemaphore.Release();
                 return (true,result);
             }
-
+            availableIndexesSemaphore.Release();
             return (false,default(T));
         }
 

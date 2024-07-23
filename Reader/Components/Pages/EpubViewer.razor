@@ -11,7 +11,7 @@
 @layout MainLayout
 @page "/reader"
 
-<FluentDesignTheme Mode="DesignThemeModes.Dark" CustomColor=@Configs.MainColor></FluentDesignTheme>
+<FluentDesignTheme Mode=@Configs.Theme CustomColor=@Configs.MainColor></FluentDesignTheme>
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
