@@ -56,7 +56,10 @@ namespace Mio.Reader.Components.Pages
                 {
                     currentPage = value;
                     navigatorClass = "rdr-navigator";
-                    StateHasChanged();
+                    InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
                     Task.Run(() => StartOrResetNavigatorAnimation());
                 }
                 catch (Exception e)
@@ -144,7 +147,7 @@ namespace Mio.Reader.Components.Pages
             {
                 animationCounter = 0;
                 navigatorClass = "rdr-navigator rdr-start-animation";
-                InvokeAsync(() =>
+                await InvokeAsync(() =>
                 {
                     StateHasChanged();
                 });
@@ -295,7 +298,7 @@ namespace Mio.Reader.Components.Pages
                 for (int i = 0; i < lines.Count; i++)
                 {
                     int currentIndex = i; // Capture the current index
-                    parsingTasks.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                    parsingTasks.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(async parseLineTask =>
                     {
                         Debug.WriteLine("Parsing line " + currentIndex);
                         List<Node> line = parseLineTask.Result;
@@ -303,7 +306,7 @@ namespace Mio.Reader.Components.Pages
                         if (thisTaskChapterIndex == CurrentChapter)
                         {
                             PushLineToPages(currentIndex, line);
-                            InvokeAsync(() =>
+                            await InvokeAsync(() =>
                             {
                                 StateHasChanged();
                             });
@@ -312,16 +315,22 @@ namespace Mio.Reader.Components.Pages
                 }
 
                 await Task.WhenAll(parsingTasks);
-
+                SemaphoreSlim semaphore = new SemaphoreSlim(20, 20);
                 foreach (List<Node> line in chapter.Lines)
                 {
                     foreach (Node node in line)
                     {
                         if (node is TextNode textNode)
                         {
-                            Task.Run(() => TranslateFragment(textNode).ContinueWith(_ =>
+                            await semaphore.WaitAsync();
+                            Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
                             {
                                 chapter.FinishedTextNodes++;
+                                semaphore.Release();
+                                await InvokeAsync(() =>
+                                {
+                                    StateHasChanged();
+                                });
                             }));
                         }
                     }
@@ -340,7 +349,7 @@ namespace Mio.Reader.Components.Pages
                 {
                     CurrentPage = 0;
                 }
-                InvokeAsync(() =>
+                await InvokeAsync(() =>
                 {
                     StateHasChanged();
                 });
@@ -353,7 +362,7 @@ namespace Mio.Reader.Components.Pages
             {
                 if (translateGeneral && node.lexeme is not null && Analyzer.signicantCategories.Contains(node.lexeme.Category))
                 {
-                    node.JmdictEntries = await Translator.TranslateWord(node.Text);
+                    node.JmdictEntries = await Translator.TranslateWord(node.lexeme.BaseForm);
                     node.HasFinishedGeneral = true;
                 }
             });
@@ -361,7 +370,7 @@ namespace Mio.Reader.Components.Pages
             Task namesTask = Task.Run(async () => { 
                 if (translateNames)
                 {
-                    node.NameEntry = await Translator.TranslateName(node.Text);
+                    node.NameEntry = await Translator.TranslateName(node.lexeme.Surface);
                     node.HasFinishedNames = true;
                 }
             });
