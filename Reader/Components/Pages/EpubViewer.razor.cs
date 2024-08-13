@@ -74,6 +74,8 @@ namespace Mio.Reader.Components.Pages
 
         private int currentPage;
 
+        private int linesPerPage;
+
         private bool Initialized { get; set; } = false;
 
         private string previousElementId = "";
@@ -306,31 +308,34 @@ namespace Mio.Reader.Components.Pages
                         if (thisTaskChapterIndex == CurrentChapter)
                         {
                             PushLineToPages(currentIndex, line);
-                            await InvokeAsync(() =>
-                            {
-                                StateHasChanged();
-                            });
+                            if (currentIndex/linesPerPage == currentPage) {
+                                InvokeAsync(() =>
+                                {
+                                    StateHasChanged();
+                                });
+                            }
                         }
                     }));
                 }
 
                 await Task.WhenAll(parsingTasks);
-                SemaphoreSlim semaphore = new SemaphoreSlim(20, 20);
+                int j = 0;
                 foreach (List<Node> line in chapter.Lines)
                 {
+                    int currentLineIndex = j++;
                     foreach (Node node in line)
                     {
                         if (node is TextNode textNode)
                         {
-                            await semaphore.WaitAsync();
                             Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
                             {
                                 chapter.FinishedTextNodes++;
-                                semaphore.Release();
-                                await InvokeAsync(() =>
-                                {
-                                    StateHasChanged();
-                                });
+                                if (currentLineIndex/linesPerPage == currentPage) {
+                                    InvokeAsync(() =>
+                                    {
+                                        StateHasChanged();
+                                    });
+                                }
                             }));
                         }
                     }
@@ -420,7 +425,7 @@ namespace Mio.Reader.Components.Pages
             Pages[pageIndex][lineIndex] = line;
         }
 
-        private async Task<int> GetLinesPerPage()
+        private async Task<int> UpdateLinesPerPage()
         {
             int linesPerPage;
             if (Configs.ReadingManner == ReadingManner.Japanese)
@@ -438,12 +443,14 @@ namespace Mio.Reader.Components.Pages
                 linesPerPage = windowHeight / lineHeight;
             }
 
+            this.linesPerPage = linesPerPage;
+
             return linesPerPage;
         }
 
         private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
         {
-            int linesPerPage = await GetLinesPerPage();
+            int linesPerPage = await UpdateLinesPerPage();
 
             List<List<List<Node>>> pages = new List<List<List<Node>>>();
 
@@ -467,7 +474,7 @@ namespace Mio.Reader.Components.Pages
         private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
         {
 
-            int linesPerPage = await GetLinesPerPage();
+            int linesPerPage = await UpdateLinesPerPage();
             List<List<List<Node>>> pages = [];
             List<List<Node>> currentPage = [];
             foreach (List<Node> line in chapter.Lines)
