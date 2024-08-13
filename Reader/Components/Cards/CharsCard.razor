@@ -7,18 +7,25 @@
             {
                 <div>
                     <p>@kanji.Literal</p>
-                    @foreach (RmElement group in kanji.Entry.RmGroups)
+                    @if (kanji.Entry is not null)
                     {
-                        try
+                        @foreach (RmElement group in kanji.Entry.RmGroups)
                         {
-                            <div>
-                                <p>@string.Join(", ", group.Readings)</p>
-                                <p>@string.Join(", ", group.Meanings)</p>
-                            </div>
+                            try
+                            {
+                                <div>
+                                    <p>@string.Join(", ", group.Readings)</p>
+                                    <p>@string.Join(", ", group.Meanings)</p>
+                                </div>
+                            }
+                            catch (Exception e)
+                            {
+                            }
                         }
-                        catch (Exception e)
-                        {
-                        }
+                    }
+                    else
+                    {
+                        <p>Translations loading</p>
                     }
                 </div>
             }

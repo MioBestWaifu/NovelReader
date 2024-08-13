@@ -9,9 +9,9 @@ namespace Mio.Translation
 {
     public class Translator
     {
-        private Cache<List<ConversionEntry>> jmdictCache = new Cache<List<ConversionEntry>>();
-        private Cache<List<ConversionEntry>> namesdictCache = new Cache<List<ConversionEntry>>();
-        private Cache<KanjidicEntry> kanjidicCache = new Cache<KanjidicEntry>();
+        private Cache<List<ConversionEntry>> jmdictCache = new Cache<List<ConversionEntry>>(1000);
+        private Cache<List<ConversionEntry>> namesdictCache = new Cache<List<ConversionEntry>>(1000);
+        private Cache<KanjidicEntry> kanjidicCache = new Cache<KanjidicEntry>(1000);
         /// <summary>
         /// To translate into from the JMdict
         /// </summary>

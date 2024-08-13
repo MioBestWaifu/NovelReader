@@ -12,7 +12,7 @@ namespace Mio.Reader.Parsing.Structure
         {
         }
 
-        public string Reading { get; set; }
+        public string Reading { get; set; } = "";
         //Could use some properties about the kana, like if it's a dakuten, or if is katakana or hiragana
     }
 }
