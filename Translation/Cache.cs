@@ -1,57 +1,32 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Caching.Memory;
 
 namespace Mio.Translation
 {
-    /*
-     * This cache scheme halved deserializations on chapter load. The perfect solution would be to keep all already
-     * translated entries in cache. Given that they will be in memory anyway, it would not be a big memory overhead. But, as far
-     * as i know, the only way to get them in that case would be by string keys, which is bad.
-     * The entire Translation pipeline is done to avoid string comparisons as possible, because in earlier tests it was 
-     * found that they are slower than everything else, even deserialization (at least MessagePack).
-     * Maybe there is a way to do both and i just don't know it.
-     */
     internal class Cache<T>
     {
-        private ConcurrentDictionary<int, T> indexValuePairs = [];
-        private ConcurrentDictionary<int,LinkedListNode<int>> indexNodes = [];
-        private LinkedList<int> availableIndexes = new LinkedList<int>();
-        private SemaphoreSlim availableIndexesSemaphore = new SemaphoreSlim(1, 1);
+        readonly MemoryCache memoryCache;
+        readonly MemoryCacheEntryOptions cacheEntryOptions;
+
+        public Cache (int sizeLimit)
+        {
+            memoryCache = new MemoryCache(new MemoryCacheOptions
+            {
+                SizeLimit = sizeLimit
+            });
+
+            cacheEntryOptions = new MemoryCacheEntryOptions().SetSize(1);
+        }
 
         public async Task<(bool,T?)> TryGetIndex(int index)
         {
-            await availableIndexesSemaphore.WaitAsync();
-            if (indexValuePairs.TryGetValue(index,out T result))
-            {
-                var node = indexNodes[index];
-                availableIndexes.Remove(node);
-                availableIndexes.AddLast(node);
-                availableIndexesSemaphore.Release();
-                return (true,result);
-            }
-            availableIndexesSemaphore.Release();
-            return (false,default(T));
+            T? value;
+            bool wasThere = memoryCache.TryGetValue(index, out value);
+            return (wasThere,value);
         }
 
-        public async Task Insert(int index,T item)
+        public async Task Insert(int key, T value)
         {
-            await availableIndexesSemaphore.WaitAsync();
-            if (availableIndexes.Count >= 1000)
-            {
-                var previousNode = availableIndexes.First;
-                availableIndexes.RemoveFirst();
-                indexValuePairs.Remove(previousNode.Value,out _);
-                indexNodes.Remove(previousNode.Value,out _);
-            }
-
-            var newNode = availableIndexes.AddLast(index);
-            indexNodes.TryAdd(index,newNode);
-            indexValuePairs.TryAdd(index,item);
-            availableIndexesSemaphore.Release();
+            memoryCache.Set(key, value,cacheEntryOptions);
         }
     }
 }
