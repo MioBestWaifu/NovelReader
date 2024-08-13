@@ -56,7 +56,10 @@ namespace Mio.Reader.Components.Pages
                 {
                     currentPage = value;
                     navigatorClass = "rdr-navigator";
-                    StateHasChanged();
+                    InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
                     Task.Run(() => StartOrResetNavigatorAnimation());
                 }
                 catch (Exception e)
@@ -144,7 +147,7 @@ namespace Mio.Reader.Components.Pages
             {
                 animationCounter = 0;
                 navigatorClass = "rdr-navigator rdr-start-animation";
-                InvokeAsync(() =>
+                await InvokeAsync(() =>
                 {
                     StateHasChanged();
                 });
@@ -295,7 +298,7 @@ namespace Mio.Reader.Components.Pages
                 for (int i = 0; i < lines.Count; i++)
                 {
                     int currentIndex = i; // Capture the current index
-                    parsingTasks.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(parseLineTask =>
+                    parsingTasks.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(async parseLineTask =>
                     {
                         Debug.WriteLine("Parsing line " + currentIndex);
                         List<Node> line = parseLineTask.Result;
@@ -303,7 +306,7 @@ namespace Mio.Reader.Components.Pages
                         if (thisTaskChapterIndex == CurrentChapter)
                         {
                             PushLineToPages(currentIndex, line);
-                            InvokeAsync(() =>
+                            await InvokeAsync(() =>
                             {
                                 StateHasChanged();
                             });
@@ -311,122 +314,29 @@ namespace Mio.Reader.Components.Pages
                     }));
                 }
 
-
                 await Task.WhenAll(parsingTasks);
-                Debug.WriteLine("Starting translating general");
-                if (Configs.TranslateGeneral)
+                SemaphoreSlim semaphore = new SemaphoreSlim(20, 20);
+                foreach (List<Node> line in chapter.Lines)
                 {
-                    List<Task> generalTranslationTasks = new List<Task>();
-                    //As of right now, images are single-node lines of ImageNode, hence this comparison
-                    foreach (var line in chapter.Lines.Where(l => l[0] is TextNode))
+                    foreach (Node node in line)
                     {
-                        foreach (TextNode word in line)
+                        if (node is TextNode textNode)
                         {
-                            if (word.lexeme is not null && Analyzer.signicantCategories.Contains(word.lexeme.Category))
+                            await semaphore.WaitAsync();
+                            Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
                             {
-                                TextNode iterationValue = word;
-                                try
+                                chapter.FinishedTextNodes++;
+                                semaphore.Release();
+                                await InvokeAsync(() =>
                                 {
-                                    Task task = Task.Run(async () =>
-                                    {
-                                        iterationValue.JmdictEntries = await Translator.TranslateWord(iterationValue.lexeme.BaseForm);
-                                    });
-                                    generalTranslationTasks.Add(task);
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.WriteLine(e.Message);
-                                    Debug.WriteLine(e.InnerException);
-                                    Debug.WriteLine(e.StackTrace);
-                                }
-                            }
+                                    StateHasChanged();
+                                });
+                            }));
                         }
                     }
-
-                    await Task.WhenAll(generalTranslationTasks);
                 }
-
-                Debug.WriteLine("Starting translating names");
-                if (Configs.TranslateNames)
-                {
-                    List<Task> nameTranslationTasks = new List<Task>();
-                    // Assuming images are single-node lines of ImageNode, hence this comparison
-                    foreach (var line in chapter.Lines.Where(l => l[0] is TextNode))
-                    {
-                        foreach (TextNode word in line)
-                        {
-                            if (word.lexeme is not null && Analyzer.signicantCategories.Contains(word.lexeme.Category))
-                            {
-                                try
-                                {
-                                    TextNode iterationValue = word;
-                                    Task task = Task.Run(async () =>
-                                        {
-                                            iterationValue.NameEntry = await Translator.TranslateName(iterationValue.lexeme.Surface);
-                                        });
-                                    nameTranslationTasks.Add(task);
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.WriteLine(e.Message);
-                                    Debug.WriteLine(e.InnerException);
-                                    Debug.WriteLine(e.StackTrace);
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-                Debug.WriteLine("Starting translating chars");
-                if (Configs.TranslateCharacters)
-                {
-                    List<Task> characterTasks = new List<Task>();
-
-                    List<Task> characterTranslationTasks = new List<Task>();
-                    // Assuming images are single-node lines of ImageNode, hence this comparison
-                    foreach (var line in chapter.Lines.Where(l => l[0] is TextNode))
-                    {
-                        foreach (TextNode word in line)
-                        {
-                            TextNode iterationText = word;
-                            foreach (JapaneseCharacter character in iterationText.Characters)
-                            {
-                                JapaneseCharacter iterationCharacter = character;
-                                try
-                                {
-                                    if (iterationCharacter is Romaji)
-                                        break;
-                                    else if (iterationCharacter is Kana k)
-                                    {
-                                        k.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
-                                    }
-                                    else if (iterationCharacter is Kanji kanji)
-                                    {
-                                        Task task = Task.Run(async () =>
-                                        {
-                                            kanji.Entry = await Translator.TranslateKanji(kanji.Literal);
-                                        }
-                                        );
-                                        characterTranslationTasks.Add(task);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    /*Debug.WriteLine(e.Message);
-                                    Debug.WriteLine(e.InnerException);
-                                    Debug.WriteLine(e.StackTrace);*/
-                                }
-                            }
-                        }
-                    }
-
-                    await Task.WhenAll(characterTranslationTasks);
-                }
-
-                //This is not hitting ever
-                chapter.LoadStatus = LoadingStatus.Loaded;
             }
+
 
             else
             {
@@ -439,11 +349,68 @@ namespace Mio.Reader.Components.Pages
                 {
                     CurrentPage = 0;
                 }
-                InvokeAsync(() =>
+                await InvokeAsync(() =>
                 {
                     StateHasChanged();
                 });
             }
+        }
+
+        private async Task TranslateFragment(TextNode node, bool translateGeneral = true, bool translateNames = true, bool translateChars = true)
+        {
+            Task generalTask = Task.Run(async () =>
+            {
+                if (translateGeneral && node.lexeme is not null && Analyzer.signicantCategories.Contains(node.lexeme.Category))
+                {
+                    node.JmdictEntries = await Translator.TranslateWord(node.lexeme.BaseForm);
+                    node.HasFinishedGeneral = true;
+                }
+            });
+
+            Task namesTask = Task.Run(async () => { 
+                if (translateNames)
+                {
+                    node.NameEntry = await Translator.TranslateName(node.lexeme.Surface);
+                    node.HasFinishedNames = true;
+                }
+            });
+
+            await Task.WhenAll(generalTask, namesTask);
+
+            Task charsTask = Task.Run(async () =>
+            {
+                if (translateChars)
+                {
+                    List<Task> charTranslationTasks = [];
+                    foreach (JapaneseCharacter character in node.Characters)
+                    {
+                        JapaneseCharacter iterationCharacter = character;
+                        if (iterationCharacter is Romaji)
+                            break;
+                        else if (iterationCharacter is Kana k)
+                        {
+                            k.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
+                        }
+                        else if (iterationCharacter is Kanji kanji)
+                        {
+                            Task task = Task.Run(async () =>
+                            {
+                                kanji.Entry = await Translator.TranslateKanji(kanji.Literal);
+                            }
+                            );
+                            charTranslationTasks.Add(task);
+                        }
+                    }
+
+                    await Task.WhenAll(charTranslationTasks).ContinueWith(_ =>
+                    {
+                        node.HasFinishedChars = true;
+                    });
+                }
+            });
+
+            await charsTask;
+
         }
 
         private void PushLineToPages(int index, List<Node> line)

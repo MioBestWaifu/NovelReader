@@ -23,6 +23,7 @@
         @if (!chapter.IsImagesOnly)
         {
             <h1 id="chapter-title" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" @onclick="(() => {showTableOfContents = true; StateHasChanged();})">@Book?.TableOfContents[CurrentChapter].Item1</h1>
+            <h3>@chapter.FinishedTextNodes/@chapter.TotalTextNodes</h3>
         }
 
         <!--Gets blurry when scrolling, dont know why-->

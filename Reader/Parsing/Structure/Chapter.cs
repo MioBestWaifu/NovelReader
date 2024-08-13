@@ -15,6 +15,25 @@ namespace Mio.Reader.Parsing.Structure
         public List<List<Node>> Lines { get; private set; } = [];
         public bool IsImagesOnly { get; private set; } = true;
 
+        private int previousTotalTextNodes = 0;
+        //Yes, this is horrible, but this property is only used to gauge progress in debug, so it doesn't matter.
+        public int TotalTextNodes { get
+            {
+                try
+                {
+                    var x = Lines.SelectMany(x => x).Count(x => x is TextNode);
+                    previousTotalTextNodes = x;
+                    return x;
+                }
+                catch (Exception)
+                {
+                    return previousTotalTextNodes;
+                }
+            } 
+        }
+
+        public int FinishedTextNodes { get; set; }
+
         public LoadingStatus LoadStatus { get; set; } = LoadingStatus.Unloaded;
         public Chapter(ZipArchiveEntry fileReference)
         {
