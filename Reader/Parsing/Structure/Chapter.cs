@@ -15,6 +15,13 @@ namespace Mio.Reader.Parsing.Structure
         public List<List<Node>> Lines { get; private set; } = [];
         public bool IsImagesOnly { get; private set; } = true;
 
+        public int TotalTextNodes { get { 
+                return Lines.SelectMany(x => x).Count(x => x is TextNode);
+            } 
+        }
+
+        public int FinishedTextNodes { get; set; }
+
         public LoadingStatus LoadStatus { get; set; } = LoadingStatus.Unloaded;
         public Chapter(ZipArchiveEntry fileReference)
         {

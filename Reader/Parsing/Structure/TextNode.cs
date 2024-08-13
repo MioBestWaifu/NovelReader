@@ -19,6 +19,10 @@ namespace Mio.Reader.Parsing.Structure
         public NamedictEntry? NameEntry { get; set; }
         public List<JapaneseCharacter> Characters { get; set; } = [];
 
+        public bool HasFinishedGeneral { get; set; }
+        public bool HasFinishedNames { get; set; }
+        public bool HasFinishedChars { get; set; }
+
         public readonly Lexeme? lexeme;
 
         public TextNode()
