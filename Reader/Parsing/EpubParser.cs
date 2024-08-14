@@ -120,19 +120,15 @@ namespace Mio.Reader.Parsing
                     List<JapaneseCharacter> chars = [];
                     foreach (var character in lexeme.Surface)
                     {
-                        if (character == ' ' || character == '\n')
-                        {
-                            continue;
-                        } else if (Analyzer.IsRomaji(character))
+                        if (Analyzer.IsRomaji(character))
                         {
                             chars.Add(new Romaji(character));
                         } else if (Analyzer.IsKana(character))
                         {
                             Kana kana = new Kana(character);
                             chars.Add(kana);
-                        } else
+                        } else if (Analyzer.IsKanji(character))
                         {
-                            //Presumes everything else is a kanji. This may or may not be a sound idea.
                             Kanji kanji = new Kanji(character);
                             chars.Add(kanji);
                         }

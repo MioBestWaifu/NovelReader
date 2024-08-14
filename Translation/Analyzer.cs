@@ -117,5 +117,19 @@ namespace Mio.Translation
         {
             return c >= 0x0041 && c <= 0x005A || c >= 0x0061 && c <= 0x007A;
         }
+
+        public static bool IsKanji(char c)
+        {
+            int unicodeValue = c;
+            int range1Start = 0x4E00, range1End = 0x9FFF;
+            int range2Start = 0x3400, range2End = 0x4DBF;
+            int range3Start = 0x20000, range3End = 0x2A6DF;
+            int range4Start = 0x2A700, range4End = 0x2EBEF;
+
+            return (unicodeValue >= range1Start && unicodeValue <= range1End) ||
+                   (unicodeValue >= range2Start && unicodeValue <= range2End) ||
+                   (unicodeValue >= range3Start && unicodeValue <= range3End) ||
+                   (unicodeValue >= range4Start && unicodeValue <= range4End);
+        }
     }
 }
