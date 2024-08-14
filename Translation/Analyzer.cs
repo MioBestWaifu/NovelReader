@@ -113,6 +113,18 @@ namespace Mio.Translation
             return c >= 0x3040 && c <= 0x309F || c >= 0x30A0 && c <= 0x30FF;
         }
 
+        public static bool IsYoon(char input)
+        {
+            char[] yoonChars = {
+        'ゃ', 'ゅ', 'ょ',
+        'ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ',
+        'ャ', 'ュ', 'ョ',
+        'ァ', 'ィ', 'ゥ', 'ェ', 'ォ',
+        'ー','っ','ッ' // Not yoons, but for translation purposes they are the same
+            };
+            return yoonChars.Contains(input);
+        }
+
         public static bool IsRomaji(char c)
         {
             return c >= 0x0041 && c <= 0x005A || c >= 0x0061 && c <= 0x007A;

@@ -102,13 +102,13 @@ namespace Mio.Reader.Parsing
                 {
                     if (nodes.Count == 0)
                     {
-                        nodes.Add(new TextNode() { Characters = {new JapaneseCharacter(sentences[i][0])} });
+                        nodes.Add(new TextNode() { Characters = {new Yakumono(sentences[i][0])} });
                     }
                     else
                     {
                         //This will break if the previoues node was not a textnode, but that should never happen.
                         TextNode nodeToAppend = (TextNode)nodes[^1];
-                        nodeToAppend.Characters.Add(new JapaneseCharacter(sentences[i][0]));
+                        nodeToAppend.Characters.Add(new Yakumono(sentences[i][0]));
                     }
                     continue;
                 }
@@ -125,12 +125,18 @@ namespace Mio.Reader.Parsing
                             chars.Add(new Romaji(character));
                         } else if (Analyzer.IsKana(character))
                         {
-                            Kana kana = new Kana(character);
+                            bool isYoon = Analyzer.IsYoon(character);
+                            Kana kana = new Kana(character, isYoon);
                             chars.Add(kana);
                         } else if (Analyzer.IsKanji(character))
                         {
                             Kanji kanji = new Kanji(character);
                             chars.Add(kanji);
+                        } else
+                        {
+                            //Presuming anything that is not a kana, kanji or romaji is a yakumono.
+                            //May or may not be a good idea.
+                            chars.Add(new Yakumono(character));
                         }
                     }
                     node.Characters = chars;

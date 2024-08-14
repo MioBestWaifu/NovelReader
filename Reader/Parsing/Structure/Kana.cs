@@ -8,8 +8,12 @@ namespace Mio.Reader.Parsing.Structure
 {
     public class Kana : JapaneseCharacter
     {
-        public Kana(char literal) : base(literal)
+        public bool IsYoon { get; private set; }
+        //Used to render and translate yooned kana
+        public string? Composition { get; set; }
+        public Kana(char literal, bool isYoon) : base(literal)
         {
+            IsYoon = isYoon;
         }
 
         public string Reading { get; set; } = "";
