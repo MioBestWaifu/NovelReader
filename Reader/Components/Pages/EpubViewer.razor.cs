@@ -363,6 +363,11 @@ namespace Mio.Reader.Components.Pages
 
         private async Task TranslateFragment(TextNode node, bool translateGeneral = true, bool translateNames = true, bool translateChars = true)
         {
+            if(node.lexeme is null)
+            {
+                return;
+            }
+
             Task generalTask = Task.Run(async () =>
             {
                 if (translateGeneral && node.lexeme is not null && Analyzer.signicantCategories.Contains(node.lexeme.Category))
