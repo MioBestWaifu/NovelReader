@@ -116,7 +116,14 @@ namespace Mio.Translation
 
         public string TranslateKana(string kana)
         {
-            return kana.ToRomaji();
+            try
+            {
+                return kana.ToRomaji();
+            }
+            catch (InvalidKanaException)
+            {
+                return "";
+            }
         }
     }
 }

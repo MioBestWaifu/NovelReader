@@ -31,9 +31,19 @@
             }
             else if (character is Kana kana)
             {
-                @($"{kana.Literal} - {kana.Reading}")
+                if (!kana.IsYoon)
+                {
+                    if (kana.Composition is null)
+                    {
+                        @($"{kana.Literal} - {kana.Reading}")
+                    }
+                    else
+                    {
+                        @($"{kana.Composition} - {kana.Reading}")
+                    }
+                }
             }
-            else
+            else if (!(character is Yakumono))
             {
                 @character.Literal
             }

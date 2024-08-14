@@ -363,6 +363,11 @@ namespace Mio.Reader.Components.Pages
 
         private async Task TranslateFragment(TextNode node, bool translateGeneral = true, bool translateNames = true, bool translateChars = true)
         {
+            if(node.lexeme is null)
+            {
+                return;
+            }
+
             Task generalTask = Task.Run(async () =>
             {
                 if (translateGeneral && node.lexeme is not null && Analyzer.signicantCategories.Contains(node.lexeme.Category))
@@ -387,14 +392,46 @@ namespace Mio.Reader.Components.Pages
                 if (translateChars)
                 {
                     List<Task> charTranslationTasks = [];
-                    foreach (JapaneseCharacter character in node.Characters)
+                    for (int i = 0; i <node.Characters.Count; i++)
                     {
-                        JapaneseCharacter iterationCharacter = character;
+                        JapaneseCharacter iterationCharacter = node.Characters[i];
                         if (iterationCharacter is Romaji)
+                            //Presumes romaji only occurs in romaji-only words. I am not aware of any circumstance where this is not true.
                             break;
-                        else if (iterationCharacter is Kana k)
+                        else if (iterationCharacter is Kana kana)
                         {
-                            k.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
+                            if (kana.IsYoon)
+                            {
+                                try
+                                {
+                                    Kana? previousNonYoonKana = null;
+                                    for (int j = i - 1; j >= 0; j--)
+                                    {
+                                        if (node.Characters[j] is Kana possibleKana && !possibleKana.IsYoon)
+                                        {
+                                            previousNonYoonKana = possibleKana;
+                                            break;
+                                        }
+                                    }
+                                    if(previousNonYoonKana is null)
+                                    {
+                                        continue;
+                                    }
+                                    if (previousNonYoonKana.Composition is null)
+                                    {
+                                        previousNonYoonKana.Composition = previousNonYoonKana.Literal.ToString();
+                                    }
+                                    previousNonYoonKana.Composition += kana.Literal;
+                                    previousNonYoonKana.Reading = Translator.TranslateKana(previousNonYoonKana.Composition);
+                                } catch (Exception e)
+                                {
+                                    Debug.WriteLine(e.Message);
+                                }
+                            }
+                            else 
+                            {
+                                kana.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
+                            }
                         }
                         else if (iterationCharacter is Kanji kanji)
                         {
