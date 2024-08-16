@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class EpubInteraction (EpubMetadata metadata)
+    public class BookInteraction (BookMetadata metadata)
     {
-        public EpubMetadata Metadata { get; set; } = metadata;
+        public BookMetadata Metadata { get; set; } = metadata;
         public int LastPage { get; set; } = 0;
         //Because the number of pages in a chapter might change if the user is vieweing in different window sizes.
         public int LastTimeNumberOfPages { get; set; } = 0;

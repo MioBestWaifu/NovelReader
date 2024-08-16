@@ -1,4 +1,4 @@
-﻿using Mio.Reader.Parsing;
+﻿using Mio.Reader.Parsing.Loading;
 using Mio.Reader.Parsing.Structure;
 
 /* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
@@ -26,7 +26,7 @@ namespace Mio.Reader.Services
          * 1 - Have pagination
          * 2 - Only keep base64 in memory while that page of the library is being displayed
         */
-        public List<EpubInteraction> Books { get; private set; } = [];
+        public List<BookInteraction> Books { get; private set; } = [];
         public event EventHandler BookAdded;
 
         public async void Initialize()
@@ -51,7 +51,7 @@ namespace Mio.Reader.Services
                     continue;
                 }
                 //Should be wrapper in a try-catch. Isn't because it's still not published and errors are easier to find like this.
-                Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(file)));
+                Books.Add(new BookInteraction(await BookLoader.LoadMetadata(file)));
                 BookAdded.Invoke(this, EventArgs.Empty);
             }
         }

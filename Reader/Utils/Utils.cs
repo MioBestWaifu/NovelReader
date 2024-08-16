@@ -1,5 +1,4 @@
-﻿using Mio.Reader.Parsing;
-using SixLabors.ImageSharp.Processing;
+﻿using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,29 @@ using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats;
 
 using Mio.Translation.Elements;
+
+/* Unmerged change from project 'Reader (net8.0-android)'
+Before:
 using Mio.Translation.Properties;
+
+
+
+
+
+#if ANDROID
+After:
+using Mio.Translation.Properties;
+using Mio.Reader.Parsing.Loading;
+
+
+
+
+
+
+#if ANDROID
+*/
+using Mio.Translation.Properties;
+using Mio.Reader.Parsing.Loading;
 
 
 
@@ -91,7 +112,7 @@ namespace Mio.Reader.Utilitarians
 
             string containerXml = await new StreamReader(namedEntries["META-INF/container.xml"].Open()).ReadToEndAsync();
 
-            string standardOpfPath = await EpubMetadataResolver.ResolveStandardsFile(containerXml);
+            string standardOpfPath = await MetadataResolver.ResolveStandardsFile(containerXml);
 
             return GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
         }

@@ -13,6 +13,10 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using TouchEventArgs = Microsoft.AspNetCore.Components.Web.TouchEventArgs;
 using Mio.Translation;
+using Mio.Reader.Parsing.Structure.Chars;
+using Mio.Reader.Parsing.Loading;
+
+
 #if ANDROID
 using Xamarin.Google.Crypto.Tink.Proto;
 #endif
@@ -20,7 +24,7 @@ using Mio.Reader.Utilitarians;
 
 namespace Mio.Reader.Components.Pages
 {
-    public partial class EpubViewer
+    public partial class Viewer
     {
         [Inject]
         private IJSRuntime JS { get; set; }
@@ -38,8 +42,8 @@ namespace Mio.Reader.Components.Pages
 
         private readonly DevicePlatform plataform = DeviceInfo.Current.Platform;
 
-        private Epub? Book { get; set; } = null;
-        private EpubInteraction interaction;
+        private Book? Book { get; set; } = null;
+        private BookInteraction interaction;
         //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
         private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
 
@@ -106,8 +110,8 @@ namespace Mio.Reader.Components.Pages
             CurrentPage = 0;
             interaction = Library.Books[BookIndex];
             CurrentChapter = interaction.LastChapter;
-            if (EpubParser.analyzer is null)
-                EpubParser.analyzer = new Analyzer(Configs.PathToUnidic);
+            if (Parser.analyzer is null)
+                Parser.analyzer = new Analyzer(Configs.PathToUnidic);
             Task.Run(() => SetBook());
             return base.OnInitializedAsync();
         }
@@ -128,7 +132,7 @@ namespace Mio.Reader.Components.Pages
 
             try
             {
-                Book = await EpubLoader.LoadEpub(interaction.Metadata);
+                Book = await BookLoader.LoadEpub(interaction.Metadata);
                 Task.Run(() => LoadChapter(CurrentChapter, true));
             }
             catch (Exception e)
@@ -274,7 +278,7 @@ namespace Mio.Reader.Components.Pages
             //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
             if (chapter.LoadStatus == LoadingStatus.Unloaded)
             {
-                List<XElement> lines = await EpubParser.BreakChapterToLines(chapter);
+                List<XElement> lines = await Parser.BreakChapterToLines(chapter);
                 Pages = await PreparePages(lines);
                 if (firstLoad && interaction.LastTimeNumberOfPages != 0)
                 {
@@ -300,7 +304,7 @@ namespace Mio.Reader.Components.Pages
                 for (int i = 0; i < lines.Count; i++)
                 {
                     int currentIndex = i; // Capture the current index
-                    parsingTasks.Add(EpubParser.ParseLine(chapter, lines[currentIndex]).ContinueWith(async parseLineTask =>
+                    parsingTasks.Add(Parser.ParseLine(chapter, lines[currentIndex]).ContinueWith(async parseLineTask =>
                     {
                         Debug.WriteLine("Parsing line " + currentIndex);
                         List<Node> line = parseLineTask.Result;

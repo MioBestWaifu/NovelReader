@@ -3,7 +3,7 @@
     @for (int i = 0; i < LibraryService.Books.Count; i++)
     {
         int currentIterationIndex = i;
-        EpubMetadata book = LibraryService.Books[currentIterationIndex].Metadata;
+        BookMetadata book = LibraryService.Books[currentIterationIndex].Metadata;
         <FluentCard Class="rdr-card" Width="220px" Height="430px">
             <img class="pointer" src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 330px; width:220px;"
             @onclick="(() => OnBookSelected.InvokeAsync(currentIterationIndex))" />

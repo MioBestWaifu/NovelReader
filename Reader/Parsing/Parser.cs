@@ -1,13 +1,6 @@
 ﻿using Mio.Reader.Parsing.Structure;
+using Mio.Reader.Parsing.Structure.Chars;
 using Mio.Reader.Services;
-
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using Mio.Translation;
-After:
-using Mio.Reader.Utilitarians;
-using Mio.Translation;
-*/
 using Mio.Reader.Utilitarians;
 using Mio.Translation;
 using System.Diagnostics;
@@ -21,9 +14,8 @@ using System.Xml.Linq;
 namespace Mio.Reader.Parsing
 {
 
-    internal static class EpubParser
+    internal static class Parser
     {
-
         //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
         //include any other separators that might be missing
         //Why two fields? Class regex as above is fast for regexing, list is faster for comparing.

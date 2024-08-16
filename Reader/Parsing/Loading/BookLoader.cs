@@ -4,14 +4,14 @@ using System.Diagnostics;
 using System.IO.Compression;
 using Mio.Reader.Parsing.Structure;
 
-namespace Mio.Reader.Parsing
+namespace Mio.Reader.Parsing.Loading
 {
-    internal static class EpubLoader
+    internal static class BookLoader
     {
-        public async static Task<EpubMetadata> LoadMetadata (string path)
+        public async static Task<BookMetadata> LoadMetadata(string path)
         {
             ZipArchive archive = ZipFile.OpenRead(path);
-            var res =  await EpubMetadataResolver.ResolveMetadata(path,archive);
+            var res = await MetadataResolver.ResolveMetadata(path, archive);
             archive.Dispose();
             return res;
         }
@@ -21,11 +21,11 @@ namespace Mio.Reader.Parsing
         /// The only contents that are loaded are the metadata and the table of contents.
         /// </summary>
         /// <param name="path"></param>
-        public async static Task<Epub> LoadEpub(EpubMetadata metadata)
+        public async static Task<Book> LoadEpub(BookMetadata metadata)
         {
             ZipArchive archive = ZipFile.OpenRead(metadata.Path);
 
-            Epub epub = new Epub(archive,metadata);
+            Book epub = new Book(archive, metadata);
             //Not parallel because it is (probably) a small list.
             Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
             foreach (ZipArchiveEntry entry in archive.Entries)
@@ -35,7 +35,7 @@ namespace Mio.Reader.Parsing
             }
             string standardOpf = await new StreamReader(namedEntries[metadata.Standards].Open()).ReadToEndAsync();
 
-            List<(string, ZipArchiveEntry)> contents = EpubMetadataResolver.ResolveChapters(namedEntries[metadata.Standards], standardOpf);
+            List<(string, ZipArchiveEntry)> contents = MetadataResolver.ResolveChapters(namedEntries[metadata.Standards], standardOpf);
 
             foreach (var pair in contents)
             {

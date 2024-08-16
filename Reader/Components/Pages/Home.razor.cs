@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Mio.Reader.Parsing;
+using Mio.Reader.Parsing.Loading;
 using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
 using System;
@@ -66,7 +66,7 @@ namespace Mio.Reader.Components.Pages
                 string? filePath = await DataManager.PickBook();
                 if (string.IsNullOrEmpty(filePath))
                     return;
-                Task task = Task.Run(async () => Lib.Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(filePath))));
+                Task task = Task.Run(async () => Lib.Books.Add(new BookInteraction(await BookLoader.LoadMetadata(filePath))));
                 await task;
                 Navigator.NavigateTo("/reader?bookIndex=0");
                 return;

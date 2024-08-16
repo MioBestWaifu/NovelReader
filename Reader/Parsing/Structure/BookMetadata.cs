@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class EpubMetadata
+    public class BookMetadata
     {
         public string Title { get; set; }
         public string Author { get; set; }
@@ -21,7 +21,7 @@ namespace Mio.Reader.Parsing.Structure
         public string CoverRelativePath { get; set; }
         public string Standards { get; set; }
 
-        public EpubMetadata(string title, string author, string path, int version, string coverBase64, string coverRelativePath, string standards)
+        public BookMetadata(string title, string author, string path, int version, string coverBase64, string coverRelativePath, string standards)
         {
             Title = title;
             Author = author;
