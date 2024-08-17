@@ -8,6 +8,8 @@ namespace Mio.Reader.Parsing.Structure
 {
     public class PdfChapter : Chapter
     {
+        //Temporary, should refactor access to book
+        public string pathToPdf;
         public int startPage;
         public int endPage;
         public PdfChapter(int startPage, int endPage)

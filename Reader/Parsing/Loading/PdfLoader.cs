@@ -122,6 +122,7 @@ namespace Mio.Reader.Parsing.Loading
             book.TableOfContents = [];
             foreach (var chapter in chapters)
             {
+                chapter.pathToPdf = metadata.Path;
                 book.TableOfContents.Add((chapter.Title,chapter));
             }
             return book;
