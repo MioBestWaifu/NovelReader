@@ -4,6 +4,7 @@ using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Data;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using iText.Kernel.Pdf.Xobject;
+using UglyToad.PdfPig;
 using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
 using System;
@@ -12,6 +13,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ITextPdfDocument = iText.Kernel.Pdf.PdfDocument;
+using PigPdfDocument = UglyToad.PdfPig.PdfDocument;
+using PigPage = UglyToad.PdfPig.Content.Page;
+using ITextPage = iText.Kernel.Pdf.PdfPage;
+using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Core;
+using iText.Kernel.Geom;
 namespace Mio.Reader.Parsing
 {
     internal class PdfParser : Parser
@@ -35,24 +43,29 @@ namespace Mio.Reader.Parsing
         private async Task<int> BreakChapterToLines (PdfChapter chapter)
         {
             List<PdfParsingElement> lines = new List<PdfParsingElement>();
-            using (PdfReader reader = new PdfReader(chapter.pathToPdf))
-            using (PdfDocument pdfDocument = new PdfDocument(reader))
+            using (PigPdfDocument pigPdf = PigPdfDocument.Open(chapter.pathToPdf))
+            {
+                for (int i = chapter.startPage; i<=chapter.endPage; i++)
+                {
+                    PigPage page = pigPdf.GetPage(i);
+                    foreach (Word word in page.GetWords())
+                    {
+                        lines.Add(new PdfParsingElement { Text = word.Text, IsImage = false, BoundingBox = word.BoundingBox });
+                    }
+                }
+            };
+
+            using(ITextPdfDocument iTextPdf = new ITextPdfDocument(new PdfReader(chapter.pathToPdf)))
             {
                 for (int pageNumber = chapter.startPage; pageNumber <= chapter.endPage; pageNumber++)
                 {
-                    PdfPage page = pdfDocument.GetPage(pageNumber);
+                    ITextPage page = iTextPdf.GetPage(pageNumber);
                     PdfCanvasProcessor processor = new PdfCanvasProcessor(new RenderListener(lines));
                     processor.ProcessPageContent(page);
                 }
-
-                chapter.OriginalLines = [];
-                foreach (PdfParsingElement element in lines)
-                {
-                    chapter.OriginalLines.Add(element);
-                }
-
-                return lines.Count;
-            };
+            }
+            chapter.OriginalLines = lines.Select(x=> x as ParsingElement).ToList();
+            return lines.Count;
         }
 
         public override Task<List<Node>> ParseLine(Chapter chapter, int lineIndex)
@@ -83,17 +96,32 @@ namespace Mio.Reader.Parsing
             {
                 switch (type)
                 {
-                    case EventType.RENDER_TEXT:
+                    /*case EventType.RENDER_TEXT:
                         TextRenderInfo textRenderInfo = (TextRenderInfo)data;
-                        _contentObjects.Add(new PdfParsingElement { Text = textRenderInfo.GetText() , IsImage = false});
+                        _contentObjects.Add(new PdfParsingElement { Text = textRenderInfo.GetText(), IsImage = false });
                         break;
-
+*/
                     case EventType.RENDER_IMAGE:
                         ImageRenderInfo imageRenderInfo = (ImageRenderInfo)data;
                         PdfImageXObject image = imageRenderInfo.GetImage();
                         if (image != null)
                         {
-                            _contentObjects.Add(new PdfParsingElement { Image = image.GetImageBytes(), Extension = image.IdentifyImageFileExtension(), IsImage = true });
+                            var imageBytes = image.GetImageBytes();
+                            var imageCtm = imageRenderInfo.GetImageCtm();
+                            var imageCoordinates = new PdfRectangle(
+                                imageCtm.Get(Matrix.I31),
+                                imageCtm.Get(Matrix.I32),
+                                imageCtm.Get(Matrix.I11),
+                                imageCtm.Get(Matrix.I22)
+                            );
+
+                            _contentObjects.Add(new PdfParsingElement
+                            {
+                                Image = imageBytes,
+                                Extension = image.IdentifyImageFileExtension(),
+                                IsImage = true,
+                                BoundingBox = imageCoordinates
+                            });
                         }
                         break;
                 }
