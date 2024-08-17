@@ -3,46 +3,39 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using Mio.Reader.Parsing.Structure;
+using Mio.Reader.Services;
 
 namespace Mio.Reader.Parsing.Loading
 {
-    internal static class BookLoader
+    internal abstract class BookLoader
     {
-        public async static Task<BookMetadata> LoadMetadata(string path)
-        {
-            ZipArchive archive = ZipFile.OpenRead(path);
-            var res = await MetadataResolver.ResolveMetadata(path, archive);
-            archive.Dispose();
-            return res;
-        }
+        protected Parser parser;
+        public abstract Task<BookMetadata> LoadMetadata(string path);
 
         /// <summary>
         /// Does not actually load the content of the Epub, but rather references and indexes the files in a organized fashion.
         /// The only contents that are loaded are the metadata and the table of contents.
         /// </summary>
         /// <param name="path"></param>
-        public async static Task<Book> LoadEpub(BookMetadata metadata)
+        public abstract Task<Book> LoadBook(BookMetadata metadata);
+
+        public abstract Task LoadChapterContent(Chapter chapter);
+
+        public async Task<int> BreakChapterToLines(Chapter chapter)
         {
-            ZipArchive archive = ZipFile.OpenRead(metadata.Path);
+            return await parser.BreakChapterToLines(chapter);
+        }
 
-            Book epub = new Book(archive, metadata);
-            //Not parallel because it is (probably) a small list.
-            Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
-            foreach (ZipArchiveEntry entry in archive.Entries)
+        public static BookLoader GetLoader(string path, ConfigurationsService configs,ImageParsingService imageParsingService)
+        {
+            if (path.EndsWith(".epub"))
             {
-                Debug.WriteLine(entry.FullName);
-                namedEntries[entry.FullName] = entry;
+                return new EpubLoader(configs,imageParsingService);
             }
-            string standardOpf = await new StreamReader(namedEntries[metadata.Standards].Open()).ReadToEndAsync();
-
-            List<(string, ZipArchiveEntry)> contents = MetadataResolver.ResolveChapters(namedEntries[metadata.Standards], standardOpf);
-
-            foreach (var pair in contents)
+            else
             {
-                epub.TableOfContents.Add((pair.Item1, new Chapter(pair.Item2)));
+                throw new NotSupportedException("The file type is not supported.");
             }
-
-            return epub;
         }
     }
 }

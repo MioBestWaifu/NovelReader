@@ -112,7 +112,7 @@ namespace Mio.Reader.Utilitarians
 
             string containerXml = await new StreamReader(namedEntries["META-INF/container.xml"].Open()).ReadToEndAsync();
 
-            string standardOpfPath = await MetadataResolver.ResolveStandardsFile(containerXml);
+            string standardOpfPath = await EpubMetadataResolver.ResolveStandardsFile(containerXml);
 
             return GetRelativeEntry(namedEntries[standardOpfPath], coverRelativePath);
         }

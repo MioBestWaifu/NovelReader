@@ -12,16 +12,15 @@ using System.Xml.Linq;
 
 namespace Mio.Reader.Parsing.Loading
 {
-    internal static class MetadataResolver
+    internal class EpubMetadataResolver
     {
-        private static ImageParsingService imageParser;
-
-        public static void Initialize(ImageParsingService imageParsingService)
+        ImageParsingService imageParser;
+        public EpubMetadataResolver(ImageParsingService imageParser)
         {
-            imageParser = imageParsingService;
+            this.imageParser = imageParser;
         }
 
-        public async static Task<string> ResolveStandardsFile(string originalXml)
+        public async Task<string> ResolveStandardsFile(string originalXml)
         {
             // Parse the original XML content as an XML document
             XDocument doc = XDocument.Parse(originalXml);
@@ -38,7 +37,7 @@ namespace Mio.Reader.Parsing.Loading
             return fullPath;
         }
 
-        public static async Task<BookMetadata> ResolveMetadata(string path, ZipArchive archive)
+        public async Task<BookMetadata> ResolveMetadata(string path, ZipArchive archive)
         {
             //Not parallel because it is (probably) a small list.
             Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();

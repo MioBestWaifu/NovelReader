@@ -50,7 +50,7 @@ namespace Mio.Reader.Services
 #else
             PathToUnidic = Path.Combine(FileSystem.AppDataDirectory, "Unidic");
 #endif
-            Parser.Configs = this;
+            Parser.configs = this;
         }
 
         public async void Save()
