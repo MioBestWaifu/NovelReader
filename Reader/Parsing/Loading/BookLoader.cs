@@ -11,8 +11,17 @@ namespace Mio.Reader.Parsing.Loading
     internal abstract class BookLoader
     {
         protected Parser parser;
+        protected ImageParsingService imageParser;
         //This class could contain a reference to a book, and methods such as these would require or allow setting any book or chapter to be worked.
+        public BookLoader(ConfigurationsService configs, ImageParsingService imageParsingService)
+        {
+            imageParser = imageParsingService;
+        }
         public abstract Task<BookMetadata> LoadMetadata(string path);
+
+        public abstract Task<bool> LoadCover(BookMetadata metadata);
+
+        public abstract Task<bool> LoadAndResizeCover(BookMetadata metadata, int newWidth, int newHeight);
 
         public abstract Task<Book> IndexBook(BookMetadata metadata);
 
@@ -46,6 +55,10 @@ namespace Mio.Reader.Parsing.Loading
             if (path.EndsWith(".epub"))
             {
                 return new EpubLoader(configs,imageParsingService);
+            }
+            else if (path.EndsWith(".pdf"))
+            {
+                return new PdfLoader(configs,imageParsingService);
             }
             else
             {

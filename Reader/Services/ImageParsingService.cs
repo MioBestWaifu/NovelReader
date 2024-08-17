@@ -16,5 +16,7 @@ namespace Mio.Reader.Services
         public abstract Task<string> ParseImageEntryToBase64(ZipArchiveEntry entry);
 
         public abstract Task<string> ParseImageEntryToBase64(ZipArchiveEntry entry, int newWidth, int newHeight);
+        public abstract Task<string> ParseImageBytesToBase64(byte[] bytes, string format);
+        public abstract Task<string> ParseImageBytesToBase64(byte[] bytes, string format,int newWidth, int newHeight);
     }
 }

@@ -113,13 +113,13 @@ namespace Mio.Reader.Services
             {
                 var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                 {
-                    { DevicePlatform.Android, new[] { "application/epub+zip" } }, // MIME type for EPUB files
+                    { DevicePlatform.Android, new[] { "application/epub+zip", "application/pdf" } }, // MIME types for EPUB and PDF files
                     // Add other platforms if necessary
                 });
 
                 var options = new PickOptions
                 {
-                    PickerTitle = "Please select an EPUB file",
+                    PickerTitle = "Please select an EPUB or PDF file",
                     FileTypes = customFileType,
                 };
 

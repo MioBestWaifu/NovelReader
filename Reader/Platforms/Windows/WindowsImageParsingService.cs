@@ -15,6 +15,65 @@ namespace Mio.Reader.Platforms.Windows
 {
     public class WindowsImageParsingService : ImageParsingService
     {
+        public override async Task<string> ParseImageBytesToBase64(byte[] bytes, string format)
+        {
+            try
+            {
+                using (var image = await ParseImage(bytes))
+                {
+
+                    using (var ms = new MemoryStream())
+                    {
+                        IImageEncoder encoder = format switch
+                        {
+                            "jpg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                            "jpeg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                            "png" => new SixLabors.ImageSharp.Formats.Png.PngEncoder(),
+                            "gif" => new SixLabors.ImageSharp.Formats.Gif.GifEncoder(),
+                            _ => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
+                        };
+                        image.Save(ms, encoder);
+                        return Convert.ToBase64String(ms.ToArray());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                return "";
+            }
+        }
+
+        public override async Task<string> ParseImageBytesToBase64(byte[] bytes, string format, int newWidth, int newHeight)
+        {
+            try
+            {
+                using (var image = await ParseImage(bytes))
+                {
+                    image.Mutate(x => x.Resize(newWidth, newHeight));
+
+                    using (var ms = new MemoryStream())
+                    {
+                        IImageEncoder encoder = format switch
+                        {
+                            "jpg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                            "jpeg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(),
+                            "png" => new SixLabors.ImageSharp.Formats.Png.PngEncoder(),
+                            "gif" => new SixLabors.ImageSharp.Formats.Gif.GifEncoder(),
+                            _ => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
+                        };
+                        image.Save(ms, encoder);
+                        return Convert.ToBase64String(ms.ToArray());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                return "";
+            }
+        }
+
         public override async Task<string> ParseImageEntryToBase64(ZipArchiveEntry entry)
         {
             if (entry != null)
@@ -86,6 +145,11 @@ namespace Mio.Reader.Platforms.Windows
         {
             using var stream = imageEntry.Open();
             return Image.Load(stream);
+        }
+
+        private async Task<Image> ParseImage(byte[] bytes)
+        {
+           return Image.Load(bytes);
         }
     }
 }

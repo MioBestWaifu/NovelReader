@@ -1,5 +1,6 @@
 ﻿using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
+using Mio.Reader.Utilitarians;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +16,7 @@ namespace Mio.Reader.Parsing.Loading
         
         private EpubMetadataResolver metadataResolver;
 
-        public EpubLoader(ConfigurationsService configs,ImageParsingService imageParsingService)
+        public EpubLoader(ConfigurationsService configs,ImageParsingService imageParsingService) : base(configs, imageParsingService)
         {
             metadataResolver = new EpubMetadataResolver(imageParsingService);
             parser = new EpubParser(configs,imageParsingService);
@@ -71,6 +72,24 @@ namespace Mio.Reader.Parsing.Loading
             }
 
             return Task.WhenAll(parsingTasks);
+        }
+
+        public override async Task<bool> LoadCover(BookMetadata metadata)
+        {
+            ZipArchiveEntry coverEntry = await Utils.GetCoverEntry(metadata.Path, metadata.CoverRelativePath);
+            metadata.CoverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry);
+            //Should really dispose it here? Maybe should keep around to not have to load one again. Maybe a service should manage ZipArchives
+            coverEntry.Archive.Dispose();
+            return metadata.CoverBase64 != "";
+        }
+
+        public override async Task<bool> LoadAndResizeCover(BookMetadata metadata, int newWidth, int newHeight)
+        {
+            ZipArchiveEntry coverEntry = await Utils.GetCoverEntry(metadata.Path, metadata.CoverRelativePath);
+            metadata.CoverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry, newWidth,newHeight);
+            //Should really dispose it here? Maybe should keep around to not have to load one again. Maybe a service should manage ZipArchives
+            coverEntry.Archive.Dispose();
+            return metadata.CoverBase64 != "";
         }
     }
 }

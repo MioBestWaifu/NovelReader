@@ -34,15 +34,16 @@ namespace Mio.Reader.Services
             Books = await dataManager.GetSavedInteractions();
             Parallel.ForEach(Books, async (book) =>
             {
-                ZipArchiveEntry coverEntry = await Utils.GetCoverEntry(book.Metadata.Path, book.Metadata.CoverRelativePath);
-                book.Metadata.CoverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry,440,660);
-                //Should really dispose it here? Maybe should keep around to not have to load one again. Maybe a service should manage ZipArchives
-                coverEntry.Archive.Dispose();
+                BookLoader loader = BookLoader.GetLoader(book.Metadata.Path, configs, imageParser);
+                await loader.LoadAndResizeCover(book.Metadata,440,660);
                 BookAdded.Invoke(this, EventArgs.Empty);
             });
 
             //Should this loading be done with dataManger?
-            string[] files = Directory.GetFiles(configs.PathToLibrary!, "*.epub", SearchOption.AllDirectories).Order().ToArray();
+            string[] epubFiles = Directory.GetFiles(configs.PathToLibrary!, "*.epub", SearchOption.AllDirectories);
+            string[] pdfFiles = Directory.GetFiles(configs.PathToLibrary!, "*.pdf", SearchOption.AllDirectories);
+            string[] files = epubFiles.Concat(pdfFiles).Order().ToArray();
+
             foreach (string file in files)
             {
                 //Not sure how efficient this is for large libraries.
