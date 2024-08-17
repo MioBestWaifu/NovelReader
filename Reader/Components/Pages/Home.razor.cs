@@ -34,6 +34,8 @@ namespace Mio.Reader.Components.Pages
         [Inject]
         DataManagementService DataManager { get; set; }
         [Inject]
+        ImageParsingService ImageParser { get; set; }
+        [Inject]
         LibraryService Lib { get; set; }
 
         DevicePlatform plataform = DeviceInfo.Current.Platform;
@@ -66,7 +68,8 @@ namespace Mio.Reader.Components.Pages
                 string? filePath = await DataManager.PickBook();
                 if (string.IsNullOrEmpty(filePath))
                     return;
-                Task task = Task.Run(async () => Lib.Books.Add(new BookInteraction(await BookLoader.LoadMetadata(filePath))));
+                BookLoader loader = BookLoader.GetLoader(filePath, Configurations, ImageParser);
+                Task task = Task.Run(async () => Lib.Books.Add(new BookInteraction(await loader.LoadMetadata(filePath))));
                 await task;
                 Navigator.NavigateTo("/reader?bookIndex=0");
                 return;

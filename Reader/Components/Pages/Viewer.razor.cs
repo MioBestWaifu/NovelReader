@@ -33,6 +33,8 @@ namespace Mio.Reader.Components.Pages
         [Inject]
         private LibraryService Library { get; set; }
         [Inject]
+        private ImageParsingService ImageParser { get; set; }
+        [Inject]
         private Translator Translator { get; set; }
 
         [Parameter]
@@ -43,6 +45,7 @@ namespace Mio.Reader.Components.Pages
         private readonly DevicePlatform plataform = DeviceInfo.Current.Platform;
 
         private Book? Book { get; set; } = null;
+        private BookLoader bookLoader; 
         private BookInteraction interaction;
         //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
         private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
@@ -110,8 +113,6 @@ namespace Mio.Reader.Components.Pages
             CurrentPage = 0;
             interaction = Library.Books[BookIndex];
             CurrentChapter = interaction.LastChapter;
-            if (Parser.analyzer is null)
-                Parser.analyzer = new Analyzer(Configs.PathToUnidic);
             Task.Run(() => SetBook());
             return base.OnInitializedAsync();
         }
@@ -132,8 +133,9 @@ namespace Mio.Reader.Components.Pages
 
             try
             {
-                Book = await BookLoader.LoadEpub(interaction.Metadata);
-                Task.Run(() => LoadChapter(CurrentChapter, true));
+                bookLoader = BookLoader.GetLoader(interaction.Metadata.Path, Configs, ImageParser);
+                Book = await bookLoader.IndexBook(interaction.Metadata);
+                LoadChapter(CurrentChapter, true);
             }
             catch (Exception e)
             {
@@ -273,13 +275,11 @@ namespace Mio.Reader.Components.Pages
             Chapter chapter = Book.TableOfContents[index].Item2;
             //To keep track of if the user went to another chapter while the current one was loading
             int thisTaskChapterIndex = CurrentChapter;
-            List<Task> parsingTasks = new List<Task>();
 
             //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
             if (chapter.LoadStatus == LoadingStatus.Unloaded)
             {
-                List<XElement> lines = await Parser.BreakChapterToLines(chapter);
-                Pages = await PreparePages(lines);
+                Pages = await PreparePages(await bookLoader.BreakChapterToLines(chapter));
                 if (firstLoad && interaction.LastTimeNumberOfPages != 0)
                 {
                     CurrentPage = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
@@ -295,34 +295,25 @@ namespace Mio.Reader.Components.Pages
 
                 interaction.LastTimeNumberOfPages = Pages.Count;
 
-                chapter.PrepareLines(lines.Count);
-
                 //For the first loading
                 Initialized = true;
 
                 chapter.LoadStatus = LoadingStatus.Loading;
-                for (int i = 0; i < lines.Count; i++)
-                {
-                    int currentIndex = i; // Capture the current index
-                    parsingTasks.Add(Parser.ParseLine(chapter, lines[currentIndex]).ContinueWith(async parseLineTask =>
-                    {
-                        Debug.WriteLine("Parsing line " + currentIndex);
-                        List<Node> line = parseLineTask.Result;
-                        chapter.PushLineToIndex(currentIndex, line);
-                        if (thisTaskChapterIndex == CurrentChapter)
-                        {
-                            PushLineToPages(currentIndex, line);
-                            if (currentIndex/linesPerPage == currentPage) {
-                                InvokeAsync(() =>
-                                {
-                                    StateHasChanged();
-                                });
-                            }
-                        }
-                    }));
-                }
 
-                await Task.WhenAll(parsingTasks);
+                Progress<int> progressResponder = new Progress<int>(value =>
+                {
+                    int pageIndex = value / linesPerPage;
+                    int lineIndex = value % linesPerPage;
+                    Pages[value / linesPerPage][lineIndex] = chapter.Lines[value];
+                    if (thisTaskChapterIndex == CurrentChapter && pageIndex == currentPage)
+                    {
+                        InvokeAsync(() =>
+                        {
+                            StateHasChanged();
+                        });
+                    }
+                });
+                await bookLoader.ParseChapterContent(chapter, progressResponder);
                 int j = 0;
                 foreach (List<Node> line in chapter.Lines)
                 {
@@ -489,14 +480,13 @@ namespace Mio.Reader.Components.Pages
             return linesPerPage;
         }
 
-        private async Task<List<List<List<Node>>>> PreparePages(List<XElement> lines)
+        private async Task<List<List<List<Node>>>> PreparePages(int lineCount)
         {
             int linesPerPage = await UpdateLinesPerPage();
 
             List<List<List<Node>>> pages = new List<List<List<Node>>>();
 
-            int totalLines = lines.Count;
-            int totalPages = (totalLines + linesPerPage - 1) / linesPerPage; // Calculate total pages
+            int totalPages = (lineCount + linesPerPage - 1) / linesPerPage; // Calculate total pages
 
             for (int i = 0; i < totalPages; i++)
             {

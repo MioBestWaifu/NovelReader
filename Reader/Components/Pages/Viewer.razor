@@ -20,7 +20,7 @@
             Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
         }
 
-        @if (!chapter.IsImagesOnly)
+        @if (!(chapter is EpubChapter epubChapter) || !epubChapter.IsImagesOnly)
         {
             <h1 id="chapter-title" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" @onclick="(() => {showTableOfContents = true; StateHasChanged();})">@Book?.TableOfContents[CurrentChapter].Item1</h1>
             <h3>@chapter.FinishedTextNodes/@chapter.TotalTextNodes</h3>
@@ -115,7 +115,7 @@
                 }
                 else if (line[0] is ImageNode)
                 {
-                    string cssClass = !chapter.IsImagesOnly && Configs.ReadingManner == ReadingManner.Japanese ? "rdr-inline-img-japanese" : "rdr-inline-img-western";
+                    string cssClass = (!(chapter is EpubChapter) || !(chapter as EpubChapter).IsImagesOnly) && Configs.ReadingManner == ReadingManner.Japanese ? "rdr-inline-img-japanese" : "rdr-inline-img-western";
 
                     ImageNode imageNode = (ImageNode)line[0];
                     <img class=@cssClass src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />

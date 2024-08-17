@@ -51,7 +51,8 @@ namespace Mio.Reader.Services
                     continue;
                 }
                 //Should be wrapper in a try-catch. Isn't because it's still not published and errors are easier to find like this.
-                Books.Add(new BookInteraction(await BookLoader.LoadMetadata(file)));
+                BookLoader loader = BookLoader.GetLoader(file, configs, imageParser);
+                Books.Add(new BookInteraction(await loader.LoadMetadata(file)));
                 BookAdded.Invoke(this, EventArgs.Empty);
             }
         }

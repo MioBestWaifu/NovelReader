@@ -25,7 +25,7 @@ namespace Mio.Reader.Parsing
 
         //Obviouslt breaks if configs is not assigned before analyzer, but that should never happen because this field is assinged in the very ConfigurationsService constructor.
         protected ConfigurationsService configs;
-        public static Analyzer? analyzer;
+        protected static Analyzer? analyzer;
 
         protected Translator translator = new Translator();
 
@@ -35,6 +35,10 @@ namespace Mio.Reader.Parsing
         {
             this.configs = configs;
             imageParser = imageParsingService;
+            if (analyzer == null)
+            {
+                analyzer = new Analyzer(configs.PathToUnidic);
+            }
         }
         public abstract Task<List<Node>> ParseLine(Chapter chapter, int lineIndex);
 

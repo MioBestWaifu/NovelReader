@@ -33,7 +33,7 @@ namespace Mio.Reader.Parsing.Loading
         /// The only contents that are loaded are the metadata and the table of contents.
         /// </summary>
         /// <param name="path"></param>
-        public override async Task<Book> LoadBook(BookMetadata metadata)
+        public override async Task<Book> IndexBook(BookMetadata metadata)
         {
             ZipArchive archive = ZipFile.OpenRead(metadata.Path);
 
@@ -57,14 +57,17 @@ namespace Mio.Reader.Parsing.Loading
             return epub;
         }
 
-        public override Task LoadChapterContent(Chapter chapter)
+        public override Task ParseChapterContent(Chapter chapter, IProgress<int> progressReporter)
         {
             List<Task> parsingTasks = new List<Task>();
             chapter.PrepareLines(chapter.OriginalLines.Count);
             for (int i = 0; i < chapter.OriginalLines.Count; i++)
             {
                 int thisIteration = i;
-                parsingTasks.Add(parser.ParseLine(chapter, i).ContinueWith(xTask=> chapter.PushLineToIndex(i, xTask.Result)));
+                parsingTasks.Add(parser.ParseLine(chapter, i).ContinueWith(xTask=> { 
+                    chapter.PushLineToIndex(thisIteration, xTask.Result);
+                    progressReporter.Report(thisIteration);
+                }));
             }
 
             return Task.WhenAll(parsingTasks);

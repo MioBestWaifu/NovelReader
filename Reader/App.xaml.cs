@@ -10,8 +10,6 @@ namespace Mio.Reader
         LibraryService library;
         public App(LibraryService library, ImageParsingService imageParsingService)
         {
-            EpubMetadataResolver.Initialize(imageParsingService);
-            Parser.Initialize(imageParsingService);
             InitializeComponent();
             this.library = library;
 

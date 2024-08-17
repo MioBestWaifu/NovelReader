@@ -20,7 +20,7 @@ namespace Mio.Reader.Parsing.Loading
             this.imageParser = imageParser;
         }
 
-        public async Task<string> ResolveStandardsFile(string originalXml)
+        public static async Task<string> ResolveStandardsFile(string originalXml)
         {
             // Parse the original XML content as an XML document
             XDocument doc = XDocument.Parse(originalXml);
