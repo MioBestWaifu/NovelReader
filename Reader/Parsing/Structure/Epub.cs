@@ -10,7 +10,7 @@ namespace Mio.Reader.Parsing.Structure
     public class Epub : Book
     {
         ZipArchive zipReference;
-        public Epub(ZipArchive archive, BookMetadata metadata) : base(metadata)
+        public Epub(ZipArchive archive, EpubMetadata metadata) : base(metadata)
         {
             zipReference = archive;
         }

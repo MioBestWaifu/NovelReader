@@ -15,6 +15,7 @@ namespace Mio.Reader.Parsing.Loading
 
         public override async Task<bool> LoadAndResizeCover(BookMetadata metadata, int newWidth, int newHeight)
         {
+
             using (PdfReader reader = new PdfReader(metadata.Path))
             using (PdfDocument pdfDocument = new PdfDocument(reader))
             {
@@ -89,7 +90,7 @@ namespace Mio.Reader.Parsing.Loading
                         break;
                     }
                 }
-                return new BookMetadata(title, author, path, -1, cover64, "", "");
+                return new PdfMetadata(title,author,path,cover64);
             }
 
         }
@@ -101,7 +102,9 @@ namespace Mio.Reader.Parsing.Loading
 
         public override async Task<Book> IndexBook(BookMetadata metadata)
         {
-            var book = new Pdf(metadata);
+            //Shit may happen here
+            PdfMetadata pdfMetadata = metadata as PdfMetadata;
+            var book = new Pdf(pdfMetadata);
             var chapters = new List<PdfChapter>();
             using (PdfReader reader = new PdfReader(metadata.Path))
             using (PdfDocument pdfDocument = new PdfDocument(reader))

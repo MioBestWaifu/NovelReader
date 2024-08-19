@@ -2,11 +2,13 @@
 using Microsoft.JSInterop;
 using Mio.Reader.Components;
 using Mio.Reader.Parsing;
+using Mio.Reader.Parsing.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Mio.Reader.Services
@@ -17,6 +19,7 @@ namespace Mio.Reader.Services
         {
             IncludeFields = true,
             PropertyNameCaseInsensitive = true,
+            Converters = { new MetadataConverter() },
 #if DEBUG
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
 #endif
@@ -60,6 +63,29 @@ namespace Mio.Reader.Services
         public ConfigurationsService Copy()
         {
             return MemberwiseClone() as ConfigurationsService;
+        }
+
+        private class MetadataConverter : JsonConverter<BookMetadata>
+        {
+            public override BookMetadata Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                using (JsonDocument doc = JsonDocument.ParseValue(ref reader))
+                {
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("Version", out _))
+                    {
+                        return JsonSerializer.Deserialize<EpubMetadata>(root.GetRawText(), options);
+                    } 
+
+                    return JsonSerializer.Deserialize<PdfMetadata>(root.GetRawText(), options);
+                }
+            }
+
+            public override void Write(Utf8JsonWriter writer, BookMetadata value, JsonSerializerOptions options)
+            {
+                JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+            }
         }
 
     }

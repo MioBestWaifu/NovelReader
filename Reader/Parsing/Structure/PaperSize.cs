@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class Pdf : Book
+    public enum PaperSize
     {
-        public Pdf(PdfMetadata metadata) : base(metadata)
-        {
-        }
+        A4,
+        A5
     }
 }

@@ -37,7 +37,7 @@ namespace Mio.Reader.Parsing.Loading
             return fullPath;
         }
 
-        public async Task<BookMetadata> ResolveMetadata(string path, ZipArchive archive)
+        public async Task<EpubMetadata> ResolveMetadata(string path, ZipArchive archive)
         {
             //Not parallel because it is (probably) a small list.
             Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
@@ -71,7 +71,7 @@ namespace Mio.Reader.Parsing.Loading
                 Debug.WriteLine($"Error loading cover: {e.Message}");
             }
 
-            return new BookMetadata(title, string.Join(", ", authors), path, version, coverBase64, pathToCover, standardOpfPath);
+            return new EpubMetadata(title, string.Join(", ", authors), path, coverBase64, pathToCover, standardOpfPath, version);
         }
 
         private static string ResolveTitle(XDocument standardsDoc, int version)
