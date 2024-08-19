@@ -4,6 +4,11 @@ using iText.Kernel.Pdf.Xobject;
 using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
 
+using ITextPdfDocument = iText.Kernel.Pdf.PdfDocument;
+using PigPdfDocument = UglyToad.PdfPig.PdfDocument;
+using PigPage = UglyToad.PdfPig.Content.Page;
+using System.Collections.Concurrent;
+
 namespace Mio.Reader.Parsing.Loading
 {
     internal class PdfLoader : BookLoader
@@ -42,10 +47,10 @@ namespace Mio.Reader.Parsing.Loading
         public override async Task<bool> LoadCover(BookMetadata metadata)
         {
             using (PdfReader reader = new PdfReader(metadata.Path))
-            using (PdfDocument pdfDocument = new PdfDocument(reader))
+            using (ITextPdfDocument iTextPdf = new ITextPdfDocument(reader))
             {
                 // Extract cover image (assuming it's the first image on the first page)
-                PdfPage firstPage = pdfDocument.GetFirstPage();
+                PdfPage firstPage = iTextPdf.GetFirstPage();
                 var resources = firstPage.GetResources();
                 var xObjects = resources.GetResourceNames();
                 string cover64 = "";
@@ -66,19 +71,22 @@ namespace Mio.Reader.Parsing.Loading
 
         public override async Task<BookMetadata> LoadMetadata(string path)
         {
+            int numberOfPages;
+            string title, author, cover64;
             using (PdfReader reader = new PdfReader(path))
-            using (PdfDocument pdfDocument = new PdfDocument(reader))
+            using (ITextPdfDocument iTextPdf = new ITextPdfDocument(reader))
             {
                 // Extract metadata
-                PdfDocumentInfo info = pdfDocument.GetDocumentInfo();
-                string title = info.GetTitle();
-                string author = info.GetAuthor();
+                PdfDocumentInfo info = iTextPdf.GetDocumentInfo();
+                title = info.GetTitle();
+                author = info.GetAuthor();
+                numberOfPages = iTextPdf.GetNumberOfPages();
 
                 // Extract cover image (assuming it's the first image on the first page)
-                PdfPage firstPage = pdfDocument.GetFirstPage();
+                PdfPage firstPage = iTextPdf.GetFirstPage();
                 var resources = firstPage.GetResources();
                 var xObjects = resources.GetResourceNames();
-                string cover64 = "";
+                cover64 = "";
                 foreach (var name in xObjects)
                 {
                     PdfImageXObject obj = resources.GetImage(name);
@@ -90,9 +98,54 @@ namespace Mio.Reader.Parsing.Loading
                         break;
                     }
                 }
-                return new PdfMetadata(title,author,path,cover64);
+            }
+            
+            List<int> pagesToSearch;
+            if (numberOfPages > 10)
+            {
+                pagesToSearch = [];
+                Random random = new Random();
+                for (int i = 1; i <= 10; i++)
+                {
+                    pagesToSearch.Add(random.Next(1, numberOfPages));
+                }
+            }
+            else
+            {
+                pagesToSearch = Enumerable.Range(1, numberOfPages).ToList();
             }
 
+            double maxLeft = 0, maxBot = 0;
+            ConcurrentDictionary<double, int> fontSizes = [];
+
+            using (PigPdfDocument pigPdf = PigPdfDocument.Open(path))
+            {
+                
+                foreach (int pageIndex in pagesToSearch)
+                {
+                    PigPage page = pigPdf.GetPage(pageIndex);
+                    Parallel.ForEach(page.GetWords(), (word) =>
+                    {
+                        var rightEdge = word.BoundingBox.BottomRight.X;
+                        var bottomEdge = word.BoundingBox.BottomRight.Y;
+                        if (rightEdge > maxLeft)
+                        {
+                            maxLeft = rightEdge;
+                        }
+                        if (bottomEdge > maxBot)
+                        {
+                            maxBot = bottomEdge;
+                        }
+                        fontSizes.AddOrUpdate(word.Letters[0].FontSize, 1, (key, oldValue) => oldValue + 1);
+                    });
+                }
+            };
+
+            PdfMetadata toReturn = new PdfMetadata(title, author, path, cover64);
+            toReturn.MarginBottom = maxBot;
+            toReturn.MarginRight = maxLeft;
+            toReturn.BodyFontSize = fontSizes.OrderByDescending(x => x.Value).First().Key;
+            return toReturn;
         }
 
         public override Task ParseChapterContent(Chapter chapter, IProgress<int> progressReporter)
