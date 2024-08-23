@@ -13,6 +13,7 @@ namespace Mio.Reader.Parsing.Loading
 {
     internal class PdfLoader : BookLoader
     {
+        private Pdf pdf;
         public PdfLoader(ConfigurationsService configs, ImageParsingService imageParsingService) : base(configs, imageParsingService)
         {
             parser = new PdfParser(configs, imageParsingService);
@@ -148,9 +149,47 @@ namespace Mio.Reader.Parsing.Loading
             return toReturn;
         }
 
+        //Should refactor
         public override Task ParseChapterContent(Chapter chapter, IProgress<int> progressReporter)
         {
-            throw new NotImplementedException();
+            List<Task> parsingTasks = new List<Task>();
+            TrimAndConsolidateLines(chapter as PdfChapter);
+            chapter.PrepareLines(chapter.OriginalLines.Count);
+            for (int i = 0; i < chapter.OriginalLines.Count; i++)
+            {
+                int thisIteration = i;
+                parsingTasks.Add(parser.ParseLine(chapter, i).ContinueWith(xTask => {
+                    chapter.PushLineToIndex(thisIteration, xTask.Result);
+                    progressReporter.Report(thisIteration);
+                }));
+            }
+
+            return Task.WhenAll(parsingTasks);
+        }
+
+        /// <summary>
+        /// Removes things that are not to be parsed (eg furigana) and joins lines that are visually separated but are actually the same.
+        /// </summary>
+        /// <param name="chapter"></param>
+        private void TrimAndConsolidateLines(PdfChapter chapter)
+        {
+            PdfMetadata metadata = (PdfMetadata)pdf.Metadata;
+            List<ParsingElement> buffer = [];
+            buffer.Add(new PdfParsingElement { Text = "", IsImage = false });
+            for (int i = 0; i < chapter.OriginalLines.Count; i++)
+            {
+                int thisIteration = i;
+                PdfParsingElement currentElement = chapter.OriginalLines[i] as PdfParsingElement;
+                if (currentElement.FontSize <= metadata.BodyFontSize * 0.8)
+                    continue;
+                (buffer.Last() as PdfParsingElement).Text += currentElement.Text;
+                //Likely end of line or is the end of page. Remeber to change the comparison for japanese layout.
+                if (currentElement.RightMostPoint < metadata.MarginRight * 0.98 ||
+                    currentElement.Page != (chapter.OriginalLines[i+1] as PdfParsingElement).Page)
+                    buffer.Add(new PdfParsingElement { Text = "", IsImage = false });
+            }
+
+            chapter.OriginalLines = buffer;
         }
 
         public override async Task<Book> IndexBook(BookMetadata metadata)
@@ -181,6 +220,7 @@ namespace Mio.Reader.Parsing.Loading
                 chapter.pathToPdf = metadata.Path;
                 book.TableOfContents.Add((chapter.Title,chapter));
             }
+            pdf = book;
             return book;
         }
 

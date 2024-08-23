@@ -20,6 +20,9 @@ using ITextPage = iText.Kernel.Pdf.PdfPage;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
 using iText.Kernel.Geom;
+using Mio.Translation;
+using System.Text.RegularExpressions;
+using Mio.Reader.Parsing.Structure.Chars;
 namespace Mio.Reader.Parsing
 {
     internal class PdfParser : Parser
@@ -50,7 +53,7 @@ namespace Mio.Reader.Parsing
                     PigPage page = pigPdf.GetPage(i);
                     foreach (Word word in page.GetWords())
                     {
-                        lines.Add(new PdfParsingElement { Text = word.Text, IsImage = false, BoundingBox = word.BoundingBox });
+                        lines.Add(new PdfParsingElement { Text = word.Text, IsImage = false, BoundingBox = word.BoundingBox, Page = i, FontSize = word.Letters[0].FontSize });
                     }
                 }
             };
@@ -70,7 +73,20 @@ namespace Mio.Reader.Parsing
 
         public override Task<List<Node>> ParseLine(Chapter chapter, int lineIndex)
         {
-            throw new NotImplementedException();
+            PdfParsingElement element = chapter.OriginalLines[lineIndex] as PdfParsingElement;
+            if (element is null)
+            {
+                throw new ArgumentException("Element is not a PdfParsingElement");
+            }
+
+            if (element.IsImage)
+            {
+                return ParseImageElement(chapter, element, "");
+            }
+            else
+            {
+                return ParseTextElement(element);
+            }
         }
 
         protected override Task<List<Node>> ParseImageElement(Chapter chapter, ParsingElement originalElement, string srcAttribute)
@@ -80,7 +96,67 @@ namespace Mio.Reader.Parsing
 
         protected override Task<List<Node>> ParseTextElement(ParsingElement originalElement)
         {
-            throw new NotImplementedException();
+            PdfParsingElement element = originalElement as PdfParsingElement;
+            if (element is null)
+            {
+                throw new ArgumentException("Element is not a PdfParsingElement");
+            }
+            string[] sentences = Regex.Split(element.Text, separatorsRegex);
+            List<Node> nodes = new List<Node>();
+            for (int i = 0, n = sentences.Length; i < n; i++)
+            {
+                //Should never be zero, i think. If it happens, will cause a bug. Purposefully not checking to see if breaks.
+                //Also, This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
+                if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
+                {
+                    if (nodes.Count == 0)
+                    {
+                        nodes.Add(new TextNode() { Characters = { new Yakumono(sentences[i][0]) } });
+                    }
+                    else
+                    {
+                        //This will break if the previoues node was not a textnode, but that should never happen.
+                        TextNode nodeToAppend = (TextNode)nodes[^1];
+                        nodeToAppend.Characters.Add(new Yakumono(sentences[i][0]));
+                    }
+                    continue;
+                }
+
+                List<Lexeme> lexemes = analyzer.Analyze(sentences[i]);
+                foreach (var lexeme in lexemes)
+                {
+                    TextNode node = new TextNode(lexeme);
+                    List<JapaneseCharacter> chars = [];
+                    foreach (var character in lexeme.Surface)
+                    {
+                        if (Analyzer.IsRomaji(character))
+                        {
+                            chars.Add(new Romaji(character));
+                        }
+                        else if (Analyzer.IsKana(character))
+                        {
+                            bool isYoon = Analyzer.IsYoon(character);
+                            Kana kana = new Kana(character, isYoon);
+                            chars.Add(kana);
+                        }
+                        else if (Analyzer.IsKanji(character))
+                        {
+                            Kanji kanji = new Kanji(character);
+                            chars.Add(kanji);
+                        }
+                        else
+                        {
+                            //Presuming anything that is not a kana, kanji or romaji is a yakumono.
+                            //May or may not be a good idea.
+                            chars.Add(new Yakumono(character));
+                        }
+                    }
+                    node.Characters = chars;
+                    nodes.Add(node);
+                }
+            }
+
+            return Task.FromResult(nodes);
         }
 
         private class RenderListener : IEventListener

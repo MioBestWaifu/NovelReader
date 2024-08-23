@@ -13,8 +13,23 @@ namespace Mio.Reader.Parsing
     {
         public bool IsImage { get; set; }
         public string Text { get; set; }
+        public int Page { get; set; }
+        public double FontSize { get; set; }
         public byte[] Image { get; set; }
         public string Extension { get; set; }
         public PdfRectangle BoundingBox { get; set; }
+
+        public double RightMostPoint { get {
+                return BoundingBox.BottomRight.X;
+            } 
+        }
+
+        public double BottomMostPoint
+        {
+            get
+            {
+                return BoundingBox.BottomRight.Y;
+            }
+        }
     }
 }
