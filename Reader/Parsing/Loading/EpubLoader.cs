@@ -60,22 +60,6 @@ namespace Mio.Reader.Parsing.Loading
             return epub;
         }
 
-        public override Task ParseChapterContent(Chapter chapter, IProgress<int> progressReporter)
-        {
-            List<Task> parsingTasks = new List<Task>();
-            chapter.PrepareLines(chapter.OriginalLines.Count);
-            for (int i = 0; i < chapter.OriginalLines.Count; i++)
-            {
-                int thisIteration = i;
-                parsingTasks.Add(parser.ParseLine(chapter, i).ContinueWith(xTask=> { 
-                    chapter.PushLineToIndex(thisIteration, xTask.Result);
-                    progressReporter.Report(thisIteration);
-                }));
-            }
-
-            return Task.WhenAll(parsingTasks);
-        }
-
         public override async Task<bool> LoadCover(BookMetadata metadata)
         {
             //Shit may happen here
