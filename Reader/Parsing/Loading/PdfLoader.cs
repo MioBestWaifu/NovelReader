@@ -151,7 +151,7 @@ namespace Mio.Reader.Parsing.Loading
 
         public override Task ParseChapterContent(Chapter chapter, IProgress<int> progressReporter)
         {
-            TrimAndConsolidateLines(chapter as PdfChapter);
+            PreparePdfNodes(chapter as PdfChapter);
             return base.ParseChapterContent(chapter, progressReporter);
         }
 
@@ -159,25 +159,30 @@ namespace Mio.Reader.Parsing.Loading
         /// Removes things that are not to be parsed (eg furigana) and joins lines that are visually separated but are actually the same.
         /// </summary>
         /// <param name="chapter"></param>
-        private void TrimAndConsolidateLines(PdfChapter chapter)
+        private void PreparePdfNodes(PdfChapter chapter)
         {
             PdfMetadata metadata = (PdfMetadata)pdf.Metadata;
-            List<ParsingElement> buffer = [];
-            buffer.Add(new PdfParsingElement { Text = "", IsImage = false });
             for (int i = 0; i < chapter.OriginalLines.Count; i++)
             {
+                PdfNode pdfNode = new PdfNode();
                 int thisIteration = i;
                 PdfParsingElement currentElement = chapter.OriginalLines[i] as PdfParsingElement;
                 if (currentElement.FontSize <= metadata.BodyFontSize * 0.8)
-                    continue;
-                (buffer.Last() as PdfParsingElement).Text += currentElement.Text;
-                //Likely end of line or is the end of page. Remeber to change the comparison for japanese layout.
-                if (currentElement.RightMostPoint < metadata.MarginRight * 0.98 ||
-                    currentElement.Page != (chapter.OriginalLines[i+1] as PdfParsingElement).Page)
-                    buffer.Add(new PdfParsingElement { Text = "", IsImage = false });
-            }
+                    pdfNode.IsFurigana = true;
+                //Determines if this lines is possibly part of the same phrase as part of the next line.
+                if (currentElement.RightMostPoint > metadata.MarginRight * 0.98) {
+                    if (i + 1 < chapter.OriginalLines.Count)
+                    {
+                        PdfParsingElement nextElement = chapter.OriginalLines[i + 1] as PdfParsingElement;
+                        if (currentElement.Page == nextElement.Page && !nextElement.IsImage)
+                        {
+                            pdfNode.PossibleSharing = true;
+                        }
+                    } 
+                }
 
-            chapter.OriginalLines = buffer;
+                chapter.PdfLines.Add(pdfNode);
+            }
         }
 
         public override async Task<Book> IndexBook(BookMetadata metadata)

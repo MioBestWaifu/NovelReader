@@ -16,6 +16,7 @@ using ITextPage = iText.Kernel.Pdf.PdfPage;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
 using iText.Kernel.Geom;
+using Mio.Reader.Parsing.Structure.Chars;
 
 namespace Mio.Reader.Parsing
 {
@@ -75,11 +76,12 @@ namespace Mio.Reader.Parsing
 
             if (element.IsImage)
             {
-                return ParseImageElement(chapter, element, "");
+                return Task.FromResult(new List<Node>());
+               // return ParseImageElement(chapter, element, "");
             }
             else
             {
-                return ParseTextElement(element);
+                return ParseTextElement(element, chapter as PdfChapter, lineIndex);
             }
         }
 
@@ -88,14 +90,73 @@ namespace Mio.Reader.Parsing
             throw new NotImplementedException();
         }
 
-        protected override Task<List<Node>> ParseTextElement(ParsingElement originalElement)
+        protected async Task<List<Node>> ParseTextElement(ParsingElement originalElement,PdfChapter chapter, int index)
         {
             PdfParsingElement element = originalElement as PdfParsingElement;
             if (element is null)
             {
                 throw new ArgumentException("Element is not a PdfParsingElement");
             }
-            return ParseTextElement(element.Text);
+
+            PdfNode node = chapter.PdfLines[index];
+
+            node.BoundingBox = element.BoundingBox;
+            node.FontSize = element.FontSize;
+            if (node.IsFurigana)
+            {
+                node.TextNodes[0] = new TextNode { Characters = element.Text.Select(x => new JapaneseCharacter(x)).ToList()};
+                //This return is temporary, will be refactored.
+                return null;
+            }
+
+            if (node.IsFirstNodeShared)
+            {
+                element.Text = element.Text.Substring(node.TextNodes[0].Characters.Count - node.FirstFrom);
+            }
+
+            if (node.PossibleSharing)
+            {
+                string textBuffer = element.Text + (chapter.OriginalLines[index+1] as PdfParsingElement).Text;
+                List<Node> nodes = await ParseTextElement(textBuffer);
+                int thisElementLength = element.Text.Length;
+                int charsCount = 0;
+                foreach (TextNode textNode in nodes)
+                {
+                    if (charsCount + textNode.Characters.Count < thisElementLength)
+                    {
+                        node.TextNodes.Add(textNode);
+                        charsCount += textNode.Characters.Count;
+                    }
+                    else if (charsCount + textNode.Characters.Count == thisElementLength)
+                    {
+                        node.TextNodes.Add(textNode);
+                        break;
+                    }
+                    else
+                    {
+                        node.TextNodes.Add(textNode);
+                        node.IsLastNodeShared = true;
+                        node.LastUntil = thisElementLength - charsCount - 1;
+                        PdfNode nextNode = chapter.PdfLines[index + 1];
+                        nextNode.IsFirstNodeShared = true;
+                        nextNode.TextNodes.Add(textNode);
+                        nextNode.FirstFrom = node.LastUntil + 1;
+                        break;
+                    }
+                }
+
+                return null;
+            }
+
+            List<Node> xNodes = await ParseTextElement(element.Text);
+            node.TextNodes.AddRange(xNodes.Select(x => x as TextNode).ToList());
+            //This return is temporary, will be refactored.
+            return null;
+        }
+
+        protected override Task<List<Node>> ParseTextElement(ParsingElement originalElement)
+        {
+            throw new NotImplementedException();
         }
 
         private class RenderListener : IEventListener
@@ -111,11 +172,6 @@ namespace Mio.Reader.Parsing
             {
                 switch (type)
                 {
-                    /*case EventType.RENDER_TEXT:
-                        TextRenderInfo textRenderInfo = (TextRenderInfo)data;
-                        _contentObjects.Add(new PdfParsingElement { Text = textRenderInfo.GetText(), IsImage = false });
-                        break;
-*/
                     case EventType.RENDER_IMAGE:
                         ImageRenderInfo imageRenderInfo = (ImageRenderInfo)data;
                         PdfImageXObject image = imageRenderInfo.GetImage();
