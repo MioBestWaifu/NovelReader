@@ -29,7 +29,6 @@
                         {
                             TextNode node = (TextNode)line[j];
                             //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
-                            //NOTE: そんな is not getting an edrdgentry. investigate. kuruma neither.
                             string id = $"p{i:D2}{j}";
                             <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
                                @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>

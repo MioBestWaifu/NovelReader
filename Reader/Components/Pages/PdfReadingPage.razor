@@ -1,0 +1,153 @@
+﻿@layout MainLayout
+@page "/pdf-reader"
+@using Mio.Reader.Parsing.Loading
+@inherits ReadingPage
+<FluentDesignTheme Mode=@Configs.Theme CustomColor=@Configs.MainColor></FluentDesignTheme>
+
+@if (Initialized)
+{
+    <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
+    <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
+        @{
+            base.BuildRenderTree(__builder);
+        }
+        @{
+            PdfChapter chapter = (PdfChapter)Book.TableOfContents[CurrentChapter].Item2;
+        }
+        @try
+        {
+            <!--Not a foreach because the dynamic modifications in loading would break it-->
+            List<PdfNode> lines = chapter.GetLinesForPage(currentAbsolutePage);
+            @for (int i = 0; i < lines.Count; i++)
+            {
+                PdfNode line = lines[i];
+                int currentIndex = i;
+
+                if (!line.IsImage)
+                {
+                    <div style=@($"left:{line.BoundingBox.Left}pt;top:{line.BoundingBox.Top}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                        
+                        @for (int j = 0; j < line.TextNodes.Count; j++)
+                        {
+                            TextNode node = (TextNode)line.TextNodes[j];
+                            
+                            string id = $"p{i:D3}{j}";
+                            <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
+                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                        }
+                    </div>
+                } else
+                {
+                    
+                }
+            }
+        }
+        catch (Exception e)
+        {
+
+            <p>Error displaying this page</p>
+
+            fuckedLines++;
+            Debug.WriteLine($"There have been {fuckedLines} fucked lines");
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.StackTrace);
+            if (e.InnerException is not null)
+            {
+                Debug.WriteLine(e.InnerException);
+                Debug.WriteLine(e.InnerException?.StackTrace);
+            }
+            Debug.WriteLine("----------------------------");
+        }
+    </div>
+}
+@code {
+    protected override Book? Book
+    {
+        get
+        {
+            return base.Book;
+        }
+        set
+        {
+            pdf = (Pdf)value;
+            base.Book = value;
+        }
+    }
+
+    private Pdf pdf;
+    private int currentAbsolutePage = 0;
+
+    protected override int PageCount
+    {
+        //Should be total book pages
+        get
+        {
+            return (Book.TableOfContents[CurrentChapter].Item2 as PdfChapter).GetLinesForPage(currentAbsolutePage).Count;
+        }
+    }
+
+    protected override async Task LoadChapter(int index, bool firstLoad = false, bool setPageToLast = false)
+    {
+        Chapter chapter = Book.TableOfContents[index].Item2;
+        //To keep track of if the user went to another chapter while the current one was loading
+        int thisTaskChapterIndex = CurrentChapter;
+
+        //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
+        if (chapter.LoadStatus == LoadingStatus.Unloaded)
+        {
+            if (firstLoad && interaction.LastTimeNumberOfPages != 0)
+            {
+                CurrentPage = interaction.LastPage;
+            }
+            // else if (setPageToLast)
+            // {
+            //     CurrentPage = chapter. - 1;
+            // }
+            else
+            {
+                CurrentPage = 0;
+            }
+
+
+            currentAbsolutePage = 0;
+
+            //Number does not matter but needs assignemnt
+            interaction.LastTimeNumberOfPages = 99;
+
+            //For the first loading
+            Initialized = true;
+
+            chapter.LoadStatus = LoadingStatus.Loading;
+
+            Progress<int> progressResponder = new Progress<int>(value =>
+            {
+                    InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
+            });
+            await bookLoader.ParseChapterContent(chapter, progressResponder);
+            int j = 0;
+            foreach (List<Node> line in chapter.Lines)
+            {
+                int currentLineIndex = j++;
+                foreach (Node node in line)
+                {
+                    if (node is TextNode textNode)
+                    {
+                        Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
+                        {
+                            chapter.FinishedTextNodes++;
+                                InvokeAsync(() =>
+                                {
+                                    StateHasChanged();
+                                });
+                        }));
+                    }
+                }
+            }
+        }
+    }
+
+
+}

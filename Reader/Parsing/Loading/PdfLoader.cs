@@ -182,6 +182,7 @@ namespace Mio.Reader.Parsing.Loading
                 }
 
                 chapter.PdfLines.Add(pdfNode);
+                chapter.AddLineMapping(currentElement.Page, i);
             }
         }
 
