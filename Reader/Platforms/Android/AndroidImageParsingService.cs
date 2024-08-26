@@ -15,6 +15,61 @@ namespace Mio.Reader.Platforms.Android
 {
     public class AndroidImageParsingService : ImageParsingService
     {
+        public override Task<string> ParseImageBytesToBase64(byte[] bytes, string format)
+        {
+            // Decode the byte array to a Bitmap
+            var bitmap = BitmapFactory.DecodeByteArray(bytes, 0, bytes.Length);
+
+            // Determine the image format
+            var imageFormat = format switch
+            {
+                "jpg" => Bitmap.CompressFormat.Jpeg,
+
+                "jpeg" => Bitmap.CompressFormat.Jpeg,
+                "png" => Bitmap.CompressFormat.Png,
+                "gif" => Bitmap.CompressFormat.Webp,
+                _ => Bitmap.CompressFormat.Jpeg
+            };
+
+            // Convert the Bitmap to a byte array
+            using (var byteArrayOutputStream = new MemoryStream())
+            {
+                bitmap.Compress(imageFormat, 100, byteArrayOutputStream);
+                byte[] bitmapData = byteArrayOutputStream.ToArray();
+
+                // Encode the byte array to a Base64 string
+                string base64String = Base64.EncodeToString(bitmapData, Base64Flags.Default);
+                return Task.FromResult(base64String);
+            }
+        }
+
+        public override Task<string> ParseImageBytesToBase64(byte[] bytes,string format, int newWidth, int newHeight)
+        {
+            var bitmap = BitmapFactory.DecodeByteArray(bytes, 0, bytes.Length);
+
+            // Determine the image format
+            var imageFormat = format switch
+            {
+                "jpg" => Bitmap.CompressFormat.Jpeg,
+
+                "jpeg" => Bitmap.CompressFormat.Jpeg,
+                "png" => Bitmap.CompressFormat.Png,
+                "gif" => Bitmap.CompressFormat.Webp,
+                _ => Bitmap.CompressFormat.Jpeg
+            };
+
+            // Convert the Bitmap to a byte array
+            using (var byteArrayOutputStream = new MemoryStream())
+            {
+                bitmap.Compress(imageFormat, 100, byteArrayOutputStream);
+                byte[] bitmapData = byteArrayOutputStream.ToArray();
+
+                // Encode the byte array to a Base64 string
+                string base64String = Base64.EncodeToString(bitmapData, Base64Flags.Default);
+                return Task.FromResult(base64String);
+            }
+        }
+
         public override async Task<string> ParseImageEntryToBase64(ZipArchiveEntry entry)
         {
             if (entry != null)
@@ -31,30 +86,7 @@ namespace Mio.Reader.Platforms.Android
                             imageBytes = memoryStream.ToArray();
                         }
 
-                        // Decode the byte array to a Bitmap
-                        var bitmap = BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
-
-                        // Determine the image format
-                        var imageFormat = entry.FullName.Split('.')[^1] switch
-                        {
-                            "jpg" => Bitmap.CompressFormat.Jpeg,
-
-                            "jpeg" => Bitmap.CompressFormat.Jpeg,
-                            "png" => Bitmap.CompressFormat.Png,
-                            "gif" => Bitmap.CompressFormat.Webp,
-                            _ => Bitmap.CompressFormat.Jpeg
-                        };
-
-                        // Convert the Bitmap to a byte array
-                        using (var byteArrayOutputStream = new MemoryStream())
-                        {
-                            bitmap.Compress(imageFormat, 100, byteArrayOutputStream);
-                            byte[] bitmapData = byteArrayOutputStream.ToArray();
-
-                            // Encode the byte array to a Base64 string
-                            string base64String = Base64.EncodeToString(bitmapData, Base64Flags.Default);
-                            return base64String;
-                        }
+                        return await ParseImageBytesToBase64(imageBytes, entry.FullName.Split('.')[^1]);
                     }
                 }
                 catch (Exception e)
@@ -82,30 +114,7 @@ namespace Mio.Reader.Platforms.Android
                             imageBytes = memoryStream.ToArray();
                         }
 
-                        // Decode the byte array to a Bitmap
-                        var bitmap = BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
-
-                        // Determine the image format
-                        var imageFormat = entry.FullName.Split('.')[^1] switch
-                        {
-                            "jpg" => Bitmap.CompressFormat.Jpeg,
-
-                            "jpeg" => Bitmap.CompressFormat.Jpeg,
-                            "png" => Bitmap.CompressFormat.Png,
-                            "gif" => Bitmap.CompressFormat.Webp,
-                            _ => Bitmap.CompressFormat.Jpeg
-                        };
-
-                        // Convert the Bitmap to a byte array
-                        using (var byteArrayOutputStream = new MemoryStream())
-                        {
-                            bitmap.Compress(imageFormat, 100, byteArrayOutputStream);
-                            byte[] bitmapData = byteArrayOutputStream.ToArray();
-
-                            // Encode the byte array to a Base64 string
-                            string base64String = Base64.EncodeToString(bitmapData, Base64Flags.Default);
-                            return base64String;
-                        }
+                        return await ParseImageBytesToBase64(imageBytes, entry.FullName.Split('.')[^1], newWidth,newHeight);
                     }
                 }
                 catch (Exception e)

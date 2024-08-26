@@ -1,0 +1,569 @@
+﻿@using System.Xml.Linq
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Diagnostics
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.JSInterop
+@using Microsoft.Maui.Devices
+@using Mio.Reader.Components.Cards
+@using Mio.Reader.Components.Pages
+@using Mio.Reader.Parsing.Loading
+@using Mio.Reader.Services
+
+@{
+    Chapter chapter = Book!.TableOfContents[CurrentChapter].Item2;
+}
+
+@if (!(chapter is EpubChapter epubChapter) || !epubChapter.IsImagesOnly)
+{
+    <h1 id="chapter-title" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"")" @onclick="(() => {showTableOfContents = true; StateHasChanged();})">@Book?.TableOfContents[CurrentChapter].Item1</h1>
+    <h3>@chapter.FinishedTextNodes/@chapter.TotalTextNodes</h3>
+}
+
+<!--Gets blurry when scrolling, dont know why-->
+<FluentMenu HorizontalInset=true HorizontalPosition="HorizontalPosition.Left" VerticalInset=true VerticalPosition="VerticalPosition.Top" Anchor="chapter-title" @bind-Open=@showTableOfContents
+            Width="@(Configs.ReadingManner == ReadingManner.Japanese ? "300px" : "100%")">
+    <div class="@(Configs.ReadingManner == ReadingManner.Japanese ? "toc-japanese" : "toc-western")">
+        @for (int i = 0; i < Book.TableOfContents.Count; i++)
+        {
+            int index = i;
+            <FluentMenuItem style="direction:ltr" OnClick="(() => {showTableOfContents = false; NavigateToChapter(index); })">@Book.TableOfContents[index].Item1</FluentMenuItem>
+        }
+    </div>
+</FluentMenu>
+
+@if (showPopup)
+{
+    var showJmdict = false;
+    var showNamedict = false;
+    var showChars = false;
+    var minWidth = 15;
+    @if (Configs.TranslateGeneral && selectedNode!.JmdictEntries is not null && selectedNode!.JmdictEntries.Count > 0)
+    {
+        minWidth += 75;
+        showJmdict = true;
+    }
+    @if (Configs.TranslateNames && selectedNode!.NameEntry is not null)
+    {
+        minWidth += 75;
+        showNamedict = true;
+    }
+    @if (Configs.TranslateCharacters && selectedNode!.Characters is not null && selectedNode!.Characters.Count > 0)
+    {
+        minWidth += 75;
+        showChars = true;
+    }
+    //The tabs panel gets a annoying button when the width is too small. The min-width is a workaround to that
+    //And to reduce the degree of variation on popover sizes, which imo is a good thing.
+    <FluentPopover Style="@($"max-height:45vh;min-width:{minWidth}px;max-width:45vw;overflow:auto;direction:ltr")"
+                   VerticalPosition="VerticalPosition.Unset" HorizontalPosition="HorizontalPosition.Unset"
+                   AnchorId=@selectedWordId Open=showPopup OpenChanged="(e => {if (!e) ClosePopup();})"
+                   HorizontalInset=false Id="translation-card">
+        <Body>
+            <FluentTabs>
+                @if (showJmdict)
+                {
+                    <FluentTab Label="Regular">
+                        <JmdictCard Entries="selectedNode!.JmdictEntries"></JmdictCard>
+                    </FluentTab>
+                }
+                @if (showNamedict)
+                {
+                    <FluentTab Label="Names">
+                        <NamedictCard Entry="selectedNode!.NameEntry"></NamedictCard>
+                    </FluentTab>
+                }
+                @if (showChars)
+                {
+                    <FluentTab Label="Chars">
+                        <CharsCard Chars="selectedNode!.Characters"></CharsCard>
+                    </FluentTab>
+                }
+
+            </FluentTabs>
+        </Body>
+    </FluentPopover>
+}
+}
+
+
+<div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
+    <!--Using the base accent color like that is bad. Will make these very apart from the rest of the theme-->
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.Custom" CustomColor=@Configs.MainColor
+                OnClick="(() => {if (Configs.ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
+
+    <div class="mx-2" style="color:var(--neutral-fill-layer-rest)">
+        <input type="number" class="form-control" style="width:70px; display: inline-block;" min="1" max="@PageCount"
+               value=@(CurrentPage + 1) @onchange="NavigateToPage" />
+        / @PageCount
+    </div>
+
+    <FluentIcon Value="@(new Icons.Regular.Size20.ArrowRight())" Color="Color.Custom" CustomColor=@Configs.MainColor
+                OnClick="(() => {if (Configs.ReadingManner == ReadingManner.Japanese) PreviousPage(); else NextPage();})" />
+</div>
+
+@code{
+    [Inject]
+    protected IJSRuntime JS { get; set; }
+    [Inject]
+    protected ConfigurationsService Configs { get; set; }
+    [Inject]
+    protected LibraryService Library { get; set; }
+    [Inject]
+    protected ImageParsingService ImageParser { get; set; }
+    [Inject]
+    protected Translator Translator { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int BookIndex { get; set; } = 0;
+
+
+    protected readonly DevicePlatform plataform = DeviceInfo.Current.Platform;
+
+    protected virtual Book? Book { get; set; } = null;
+    protected BookLoader bookLoader;
+    protected BookInteraction interaction;
+
+    protected int CurrentChapter { get; set; } = 0;
+    protected virtual int CurrentPage
+    {
+        get
+        {
+            return currentPage;
+        }
+        set
+        {
+            try
+            {
+                currentPage = value;
+                navigatorClass = "rdr-navigator";
+                InvokeAsync(() =>
+                {
+                    StateHasChanged();
+                });
+                Task.Run(() => StartOrResetNavigatorAnimation());
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine(e.InnerException);
+                Debug.WriteLine(e.StackTrace);
+            }
+        }
+    }
+
+    protected virtual int PageCount { get;}
+
+    protected int currentPage;
+
+    protected bool Initialized { get; set; } = false;
+
+    protected string previousElementId = "";
+    protected int touchId = 0;
+
+    protected bool showPopup = false;
+    protected bool showTableOfContents = false;
+
+
+    protected string navigatorClass;
+    private int animationCounter = 0;
+
+    protected string selectedWordId = "";
+    protected TextNode? selectedNode;
+
+    protected int fuckedLines = 0;
+
+    protected override Task OnInitializedAsync()
+    {
+        if (Configs.ReadingManner == ReadingManner.Japanese)
+        {
+            JS.InvokeVoidAsync("changeDirectionToRTL");
+        }
+        else
+        {
+            JS.InvokeVoidAsync("changeDirectionToLTR");
+        }
+        CurrentPage = 0;
+        interaction = Library.Books[BookIndex];
+        CurrentChapter = interaction.LastChapter;
+        Task.Run(() => SetBook());
+        return base.OnInitializedAsync();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JS.InvokeVoidAsync("setEpubViewerReference", DotNetObjectReference.Create(this));
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task SetBook()
+    {
+
+        try
+        {
+            bookLoader = BookLoader.GetLoader(interaction.Metadata.Path, Configs, ImageParser);
+            Book = await bookLoader.IndexBook(interaction.Metadata);
+            LoadChapter(CurrentChapter, true);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.InnerException);
+            Debug.WriteLine(e.StackTrace);
+        }
+    }
+
+
+    private async void StartOrResetNavigatorAnimation()
+    {
+        animationCounter++;
+        await Task.Delay(5000);
+        animationCounter--;
+        if (animationCounter <= 0)
+        {
+            animationCounter = 0;
+            navigatorClass = "rdr-navigator rdr-start-animation";
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    protected virtual void NextPage()
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        if (CurrentPage < PageCount - 1)
+        {
+            CurrentPage++;
+            interaction.LastPage = CurrentPage;
+        }
+        else
+        {
+            NextChapter();
+        }
+
+        if (Configs.ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
+    }
+
+    protected virtual void PreviousPage()
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        if (CurrentPage > 0)
+        {
+            CurrentPage--;
+            interaction.LastPage = CurrentPage;
+        }
+        else
+        {
+            PreviousChapter();
+        }
+
+        if (Configs.ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
+    }
+
+
+    protected virtual void NavigateToPage(ChangeEventArgs e)
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+
+        int page = int.Parse(e.Value.ToString());
+        if (page < 1 || page > PageCount)
+        {
+            return;
+        }
+
+        page--;
+
+        if (CurrentPage != page)
+        {
+            CurrentPage = page;
+            interaction.LastPage = CurrentPage;
+            if (Configs.ReadingManner == ReadingManner.Japanese)
+                JS.InvokeVoidAsync("scrollToHorizontalStart");
+            else
+                JS.InvokeVoidAsync("scrollToVerticalStart");
+        }
+    }
+
+    private void NavigateToChapter(int index)
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        if (CurrentChapter != index)
+        {
+            CurrentChapter = index;
+            interaction.LastChapter = CurrentChapter;
+            interaction.LastPage = 0;
+            Task.Run(() => LoadChapter(CurrentChapter));
+        }
+    }
+
+    private void NextChapter()
+    {
+        if (CurrentChapter < Book?.TableOfContents.Count - 1)
+        {
+            CurrentChapter++;
+            interaction.LastChapter = CurrentChapter;
+            interaction.LastPage = 0;
+            Task.Run(() => LoadChapter(CurrentChapter));
+        }
+    }
+
+    private void PreviousChapter()
+    {
+        if (CurrentChapter > 0)
+        {
+            CurrentChapter--;
+            interaction.LastChapter = CurrentChapter;
+            interaction.LastPage = 0;
+            Task.Run(() => LoadChapter(CurrentChapter, setPageToLast: true));
+        }
+    }
+
+    protected virtual Task LoadChapter(int index, bool firstLoad = false, bool setPageToLast = false)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected async Task TranslateFragment(TextNode node, bool translateGeneral = true, bool translateNames = true, bool translateChars = true)
+    {
+        if (node.lexeme is null)
+        {
+            return;
+        }
+
+        Task generalTask = Task.Run(async () =>
+        {
+            if (translateGeneral && node.lexeme is not null && Analyzer.signicantCategories.Contains(node.lexeme.Category))
+            {
+                node.JmdictEntries = await Translator.TranslateWord(node.lexeme.BaseForm);
+                node.HasFinishedGeneral = true;
+            }
+        });
+
+        Task namesTask = Task.Run(async () =>
+        {
+            if (translateNames)
+            {
+                node.NameEntry = await Translator.TranslateName(node.lexeme.Surface);
+                node.HasFinishedNames = true;
+            }
+        });
+
+        await Task.WhenAll(generalTask, namesTask);
+
+        Task charsTask = Task.Run(async () =>
+        {
+            if (translateChars)
+            {
+                List<Task> charTranslationTasks = [];
+                for (int i = 0; i < node.Characters.Count; i++)
+                {
+                    JapaneseCharacter iterationCharacter = node.Characters[i];
+                    if (iterationCharacter is Romaji)
+                        //Presumes romaji only occurs in romaji-only words. I am not aware of any circumstance where this is not true.
+                        break;
+                    else if (iterationCharacter is Kana kana)
+                    {
+                        if (kana.IsYoon)
+                        {
+                            try
+                            {
+                                Kana? previousNonYoonKana = null;
+                                for (int j = i - 1; j >= 0; j--)
+                                {
+                                    if (node.Characters[j] is Kana possibleKana && !possibleKana.IsYoon)
+                                    {
+                                        previousNonYoonKana = possibleKana;
+                                        break;
+                                    }
+                                }
+                                if (previousNonYoonKana is null)
+                                {
+                                    continue;
+                                }
+                                if (previousNonYoonKana.Composition is null)
+                                {
+                                    previousNonYoonKana.Composition = previousNonYoonKana.Literal.ToString();
+                                }
+                                previousNonYoonKana.Composition += kana.Literal;
+                                previousNonYoonKana.Reading = Translator.TranslateKana(previousNonYoonKana.Composition);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e.Message);
+                            }
+                        }
+                        else
+                        {
+                            kana.Reading = Translator.TranslateKana(iterationCharacter.Literal.ToString());
+                        }
+                    }
+                    else if (iterationCharacter is Kanji kanji)
+                    {
+                        Task task = Task.Run(async () =>
+                        {
+                            kanji.Entry = await Translator.TranslateKanji(kanji.Literal);
+                        }
+                        );
+                        charTranslationTasks.Add(task);
+                    }
+                }
+
+                await Task.WhenAll(charTranslationTasks).ContinueWith(_ =>
+                {
+                    node.HasFinishedChars = true;
+                });
+            }
+        });
+
+        await charsTask;
+
+    }
+
+    protected virtual async void ShowPopup(string id, TextNode? node)
+    {
+        if (node is null || node.Characters is null)
+        {
+            return;
+        }
+        selectedWordId = id;
+        selectedNode = node;
+        if (showPopup)
+        {
+            await RemovePreviousElementBackgroundColor();
+        }
+        showPopup = true;
+        await JS.InvokeVoidAsync("setElementBackgroundColor", id, "var(--neutral-stroke-layer-rest");
+        previousElementId = id;
+        StateHasChanged();
+    }
+
+    protected virtual async void ClosePopup()
+    {
+        showPopup = false;
+        selectedNode = null;
+        selectedWordId = "";
+        await RemovePreviousElementBackgroundColor();
+    }
+
+    protected void HandleClickOnElement(MouseEventArgs e, string id, TextNode node)
+    {
+        if (plataform != DevicePlatform.WinUI)
+            return;
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        ShowPopup(id, node);
+    }
+
+    protected async void HandleTouchStart(TouchEventArgs e, string elementId, TextNode node)
+    {
+        if (plataform != DevicePlatform.Android)
+            return;
+        this.touchId++;
+        int currentTouchId = this.touchId;
+
+        await Task.Delay(750);
+        if (currentTouchId == this.touchId)
+        {
+            if (showPopup)
+            {
+                await InvokeAsync(() => ClosePopup());
+            }
+            await InvokeAsync(() => ShowPopup(elementId, node));
+            return;
+        }
+    }
+
+    protected void HandleKeyPress(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Keys.Escape:
+                if (showPopup)
+                    ClosePopup();
+                break;
+            //These should be different on image-only pages, which is one more reason to have separate components for separate chapter types
+            case Keys.ArrowLeft:
+                if (Configs.ReadingManner == ReadingManner.Western)
+                    PreviousPage();
+                break;
+            case Keys.ArrowRight:
+                if (Configs.ReadingManner == ReadingManner.Western)
+                    NextPage();
+                break;
+            case Keys.ArrowUp:
+                if (Configs.ReadingManner == ReadingManner.Japanese)
+                    PreviousPage();
+                break;
+            case Keys.ArrowDown:
+                if (Configs.ReadingManner == ReadingManner.Japanese)
+                    NextPage();
+                break;
+        }
+        //Does not work without this call. Shouldn't Blazor be able to detect changes and re-render automatically?
+        StateHasChanged();
+    }
+
+    protected virtual async Task RemovePreviousElementBackgroundColor()
+    {
+        await JS.InvokeVoidAsync("removeElementBackgroundColor", previousElementId);
+        previousElementId = "";
+    }
+
+    public async void HandleDoubleClick(MouseEventArgs e)
+    {
+        //I think this is undesirable on Windows, but it might actually not be
+        if (plataform != DevicePlatform.Android)
+        {
+            return;
+        }
+
+        double x = e.ScreenX;
+
+        double windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
+        double maxXToLeft = 0.33 * windowWidth;
+        double minXToRight = 0.66 * windowWidth;
+
+        if (x < maxXToLeft)
+        {
+            if (Configs.ReadingManner == ReadingManner.Japanese)
+                NextPage();
+            else
+                PreviousPage();
+        }
+        else if (x > minXToRight)
+        {
+            if (Configs.ReadingManner == ReadingManner.Japanese)
+                PreviousPage();
+            else
+                NextPage();
+        }
+    }
+}
+
+

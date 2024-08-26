@@ -1,5 +1,4 @@
-﻿using Mio.Reader.Parsing;
-using SixLabors.ImageSharp.Processing;
+﻿using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -13,11 +12,7 @@ using SixLabors.ImageSharp.Formats;
 
 using Mio.Translation.Elements;
 using Mio.Translation.Properties;
-
-
-
-
-
+using Mio.Reader.Parsing.Loading;
 #if ANDROID
 using Java.Util;
 #endif

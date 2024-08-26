@@ -3,11 +3,12 @@
     @for (int i = 0; i < LibraryService.Books.Count; i++)
     {
         int currentIterationIndex = i;
-        EpubMetadata book = LibraryService.Books[currentIterationIndex].Metadata;
+        BookMetadata book = LibraryService.Books[currentIterationIndex].Metadata;
+        string fileType = book.Path.Split('.').Last();
         <FluentCard Class="rdr-card" Width="220px" Height="430px">
             <img class="pointer" src=@($"data:image/jpeg;base64,{book.CoverBase64}") style="height: 330px; width:220px;"
-            @onclick="(() => OnBookSelected.InvokeAsync(currentIterationIndex))" />
-            <p class="pointer hover-underline" @onclick="(() => OnBookSelected.InvokeAsync(currentIterationIndex))">@book.Title</p>
+            @onclick="(() => OnBookSelected.InvokeAsync((currentIterationIndex,fileType)))" />
+            <p class="pointer hover-underline" @onclick="(() => OnBookSelected.InvokeAsync((currentIterationIndex,fileType)))">@book.Title</p>
             <p class="rdr-xsmall-text pointer hover-underline">@book.Author</p>
         </FluentCard>
     
@@ -15,9 +16,9 @@
 </div>
 
 @code {
-
+    //Pretty sure the use of image above gets fucked if the cover is in a format othar than jpg. 
     [Parameter]
-    public EventCallback<int> OnBookSelected { get; set; }
+    public EventCallback<(int,string)> OnBookSelected { get; set; }
 
     [Inject]
     public LibraryService LibraryService { get; set; }

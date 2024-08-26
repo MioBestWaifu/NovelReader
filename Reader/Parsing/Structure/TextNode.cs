@@ -1,4 +1,5 @@
-﻿using Mio.Translation;
+﻿using Mio.Reader.Parsing.Structure.Chars;
+using Mio.Translation;
 using Mio.Translation.Entries;
 using System;
 using System.Collections.Generic;

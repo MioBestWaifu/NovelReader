@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Mio.Reader.Services
@@ -13,11 +14,11 @@ namespace Mio.Reader.Services
     public class DataManagementService (ConfigurationsService configs)
     {
 
-        public async Task<List<EpubInteraction>> GetSavedInteractions()
+        public async Task<List<BookInteraction>> GetSavedInteractions()
         {
             try
             {
-                List<EpubInteraction> saved = JsonSerializer.Deserialize<List<EpubInteraction>>(await
+                List<BookInteraction> saved = JsonSerializer.Deserialize<List<BookInteraction>>(await
                     File.ReadAllTextAsync(Path.Combine(FileSystem.AppDataDirectory,"Library.json")), ConfigurationsService.jsonOptions);
 
                 saved.RemoveAll(b => !File.Exists(b.Metadata.Path));
@@ -30,7 +31,7 @@ namespace Mio.Reader.Services
             }
         }
 
-        public async Task<bool> SaveInteractions(List<EpubInteraction> interactions)
+        public async Task<bool> SaveInteractions(List<BookInteraction> interactions)
         {
             try
             {
@@ -113,13 +114,13 @@ namespace Mio.Reader.Services
             {
                 var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                 {
-                    { DevicePlatform.Android, new[] { "application/epub+zip" } }, // MIME type for EPUB files
+                    { DevicePlatform.Android, new[] { "application/epub+zip", "application/pdf" } }, // MIME types for EPUB and PDF files
                     // Add other platforms if necessary
                 });
 
                 var options = new PickOptions
                 {
-                    PickerTitle = "Please select an EPUB file",
+                    PickerTitle = "Please select an EPUB or PDF file",
                     FileTypes = customFileType,
                 };
 

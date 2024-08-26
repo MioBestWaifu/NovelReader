@@ -8,6 +8,7 @@ namespace Mio.Reader.Parsing.Structure
 {
     public class ImageNode : Node
     {
+        //Could be enum
         public string Type { get; set; } = "";
     }
 }

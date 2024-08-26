@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class Romaji : JapaneseCharacter
+    public class Pdf : Book
     {
-        public Romaji(char literal) : base(literal)
+        public Pdf(PdfMetadata metadata) : base(metadata)
         {
         }
     }

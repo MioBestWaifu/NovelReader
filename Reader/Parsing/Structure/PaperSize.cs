@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Mio.Reader.Parsing.Structure
 {
-    public class JapaneseCharacter(char literal)
+    public enum PaperSize
     {
-        public char Literal { get; set; } = literal;
+        A4,
+        A5
     }
 }

@@ -1,13 +1,5 @@
 ﻿using Mio.Reader.Parsing.Structure;
 using Mio.Reader.Services;
-
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using System;
-After:
-using Mio.Reader.Utilitarians;
-using System;
-*/
 using Mio.Reader.Utilitarians;
 using System;
 using System.Collections.Generic;
@@ -18,18 +10,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Mio.Reader.Parsing
+namespace Mio.Reader.Parsing.Loading
 {
-    internal static class EpubMetadataResolver
+    internal class EpubMetadataResolver
     {
-        private static ImageParsingService imageParser;
-
-        public static void Initialize(ImageParsingService imageParsingService)
+        ImageParsingService imageParser;
+        public EpubMetadataResolver(ImageParsingService imageParser)
         {
-            imageParser = imageParsingService;
+            this.imageParser = imageParser;
         }
 
-        public async static Task<string> ResolveStandardsFile(string originalXml)
+        public static async Task<string> ResolveStandardsFile(string originalXml)
         {
             // Parse the original XML content as an XML document
             XDocument doc = XDocument.Parse(originalXml);
@@ -46,7 +37,7 @@ namespace Mio.Reader.Parsing
             return fullPath;
         }
 
-        public static async Task<EpubMetadata> ResolveMetadata(string path, ZipArchive archive)
+        public async Task<EpubMetadata> ResolveMetadata(string path, ZipArchive archive)
         {
             //Not parallel because it is (probably) a small list.
             Dictionary<string, ZipArchiveEntry> namedEntries = new Dictionary<string, ZipArchiveEntry>();
@@ -73,14 +64,14 @@ namespace Mio.Reader.Parsing
             try
             {
                 ZipArchiveEntry coverEntry = Utils.GetRelativeEntry(namedEntries[standardOpfPath], pathToCover);
-                coverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry,440,660);
+                coverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry, 440, 660);
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"Error loading cover: {e.Message}");
             }
 
-            return new EpubMetadata(title, string.Join(", ", authors), path, version, coverBase64,pathToCover, standardOpfPath);
+            return new EpubMetadata(title, string.Join(", ", authors), path, coverBase64, pathToCover, standardOpfPath, version);
         }
 
         private static string ResolveTitle(XDocument standardsDoc, int version)

@@ -1,15 +1,10 @@
 ﻿using Mio.Reader.Parsing.Structure;
+using Mio.Reader.Parsing.Structure.Chars;
 using Mio.Reader.Services;
-
-/* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
-Before:
-using Mio.Translation;
-After:
 using Mio.Reader.Utilitarians;
 using Mio.Translation;
-*/
-using Mio.Reader.Utilitarians;
-using Mio.Translation;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
@@ -20,46 +15,30 @@ using System.Xml.Linq;
 
 namespace Mio.Reader.Parsing
 {
-
-    internal static class EpubParser
+    internal class EpubParser : Parser
     {
-
-        //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
-        //include any other separators that might be missing
-        //Why two fields? Class regex as above is fast for regexing, list is faster for comparing.
-        private static readonly List<string> separatorsAsList = new List<string> { ",", "!", "?", "、", "。", "．", "「", "」", "『", "』", "…", "．", "！", "？", "：", "；", "（", "）", "(", ")", "'", "\"", "“", "”" };
-
-        private static readonly string separatorsRegex = "([" + string.Join("", separatorsAsList.Select(Regex.Escape)) + "])";
-
-        //Obviouslt breaks if configs is not assigned before analyzer, but that should never happen because this field is assinged in the very ConfigurationsService constructor.
-        public static ConfigurationsService Configs { get; set; }
-        public static Analyzer? analyzer;
-
-        private static Translator translator = new Translator();
-
-        private static ImageParsingService imageParser;
-
-        public static void Initialize(ImageParsingService imageParsingService)
+        public EpubParser(ConfigurationsService configs, ImageParsingService imageParsingService) : base(configs, imageParsingService)
         {
-            imageParser = imageParsingService;
         }
-        public static async Task<List<Node>> ParseLine(Chapter chapter, XElement line)
+
+        public override async Task<List<Node>> ParseLine(Chapter chapter, int lineIndex)
         {
             try
             {
-                if (line.Name == Namespaces.xhtmlNs + "p")
+                EpubParsingElement line = (chapter.OriginalLines[lineIndex] as EpubParsingElement);
+                if (line.xElement.Name == Namespaces.xhtmlNs + "p")
                 {
                     return await ParseTextElement(line);
                 }
 
-                else if (line.Name == Namespaces.xhtmlNs + "img" || line.Name == Namespaces.svgNs + "svg")
+                else if (line.xElement.Name == Namespaces.xhtmlNs + "img" || line.xElement.Name == Namespaces.svgNs + "svg")
                 {
-                    if (line.Name == Namespaces.svgNs + "svg")
+                    if (line.xElement.Name == Namespaces.svgNs + "svg")
                     {
-                        XElement imageElement = line.Element(Namespaces.svgNs + "image");
+                        XElement imageElement = line.xElement.Element(Namespaces.svgNs + "image");
                         if (imageElement != null)
                         {
-                            return await ParseImageElement(chapter, imageElement, Namespaces.xlinkNs + "href");
+                            return await ParseImageElement((EpubChapter)chapter, imageElement, Namespaces.xlinkNs + "href");
                         }
                     }
                     else
@@ -75,7 +54,7 @@ namespace Mio.Reader.Parsing
             catch (Exception e)
             {
                 Debug.WriteLine($"Error parsing line: {e.Message}");
-                Debug.WriteLine($"Line: {line}");
+                Debug.WriteLine($"Line: {lineIndex}");
                 Debug.WriteLine(e.StackTrace);
                 return [new Node()];
             }
@@ -83,89 +62,56 @@ namespace Mio.Reader.Parsing
         }
 
 
-        private static async Task<List<Node>> ParseTextElement(XElement originalElement)
+        protected override async Task<List<Node>> ParseTextElement(ParsingElement originalElement)
         {
-
-            string line = GetParagraphText(originalElement);
-            if (line == string.Empty)
+            if (originalElement is EpubParsingElement epubElement)
             {
-                return [new TextNode()];
+                return await ParseTextElement(epubElement);
             }
-            //Breaking lines into sentences for smoother morphological analysis
-            string[] sentences = Regex.Split(line, separatorsRegex);
-            List<Node> nodes = new List<Node>();
-            for (int i = 0, n = sentences.Length; i < n; i++)
+            else
             {
-                //Should never be zero, i think. If it happens, will cause a bug. Purposefully not checking to see if breaks.
-                //Also, This means that the separators are not interactable as part of a word. This is not a problem, because separators ARE NOT words.
-                if (sentences[i].Length == 1 && separatorsAsList.Contains(sentences[i]))
-                {
-                    if (nodes.Count == 0)
-                    {
-                        nodes.Add(new TextNode() { Characters = {new Yakumono(sentences[i][0])} });
-                    }
-                    else
-                    {
-                        //This will break if the previoues node was not a textnode, but that should never happen.
-                        TextNode nodeToAppend = (TextNode)nodes[^1];
-                        nodeToAppend.Characters.Add(new Yakumono(sentences[i][0]));
-                    }
-                    continue;
-                }
-
-                List<Lexeme> lexemes = analyzer.Analyze(sentences[i]);
-                foreach (var lexeme in lexemes)
-                {
-                    TextNode node = new TextNode(lexeme);
-                    List<JapaneseCharacter> chars = [];
-                    foreach (var character in lexeme.Surface)
-                    {
-                        if (Analyzer.IsRomaji(character))
-                        {
-                            chars.Add(new Romaji(character));
-                        } else if (Analyzer.IsKana(character))
-                        {
-                            bool isYoon = Analyzer.IsYoon(character);
-                            Kana kana = new Kana(character, isYoon);
-                            chars.Add(kana);
-                        } else if (Analyzer.IsKanji(character))
-                        {
-                            Kanji kanji = new Kanji(character);
-                            chars.Add(kanji);
-                        } else
-                        {
-                            //Presuming anything that is not a kana, kanji or romaji is a yakumono.
-                            //May or may not be a good idea.
-                            chars.Add(new Yakumono(character));
-                        }
-                    }
-                    node.Characters = chars;
-                    nodes.Add(node);
-                }
+                throw new ArgumentException("EpubParser can only parse EpubParsingElements");
             }
-
-            return nodes;
         }
 
-        private static async Task<List<Node>> ParseImageElement(Chapter chapter, XElement originalElement, string srcAttribute)
+        protected async Task<List<Node>> ParseTextElement(EpubParsingElement originalElement)
+        {
+
+            string line = GetParagraphText(originalElement.xElement);
+            return await ParseTextElement(line);
+        }
+
+        
+
+        protected override Task<List<Node>> ParseImageElement(Chapter chapter, ParsingElement originalElement, string srcAttribute)
+        {
+            if (originalElement is EpubParsingElement epubElement && chapter is EpubChapter epubChapter)
+            {
+                return ParseImageElement(epubChapter, epubElement.xElement, srcAttribute);
+            }
+            else
+            {
+                throw new ArgumentException("EpubParser can only parse EpubParsingElements");
+            }
+        }
+
+        protected async Task<List<Node>> ParseImageElement(EpubChapter chapter, XElement originalElement, string srcAttribute)
         {
             string path = originalElement.Attribute(srcAttribute)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
-            return ParseImageElement(imageEntry);
+            return await ParseImageElement(imageEntry);
         }
 
-        private static async Task<List<Node>> ParseImageElement(Chapter chapter, XElement originalElement, XName srcName)
+        private async Task<List<Node>> ParseImageElement(EpubChapter chapter, XElement originalElement, XName srcName)
         {
             string path = originalElement.Attribute(srcName)!.Value;
             ZipArchiveEntry imageEntry = Utils.GetRelativeEntry(chapter.FileReference, path);
-            return ParseImageElement(imageEntry);
+            return await ParseImageElement(imageEntry);
         }
 
-        private static List<Node> ParseImageElement(ZipArchiveEntry imageEntry)
+        private async Task<List<Node>> ParseImageElement(ZipArchiveEntry imageEntry)
         {
-            Task<string> base64Task = imageParser.ParseImageEntryToBase64(imageEntry);
-            base64Task.Wait();
-            string base64 = base64Task.Result;
+            string base64 = await imageParser.ParseImageEntryToBase64(imageEntry);
             string type = imageEntry.FullName.Split('.')[^1];
 
             return [new ImageNode() { Text = base64, Type = type }];
@@ -185,11 +131,28 @@ namespace Mio.Reader.Parsing
             return Task.FromResult(lines);
         }
 
-        public static async Task<List<XElement>> BreakChapterToLines(Chapter chapter)
+        public override async Task<int> BreakChapterToLines(Chapter chapter)
+        {
+            if (chapter is EpubChapter epubChapter)
+            {
+                return await BreakChapterToLines(epubChapter);
+            }
+            else
+            {
+                throw new ArgumentException("EpubParser can only parse EpubChapters");
+            }
+        }
+
+        public async Task<int> BreakChapterToLines(EpubChapter chapter)
         {
             string orginalXhtml = await new StreamReader(chapter.FileReference.Open()).ReadToEndAsync();
-
-            return await BreakXhtmlToLines(orginalXhtml);
+            var x = await BreakXhtmlToLines(orginalXhtml);
+            chapter.OriginalLines = [];
+            foreach (var line in x)
+            {
+                chapter.OriginalLines.Add(new EpubParsingElement(line));
+            }
+            return x.Count;
         }
 
         private static string GetParagraphText(XElement paragraph)

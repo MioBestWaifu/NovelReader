@@ -1,4 +1,4 @@
-﻿using Mio.Reader.Parsing;
+﻿using Mio.Reader.Parsing.Loading;
 using Mio.Reader.Parsing.Structure;
 
 /* Unmerged change from project 'Reader (net8.0-windows10.0.19041.0)'
@@ -26,7 +26,7 @@ namespace Mio.Reader.Services
          * 1 - Have pagination
          * 2 - Only keep base64 in memory while that page of the library is being displayed
         */
-        public List<EpubInteraction> Books { get; private set; } = [];
+        public List<BookInteraction> Books { get; private set; } = [];
         public event EventHandler BookAdded;
 
         public async void Initialize()
@@ -34,15 +34,16 @@ namespace Mio.Reader.Services
             Books = await dataManager.GetSavedInteractions();
             Parallel.ForEach(Books, async (book) =>
             {
-                ZipArchiveEntry coverEntry = await Utils.GetCoverEntry(book.Metadata.Path, book.Metadata.CoverRelativePath);
-                book.Metadata.CoverBase64 = await imageParser.ParseImageEntryToBase64(coverEntry,440,660);
-                //Should really dispose it here? Maybe should keep around to not have to load one again. Maybe a service should manage ZipArchives
-                coverEntry.Archive.Dispose();
+                BookLoader loader = BookLoader.GetLoader(book.Metadata.Path, configs, imageParser);
+                await loader.LoadAndResizeCover(book.Metadata,440,660);
                 BookAdded.Invoke(this, EventArgs.Empty);
             });
 
             //Should this loading be done with dataManger?
-            string[] files = Directory.GetFiles(configs.PathToLibrary!, "*.epub", SearchOption.AllDirectories).Order().ToArray();
+            string[] epubFiles = Directory.GetFiles(configs.PathToLibrary!, "*.epub", SearchOption.AllDirectories);
+            string[] pdfFiles = Directory.GetFiles(configs.PathToLibrary!, "*.pdf", SearchOption.AllDirectories);
+            string[] files = epubFiles.Concat(pdfFiles).Order().ToArray();
+
             foreach (string file in files)
             {
                 //Not sure how efficient this is for large libraries.
@@ -50,8 +51,9 @@ namespace Mio.Reader.Services
                 {
                     continue;
                 }
-                //Should be wrapper in a try-catch. Isn't because it's still not published and errors are easier to find like this.
-                Books.Add(new EpubInteraction(await EpubLoader.LoadMetadata(file)));
+                //Should be wrapped in a try-catch. Isn't because it's still not published and errors are easier to find like this.
+                BookLoader loader = BookLoader.GetLoader(file, configs, imageParser);
+                Books.Add(new BookInteraction(await loader.LoadMetadata(file)));
                 BookAdded.Invoke(this, EventArgs.Empty);
             }
         }
