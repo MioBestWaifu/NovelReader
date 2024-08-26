@@ -1,0 +1,286 @@
+﻿@layout MainLayout
+@page "/epub-reader"
+@using Mio.Reader.Parsing.Loading
+@inherits ReadingPage
+<FluentDesignTheme Mode=@Configs.Theme CustomColor=@Configs.MainColor></FluentDesignTheme>
+
+@if (Initialized)
+{
+    <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
+    <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
+        @{
+            base.BuildRenderTree(__builder);
+        }
+        @{
+            EpubChapter chapter = (EpubChapter)Book.TableOfContents[CurrentChapter].Item2;
+        }
+        @try
+        {
+            <!--Not a foreach because the dynamic modifications in loading would break it-->
+            @for (int i = 0; i < Pages[CurrentPage].Count; i++)
+            {
+                var line = Pages[CurrentPage][i];
+                <!--Images are their own single-node line-->
+                @if (line[0] is TextNode)
+                {
+                    <!--Separators and auxiliaries (commas, ない, ect.) are their own node and therefore separated from "meaningful" nodes when the flex wraps. They should be annexed to the meaningful node before them.-->
+                    <div class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                        @for (int j = 0; j < line.Count; j++)
+                        {
+                            TextNode node = (TextNode)line[j];
+                            //This may create duplicate ids if there are more than 99 lines, but that should never happen. Keep in mind that each paragraph is actually one single line.
+                            //NOTE: そんな is not getting an edrdgentry. investigate. kuruma neither.
+                            string id = $"p{i:D2}{j}";
+                            <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
+                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                        }
+                    </div>
+                }
+                else if (line[0] is ImageNode)
+                {
+                    string cssClass = (!(chapter as EpubChapter).IsImagesOnly) && Configs.ReadingManner == ReadingManner.Japanese ? "rdr-inline-img-japanese" : "rdr-inline-img-western";
+
+                    ImageNode imageNode = (ImageNode)line[0];
+                    <img class=@cssClass src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
+                }
+            }
+        }
+        catch (Exception e)
+        {
+
+            <p>Error displaying this page</p>
+
+            fuckedLines++;
+            Debug.WriteLine($"There have been {fuckedLines} fucked lines");
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.StackTrace);
+            if (e.InnerException is not null)
+            {
+                Debug.WriteLine(e.InnerException);
+                Debug.WriteLine(e.InnerException?.StackTrace);
+            }
+            Debug.WriteLine("----------------------------");
+        }
+    </div>
+}
+
+@code {
+    //I sure have a penchant for nested lists. But what can I do? A book IS a list of pages, a page IS a list of lines, and a line IS a list of words. I dont make the rules. Is there some smarter data structure? Probably. But who cares, this is fine.
+    private List<List<List<Node>>> Pages { get; set; } = new List<List<List<Node>>>();
+
+    protected override Book? Book
+    {
+        get
+        {
+            return base.Book;
+        }
+        set
+        {
+            epub = (Epub)value;
+            base.Book = value;
+        }
+    }
+
+    private Epub epub;
+
+
+    protected override int PageCount
+    {
+        get
+        {
+            return Pages.Count;
+        }
+    }
+
+    private int linesPerPage;
+
+    protected override async Task LoadChapter(int index, bool firstLoad = false, bool setPageToLast = false)
+    {
+        Chapter chapter = Book.TableOfContents[index].Item2;
+        //To keep track of if the user went to another chapter while the current one was loading
+        int thisTaskChapterIndex = CurrentChapter;
+
+        //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
+        if (chapter.LoadStatus == LoadingStatus.Unloaded)
+        {
+            Pages = await PreparePages(await bookLoader.BreakChapterToLines(chapter));
+            if (firstLoad && interaction.LastTimeNumberOfPages != 0)
+            {
+                CurrentPage = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
+            }
+            else if (setPageToLast)
+            {
+                CurrentPage = Pages.Count - 1;
+            }
+            else
+            {
+                CurrentPage = 0;
+            }
+
+            interaction.LastTimeNumberOfPages = Pages.Count;
+
+            //For the first loading
+            Initialized = true;
+
+            chapter.LoadStatus = LoadingStatus.Loading;
+
+            Progress<int> progressResponder = new Progress<int>(value =>
+            {
+                int pageIndex = value / linesPerPage;
+                int lineIndex = value % linesPerPage;
+                Pages[value / linesPerPage][lineIndex] = chapter.Lines[value];
+                if (thisTaskChapterIndex == CurrentChapter && pageIndex == currentPage)
+                {
+                    InvokeAsync(() =>
+                    {
+                        StateHasChanged();
+                    });
+                }
+            });
+            await bookLoader.ParseChapterContent(chapter, progressResponder);
+            int j = 0;
+            foreach (List<Node> line in chapter.Lines)
+            {
+                int currentLineIndex = j++;
+                foreach (Node node in line)
+                {
+                    if (node is TextNode textNode)
+                    {
+                        Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
+                        {
+                            chapter.FinishedTextNodes++;
+                            if (currentLineIndex / linesPerPage == currentPage)
+                            {
+                                InvokeAsync(() =>
+                                {
+                                    StateHasChanged();
+                                });
+                            }
+                        }));
+                    }
+                }
+            }
+        }
+
+
+        else
+        {
+            Pages = await BreakChapterToPages(chapter);
+            if (setPageToLast)
+            {
+                CurrentPage = Pages.Count - 1;
+            }
+            else
+            {
+                CurrentPage = 0;
+            }
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void PushLineToPages(int index, List<Node> line)
+    {
+        int linesPerPage = Pages[CurrentPage].Count;
+        int pageIndex = Math.DivRem(index, linesPerPage, out int lineIndex);
+        Pages[pageIndex][lineIndex] = line;
+    }
+
+    private async Task<int> UpdateLinesPerPage()
+    {
+        int linesPerPage;
+        if (Configs.ReadingManner == ReadingManner.Japanese)
+        {
+            //Value out of my ass, replace with something actual based on the used css + margins
+            int lineWidth = 40;
+            int windowWidth = await JS.InvokeAsync<int>("getWindowWidth");
+            linesPerPage = windowWidth / lineWidth;
+        }
+        else
+        {
+            //Value out of my ass, replace with something actual based on the used css + margins
+            int lineHeight = 30;
+            int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
+            linesPerPage = windowHeight / lineHeight;
+        }
+
+        this.linesPerPage = linesPerPage;
+
+        return linesPerPage;
+    }
+
+    private async Task<List<List<List<Node>>>> PreparePages(int lineCount)
+    {
+        int linesPerPage = await UpdateLinesPerPage();
+
+        List<List<List<Node>>> pages = new List<List<List<Node>>>();
+
+        int totalPages = (lineCount + linesPerPage - 1) / linesPerPage; // Calculate total pages
+
+        for (int i = 0; i < totalPages; i++)
+        {
+            List<List<Node>> page = new List<List<Node>>(linesPerPage); // Create a new page with linesPerPage lines
+            for (int j = 0; j < linesPerPage; j++)
+            {
+                page.Add([new Node() { }]); // Add an empty line to the page
+            }
+            pages.Add(page); // Add the page to the pages
+        }
+
+        return pages;
+    }
+
+
+    private async Task<List<List<List<Node>>>> BreakChapterToPages(Chapter chapter)
+    {
+
+        int linesPerPage = await UpdateLinesPerPage();
+        List<List<List<Node>>> pages = [];
+        List<List<Node>> currentPage = [];
+        foreach (List<Node> line in chapter.Lines)
+        {
+            currentPage.Add(line);
+
+            if (currentPage.Count == linesPerPage)
+            {
+                pages.Add(currentPage);
+                currentPage = new List<List<Node>>();
+            }
+        }
+
+        // Add the last page if it has any lines
+        if (currentPage.Count > 0)
+        {
+            pages.Add(currentPage);
+        }
+
+        return pages;
+    }
+
+    [JSInvokable]
+    public async void HandleWindowResize()
+    {
+        try
+        {
+            //Deactivated this because upon testing i felt like the lines per page can be kept as is, it feels ok.
+            //However, if this is to be used, two things must be done:
+            //1 - The lines calculation has to be reworked to account for height, which obviously affects the width of the line.
+            //2 - The page the user will end at has to be recalculated to be the equivalent of where he currently is.
+            //Pages = await BreakChapterToPages(Book!.TableOfContents[CurrentChapter].Item2);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+            Debug.WriteLine(e.InnerException);
+            Debug.WriteLine(e.StackTrace);
+        }
+    }
+
+    public void HandleMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs? e)
+    {
+        //Same as above, deactivated because it's not needed for now
+        Debug.WriteLine("Display info changed");
+    }
+}

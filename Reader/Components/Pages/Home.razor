@@ -23,7 +23,7 @@
         }
         else
         {
-            <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/reader?bookIndex={i}");})" />
+            <Library OnBookSelected="@(i => { Navigator.NavigateTo($"/{i.Item2}-reader?bookIndex={i.Item1}");})" />
         }
 
     }

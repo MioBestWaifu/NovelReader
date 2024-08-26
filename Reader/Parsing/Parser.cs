@@ -14,7 +14,7 @@ using System.Xml.Linq;
 namespace Mio.Reader.Parsing
 {
 
-    internal abstract class Parser
+    public abstract class Parser
     {
         //([,!?、。．。「」『』…．！？：；（）()'\"“”])";
         //include any other separators that might be missing

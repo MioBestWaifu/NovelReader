@@ -8,7 +8,7 @@ using Mio.Reader.Services;
 namespace Mio.Reader.Parsing.Loading
 {
     //Could use partial loading and parsing
-    internal abstract class BookLoader
+    public abstract class BookLoader
     {
         protected Parser parser;
         protected ImageParsingService imageParser;
