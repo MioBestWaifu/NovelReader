@@ -1,13 +1,15 @@
 ﻿@layout MainLayout
 @page "/pdf-reader"
 @using Mio.Reader.Parsing.Loading
+@using System.Globalization
 @inherits ReadingPage
 <FluentDesignTheme Mode=@Configs.Theme CustomColor=@Configs.MainColor></FluentDesignTheme>
 
 @if (Initialized)
 {
     <!--Using ternary for conditional classes becasuse so far there are only two reading manners and I dont plan on making others.-->
-    <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
+    <div>
+
         @{
             base.BuildRenderTree(__builder);
         }
@@ -16,8 +18,10 @@
         }
         @try
         {
+        List<PdfNode> lines = chapter.GetLinesForPage(CurrentPage);
+        <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
             <!--Not a foreach because the dynamic modifications in loading would break it-->
-            List<PdfNode> lines = chapter.GetLinesForPage(CurrentPage);
+            
             @for (int i = 0; i < lines.Count; i++)
             {
                 PdfNode line = lines[i];
@@ -25,15 +29,24 @@
 
                 if (!line.IsImage)
                 {
-                    <div style=@($"left:{line.BoundingBox.Left}pt;top:{line.BoundingBox.Top}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                    //Uses bottom to position vertically because the origin the PdfRectangle uses is at the bottom left
+                        <div style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{line.BoundingBox.Top.ToString(CultureInfo.InvariantCulture)}pt;min-width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;min-height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
 
                         @for (int j = 0; j < line.TextNodes.Count; j++)
                         {
                             TextNode node = (TextNode)line.TextNodes[j];
+                                int currentJ = j;
+                                string textToUse = node.Text;
+                                if (line.IsFirstNodeShared && currentJ == 0)
+                                {
+                                    textToUse = textToUse.Substring(line.FirstFrom);
+                                } else if (line.IsLastNodeShared && currentJ == line.TextNodes.Count - 1) {
+                                    textToUse = textToUse.Substring(0, line.LastUntil+1);
+                                }
 
                             string id = $"p{i:D3}{j}";
                             <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
-                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
+                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@textToUse</p>
                         }
                     </div>
                 }
@@ -42,6 +55,7 @@
                     <img />
                 }
             }
+            </div>
         }
         catch (Exception e)
         {

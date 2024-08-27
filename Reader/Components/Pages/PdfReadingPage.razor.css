@@ -1,8 +1,14 @@
 .rdr-western-viewer {
+    position:relative;
+    min-width: 595pt;
+    min-height: 842pt;
 }
 
 .rdr-western-text-block {
-    position:absolute;
+    position: absolute;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
 }
 
 /* Necessary because otherwise the webview will position vertically-written headers at the bottom of the screen with direction rtl*/
@@ -19,6 +25,7 @@ p {
 }
 
 .rdr-japanese-viewer {
+    position:relative;
 }
 
 .rdr-japanese-text-block {
