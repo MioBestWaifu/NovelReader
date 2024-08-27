@@ -58,7 +58,7 @@ namespace Mio.Reader.Parsing
                 for (int pageNumber = chapter.startPage; pageNumber <= chapter.endPage; pageNumber++)
                 {
                     ITextPage page = iTextPdf.GetPage(pageNumber);
-                    PdfCanvasProcessor processor = new PdfCanvasProcessor(new RenderListener(lines));
+                    PdfCanvasProcessor processor = new PdfCanvasProcessor(new RenderListener(lines,pageNumber));
                     processor.ProcessPageContent(page);
                 }
             }
@@ -162,10 +162,12 @@ namespace Mio.Reader.Parsing
         private class RenderListener : IEventListener
         {
             private readonly List<PdfParsingElement> _contentObjects;
+            private int page;
 
-            public RenderListener(List<PdfParsingElement> contentObjects)
+            public RenderListener(List<PdfParsingElement> contentObjects, int page)
             {
                 _contentObjects = contentObjects;
+                this.page = page;
             }
 
             public void EventOccurred(IEventData data, EventType type)
@@ -191,7 +193,8 @@ namespace Mio.Reader.Parsing
                                 Image = imageBytes,
                                 Extension = image.IdentifyImageFileExtension(),
                                 IsImage = true,
-                                BoundingBox = imageCoordinates
+                                BoundingBox = imageCoordinates,
+                                Page = page
                             });
                         }
                         break;

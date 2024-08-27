@@ -17,7 +17,7 @@
         @try
         {
             <!--Not a foreach because the dynamic modifications in loading would break it-->
-            List<PdfNode> lines = chapter.GetLinesForPage(currentAbsolutePage);
+            List<PdfNode> lines = chapter.GetLinesForPage(CurrentPage);
             @for (int i = 0; i < lines.Count; i++)
             {
                 PdfNode line = lines[i];
@@ -26,19 +26,20 @@
                 if (!line.IsImage)
                 {
                     <div style=@($"left:{line.BoundingBox.Left}pt;top:{line.BoundingBox.Top}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
-                        
+
                         @for (int j = 0; j < line.TextNodes.Count; j++)
                         {
                             TextNode node = (TextNode)line.TextNodes[j];
-                            
+
                             string id = $"p{i:D3}{j}";
                             <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
                                @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@node.Text</p>
                         }
                     </div>
-                } else
+                }
+                else
                 {
-                    
+                    <img />
                 }
             }
         }
@@ -75,14 +76,20 @@
     }
 
     private Pdf pdf;
-    private int currentAbsolutePage = 0;
 
     protected override int PageCount
     {
         //Should be total book pages
         get
         {
-            return (Book.TableOfContents[CurrentChapter].Item2 as PdfChapter).GetLinesForPage(currentAbsolutePage).Count;
+            try
+            {
+                return (Book.TableOfContents[CurrentChapter].Item2 as PdfChapter).GetLinesForPage(CurrentPage).Count;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
     }
 
@@ -95,6 +102,7 @@
         //There needs to be error handling here. Like, a chapter cannot be in loading state forever if something breaks in the loadings. Also, the error needs to be shown and logged.
         if (chapter.LoadStatus == LoadingStatus.Unloaded)
         {
+            await bookLoader.BreakChapterToLines(chapter);
             if (firstLoad && interaction.LastTimeNumberOfPages != 0)
             {
                 CurrentPage = interaction.LastPage;
@@ -108,8 +116,7 @@
                 CurrentPage = 0;
             }
 
-
-            currentAbsolutePage = 0;
+            CurrentPage = 10;
 
             //Number does not matter but needs assignemnt
             interaction.LastTimeNumberOfPages = 99;
@@ -121,31 +128,26 @@
 
             Progress<int> progressResponder = new Progress<int>(value =>
             {
-                    InvokeAsync(() =>
-                    {
-                        StateHasChanged();
-                    });
+                InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
             });
             await bookLoader.ParseChapterContent(chapter, progressResponder);
             int j = 0;
-            foreach (List<Node> line in chapter.Lines)
+            List<TextNode> allLinesTextNodes = (chapter as PdfChapter).PdfLines.SelectMany(X => X.TextNodes).ToList();
+            foreach (TextNode node in allLinesTextNodes)
             {
-                int currentLineIndex = j++;
-                foreach (Node node in line)
+                Task.Run(() => TranslateFragment(node).ContinueWith(async _ =>
                 {
-                    if (node is TextNode textNode)
-                    {
-                        Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
+                    chapter.FinishedTextNodes++;
+                    InvokeAsync(() =>
                         {
-                            chapter.FinishedTextNodes++;
-                                InvokeAsync(() =>
-                                {
-                                    StateHasChanged();
-                                });
-                        }));
-                    }
-                }
+                            StateHasChanged();
+                        });
+                }));
             }
+
         }
     }
 

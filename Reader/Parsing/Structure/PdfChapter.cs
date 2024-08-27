@@ -40,7 +40,7 @@ namespace Mio.Reader.Parsing.Structure
 
         public List<PdfNode> GetLinesForPage(int pdfPage)
         {
-            
+            pdfPage += startPage;
             List<int> ints = pageMap[pdfPage];
             List<PdfNode> nodes = new List<PdfNode>();
             foreach (int i in ints)
