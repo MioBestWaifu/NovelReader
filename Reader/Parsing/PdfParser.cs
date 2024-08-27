@@ -76,8 +76,8 @@ namespace Mio.Reader.Parsing
 
             if (element.IsImage)
             {
-                return Task.FromResult(new List<Node>());
-               // return ParseImageElement(chapter, element, "");
+                return ParseImageElement(element, chapter as PdfChapter, lineIndex);
+                // return ParseImageElement(chapter, element, "");
             }
             else
             {
@@ -88,6 +88,17 @@ namespace Mio.Reader.Parsing
         protected override Task<List<Node>> ParseImageElement(Chapter chapter, ParsingElement originalElement, string srcAttribute)
         {
             throw new NotImplementedException();
+        }
+
+        protected async Task<List<Node>> ParseImageElement(PdfParsingElement originalElement, PdfChapter chapter, int index)
+        {
+            PdfNode pdfNode = chapter.PdfLines[index];
+            //This is wrong. Refactor
+            string imageAsBase64 = Convert.ToBase64String(originalElement.Image);
+            pdfNode.ImageNode = new ImageNode {
+                Text = imageAsBase64,
+                Type = originalElement.Extension};
+            return new List<Node>();
         }
 
         protected async Task<List<Node>> ParseTextElement(ParsingElement originalElement,PdfChapter chapter, int index)

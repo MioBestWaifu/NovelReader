@@ -18,43 +18,45 @@
         }
         @try
         {
-        List<PdfNode> lines = chapter.GetLinesForPage(CurrentPage);
-        <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
-            <!--Not a foreach because the dynamic modifications in loading would break it-->
-            
-            @for (int i = 0; i < lines.Count; i++)
-            {
-                PdfNode line = lines[i];
-                int currentIndex = i;
-
-                if (!line.IsImage)
+            List<PdfNode> lines = chapter.GetLinesForPage(CurrentPage);
+            <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
+                <!--Not a foreach because the dynamic modifications in loading would break it-->
+                @for (int i = 0; i < lines.Count; i++)
                 {
-                    //Uses bottom to position vertically because the origin the PdfRectangle uses is at the bottom left
+                    PdfNode line = lines[i];
+                    int currentIndex = i;
+
+                    if (!line.IsImage)
+                    {
+                        //Uses bottom to position vertically because the origin the PdfRectangle uses is at the bottom left
                         <div style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{line.BoundingBox.Top.ToString(CultureInfo.InvariantCulture)}pt;min-width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;min-height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
 
-                        @for (int j = 0; j < line.TextNodes.Count; j++)
-                        {
-                            TextNode node = (TextNode)line.TextNodes[j];
+                            @for (int j = 0; j < line.TextNodes.Count; j++)
+                            {
+                                TextNode node = (TextNode)line.TextNodes[j];
                                 int currentJ = j;
                                 string textToUse = node.Text;
                                 if (line.IsFirstNodeShared && currentJ == 0)
                                 {
                                     textToUse = textToUse.Substring(line.FirstFrom);
-                                } else if (line.IsLastNodeShared && currentJ == line.TextNodes.Count - 1) {
-                                    textToUse = textToUse.Substring(0, line.LastUntil+1);
+                                }
+                                else if (line.IsLastNodeShared && currentJ == line.TextNodes.Count - 1)
+                                {
+                                    textToUse = textToUse.Substring(0, line.LastUntil + 1);
                                 }
 
-                            string id = $"p{i:D3}{j}";
-                            <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
-                               @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@textToUse</p>
-                        }
-                    </div>
+                                string id = $"p{i:D3}{j}";
+                                <p style="@(plataform == DevicePlatform.Android ? "user-select:none;":"")" class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text":"rdr-western-text")" id="@id" @onclick="e => HandleClickOnElement(e,id,node)"
+                                   @ontouchstart="e => {Task.Run(() => HandleTouchStart(e,id,node));}" @ontouchend="() => touchId++" @onclick:stopPropagation @onmouseup:stopPropagation>@textToUse</p>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        ImageNode imageNode = line.ImageNode;
+                        <img style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{line.BoundingBox.Top.ToString(CultureInfo.InvariantCulture)}pt;min-width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;min-height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
+                    }
                 }
-                else
-                {
-                    <img />
-                }
-            }
             </div>
         }
         catch (Exception e)
@@ -130,7 +132,7 @@
                 CurrentPage = 0;
             }
 
-            CurrentPage = 10;
+            CurrentPage = 0;
 
             //Number does not matter but needs assignemnt
             interaction.LastTimeNumberOfPages = 99;

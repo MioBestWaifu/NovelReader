@@ -54,5 +54,10 @@ namespace Mio.Reader.Parsing.Structure
         {
             return pageMap.ContainsKey(page) && pageMap[page].Contains(line);
         }
+
+        public override void PushLineToIndex(int index, List<Node> line)
+        {
+            return;
+        }
     }
 }

@@ -24,6 +24,10 @@ p {
     font-size: 16px;
 }
 
+img {
+    position: absolute;
+}
+
 .rdr-japanese-viewer {
     position:relative;
 }
