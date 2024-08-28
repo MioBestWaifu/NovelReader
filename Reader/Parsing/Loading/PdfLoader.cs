@@ -145,6 +145,7 @@ namespace Mio.Reader.Parsing.Loading
             PdfMetadata toReturn = new PdfMetadata(title, author, path, cover64);
             toReturn.MarginBottom = maxBot;
             toReturn.MarginRight = maxLeft;
+            toReturn.PageCount = numberOfPages;
             toReturn.BodyFontSize = fontSizes.OrderByDescending(x => x.Value).First().Key;
             return toReturn;
         }

@@ -18,7 +18,7 @@
         }
         @try
         {
-            List<PdfNode> lines = chapter.GetLinesForPage(CurrentPage);
+            List<PdfNode> lines = chapter.GetLinesForPage(PageIndex);
             <div id="viewer" class="@(Configs.ReadingManner == ReadingManner.Japanese ? "rdr-japanese-viewer" : "rdr-western-viewer")" @onkeydown="HandleKeyPress" @ondblclick="HandleDoubleClick" tabindex="0">
                 <!--Not a foreach because the dynamic modifications in loading would break it-->
                 @for (int i = 0; i < lines.Count; i++)
@@ -94,19 +94,19 @@
 
     private Pdf pdf;
 
+    protected override int CurrentPage {
+        get
+        {
+            return PageIndex + (Book.TableOfContents[CurrentChapter].Item2 as PdfChapter).startPage - 1;
+        }
+    }
+
     protected override int PageCount
     {
         //Should be total book pages
         get
         {
-            try
-            {
-                return (Book.TableOfContents[CurrentChapter].Item2 as PdfChapter).GetLinesForPage(CurrentPage).Count;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
+            return (pdf.Metadata as PdfMetadata).PageCount;
         }
     }
 
@@ -122,7 +122,7 @@
             await bookLoader.BreakChapterToLines(chapter);
             if (firstLoad && interaction.LastTimeNumberOfPages != 0)
             {
-                CurrentPage = interaction.LastPage;
+                PageIndex = interaction.LastPage;
             }
             // else if (setPageToLast)
             // {
@@ -130,10 +130,10 @@
             // }
             else
             {
-                CurrentPage = 0;
+                PageIndex = 0;
             }
 
-            CurrentPage = 10;
+            PageIndex = 10;
 
             //Number does not matter but needs assignemnt
             interaction.LastTimeNumberOfPages = 99;

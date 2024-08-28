@@ -17,9 +17,9 @@
         @try
         {
             <!--Not a foreach because the dynamic modifications in loading would break it-->
-            @for (int i = 0; i < Pages[CurrentPage].Count; i++)
+            @for (int i = 0; i < Pages[PageIndex].Count; i++)
             {
-                var line = Pages[CurrentPage][i];
+                var line = Pages[PageIndex][i];
                 <!--Images are their own single-node line-->
                 @if (line[0] is TextNode)
                 {
@@ -82,6 +82,8 @@
 
     private Epub epub;
 
+    protected override int CurrentPage => PageIndex;
+
 
     protected override int PageCount
     {
@@ -105,15 +107,15 @@
             Pages = await PreparePages(await bookLoader.BreakChapterToLines(chapter));
             if (firstLoad && interaction.LastTimeNumberOfPages != 0)
             {
-                CurrentPage = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
+                PageIndex = interaction.LastTimeNumberOfPages == Pages.Count ? interaction.LastPage : 0;
             }
             else if (setPageToLast)
             {
-                CurrentPage = Pages.Count - 1;
+                PageIndex = Pages.Count - 1;
             }
             else
             {
-                CurrentPage = 0;
+                PageIndex = 0;
             }
 
             interaction.LastTimeNumberOfPages = Pages.Count;
@@ -128,7 +130,7 @@
                 int pageIndex = value / linesPerPage;
                 int lineIndex = value % linesPerPage;
                 Pages[value / linesPerPage][lineIndex] = chapter.Lines[value];
-                if (thisTaskChapterIndex == CurrentChapter && pageIndex == currentPage)
+                if (thisTaskChapterIndex == CurrentChapter && pageIndex == base.pageIndex)
                 {
                     InvokeAsync(() =>
                     {
@@ -148,7 +150,7 @@
                         Task.Run(() => TranslateFragment(textNode).ContinueWith(async _ =>
                         {
                             chapter.FinishedTextNodes++;
-                            if (currentLineIndex / linesPerPage == currentPage)
+                            if (currentLineIndex / linesPerPage == pageIndex)
                             {
                                 InvokeAsync(() =>
                                 {
@@ -167,11 +169,11 @@
             Pages = await BreakChapterToPages(chapter);
             if (setPageToLast)
             {
-                CurrentPage = Pages.Count - 1;
+                PageIndex = Pages.Count - 1;
             }
             else
             {
-                CurrentPage = 0;
+                PageIndex = 0;
             }
             await InvokeAsync(() =>
             {
@@ -182,7 +184,7 @@
 
     private void PushLineToPages(int index, List<Node> line)
     {
-        int linesPerPage = Pages[CurrentPage].Count;
+        int linesPerPage = Pages[PageIndex].Count;
         int pageIndex = Math.DivRem(index, linesPerPage, out int lineIndex);
         Pages[pageIndex][lineIndex] = line;
     }

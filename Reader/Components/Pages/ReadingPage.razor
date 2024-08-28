@@ -85,7 +85,7 @@
 }
 
 
-<div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; CurrentPage = CurrentPage;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
+<div class=@navigatorClass @onmouseenter="(() => {animationCounter = 999999; PageIndex = PageIndex;})" @onmouseleave="(() => {animationCounter = 0; StartOrResetNavigatorAnimation();})">
     <!--Using the base accent color like that is bad. Will make these very apart from the rest of the theme-->
     <FluentIcon Value="@(new Icons.Regular.Size20.ArrowLeft())" Color="Color.Custom" CustomColor=@Configs.MainColor
                 OnClick="(() => {if (Configs.ReadingManner == ReadingManner.Japanese) NextPage(); else PreviousPage();})" />
@@ -124,17 +124,20 @@
     protected BookInteraction interaction;
 
     protected int CurrentChapter { get; set; } = 0;
-    protected virtual int CurrentPage
+    /// <summary>
+    /// The index of the current page within the current chapter
+    /// </summary>
+    protected virtual int PageIndex
     {
         get
         {
-            return currentPage;
+            return pageIndex;
         }
         set
         {
             try
             {
-                currentPage = value;
+                pageIndex = value;
                 navigatorClass = "rdr-navigator";
                 InvokeAsync(() =>
                 {
@@ -150,10 +153,14 @@
             }
         }
     }
+    /// <summary>
+    /// The current page within the book. Is 0-based.
+    /// </summary>
+    protected virtual int CurrentPage{ get; }
 
     protected virtual int PageCount { get;}
 
-    protected int currentPage;
+    protected int pageIndex;
 
     protected bool Initialized { get; set; } = false;
 
@@ -182,7 +189,7 @@
         {
             JS.InvokeVoidAsync("changeDirectionToLTR");
         }
-        CurrentPage = 0;
+        PageIndex = 0;
         interaction = Library.Books[BookIndex];
         CurrentChapter = interaction.LastChapter;
         Task.Run(() => SetBook());
@@ -239,10 +246,10 @@
         {
             ClosePopup();
         }
-        if (CurrentPage < PageCount - 1)
+        if (PageIndex < PageCount - 1)
         {
-            CurrentPage++;
-            interaction.LastPage = CurrentPage;
+            PageIndex++;
+            interaction.LastPage = PageIndex;
         }
         else
         {
@@ -261,10 +268,10 @@
         {
             ClosePopup();
         }
-        if (CurrentPage > 0)
+        if (PageIndex > 0)
         {
-            CurrentPage--;
-            interaction.LastPage = CurrentPage;
+            PageIndex--;
+            interaction.LastPage = PageIndex;
         }
         else
         {
@@ -293,10 +300,10 @@
 
         page--;
 
-        if (CurrentPage != page)
+        if (PageIndex != page)
         {
-            CurrentPage = page;
-            interaction.LastPage = CurrentPage;
+            PageIndex = page;
+            interaction.LastPage = PageIndex;
             if (Configs.ReadingManner == ReadingManner.Japanese)
                 JS.InvokeVoidAsync("scrollToHorizontalStart");
             else

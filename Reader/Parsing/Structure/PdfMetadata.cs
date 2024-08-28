@@ -16,6 +16,8 @@ namespace Mio.Reader.Parsing.Structure
 
         public PaperSize PaperSize { get; set; }
 
+        public int PageCount { get; set; }
+
         public PdfMetadata(string title, string author, string path, string coverBase64) : base(title, author, path, coverBase64)
         {
         }
