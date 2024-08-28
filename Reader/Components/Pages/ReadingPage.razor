@@ -284,7 +284,7 @@
             JS.InvokeVoidAsync("scrollToVerticalStart");
     }
 
-
+    //This also needs to be overrisen in PdfReadingPage
     protected virtual void NavigateToPage(ChangeEventArgs e)
     {
         if (showPopup)
@@ -311,7 +311,7 @@
         }
     }
 
-    private void NavigateToChapter(int index)
+    protected void NavigateToChapter(int index)
     {
         if (showPopup)
         {
@@ -326,7 +326,7 @@
         }
     }
 
-    private void NextChapter()
+    protected void NextChapter()
     {
         if (CurrentChapter < Book?.TableOfContents.Count - 1)
         {
@@ -337,7 +337,7 @@
         }
     }
 
-    private void PreviousChapter()
+    protected void PreviousChapter()
     {
         if (CurrentChapter > 0)
         {

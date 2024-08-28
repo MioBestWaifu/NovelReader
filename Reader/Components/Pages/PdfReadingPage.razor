@@ -110,6 +110,14 @@
         }
     }
 
+    private PdfChapter PdfChapter
+    {
+        get
+        {
+            return (PdfChapter)Book.TableOfContents[CurrentChapter].Item2;
+        }
+    }
+
     protected override async Task LoadChapter(int index, bool firstLoad = false, bool setPageToLast = false)
     {
         Chapter chapter = Book.TableOfContents[index].Item2;
@@ -124,16 +132,15 @@
             {
                 PageIndex = interaction.LastPage;
             }
-            // else if (setPageToLast)
-            // {
-            //     CurrentPage = chapter. - 1;
-            // }
+            else if (setPageToLast)
+            {
+                //Works because startPage is 1-based
+                PageIndex = (chapter as PdfChapter).endPage - (chapter as PdfChapter).startPage;
+            }
             else
             {
                 PageIndex = 0;
             }
-
-            PageIndex = 10;
 
             //Number does not matter but needs assignemnt
             interaction.LastTimeNumberOfPages = 99;
@@ -166,7 +173,44 @@
             }
 
         }
+
+        else
+        {
+            if (setPageToLast)
+            {
+                PageIndex = PdfChapter.endPage - PdfChapter.startPage;
+            }
+            else
+            {
+                PageIndex = 0;
+            }
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
     }
 
+    protected override void NextPage()
+    {
+        if (showPopup)
+        {
+            ClosePopup();
+        }
+        if (PageIndex < PdfChapter.endPage - 1)
+        {
+            PageIndex++;
+            interaction.LastPage = PageIndex;
+        }
+        else
+        {
+            NextChapter();
+        }
+
+        if (Configs.ReadingManner == ReadingManner.Japanese)
+            JS.InvokeVoidAsync("scrollToHorizontalStart");
+        else
+            JS.InvokeVoidAsync("scrollToVerticalStart");
+    }
 
 }

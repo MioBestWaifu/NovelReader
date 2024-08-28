@@ -116,6 +116,11 @@ namespace Mio.Reader.Parsing
             node.FontSize = element.FontSize;
             if (node.IsFurigana)
             {
+                //Sometimes furiganas get broken too much by the PDF reader. I dont know why, but it does not matter si this hack will do.
+                if(node.TextNodes.Count == 0)
+                {
+                    node.TextNodes.Add(new TextNode());
+                }
                 node.TextNodes[0] = new TextNode { Characters = element.Text.Select(x => new JapaneseCharacter(x)).ToList()};
                 //This return is temporary, will be refactored.
                 return null;
