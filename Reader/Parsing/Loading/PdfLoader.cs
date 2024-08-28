@@ -169,7 +169,10 @@ namespace Mio.Reader.Parsing.Loading
                 int thisIteration = i;
                 PdfParsingElement currentElement = chapter.OriginalLines[i] as PdfParsingElement;
                 if (currentElement.FontSize <= metadata.BodyFontSize * 0.8)
+                {
                     pdfNode.IsFurigana = true;
+                    pdfNode.FontSize = currentElement.FontSize;
+                }
                 //Determines if this lines is possibly part of the same phrase as part of the next line.
                 if (currentElement.RightMostPoint > metadata.MarginRight * 0.98) {
                     if (i + 1 < chapter.OriginalLines.Count)
