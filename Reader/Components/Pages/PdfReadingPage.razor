@@ -29,7 +29,7 @@
                     if (!line.IsImage)
                     {
                         //Uses bottom to position vertically because the origin the PdfRectangle uses is at the bottom left
-                        <div style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{line.BoundingBox.Top.ToString(CultureInfo.InvariantCulture)}pt;min-width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;min-height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
+                        <div style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{(line.BoundingBox.Top - line.BoundingBox.Height).ToString(CultureInfo.InvariantCulture)}pt;width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") class="@(Configs.ReadingManner == ReadingManner.Japanese? "rdr-japanese-text-block":"rdr-western-text-block")">
 
                             @for (int j = 0; j < line.TextNodes.Count; j++)
                             {
@@ -54,7 +54,7 @@
                     else
                     {
                         ImageNode imageNode = line.ImageNode;
-                        <img style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{line.BoundingBox.Top.ToString(CultureInfo.InvariantCulture)}pt;min-width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;min-height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
+                        <img style=@($"left:{line.BoundingBox.Left.ToString(CultureInfo.InvariantCulture)}pt;bottom:{(line.BoundingBox.Top - line.BoundingBox.Height).ToString(CultureInfo.InvariantCulture)}pt;width:{line.BoundingBox.Width.ToString(CultureInfo.InvariantCulture)}pt;height:{line.BoundingBox.Height.ToString(CultureInfo.InvariantCulture)}pt") src=@($"data:image/{imageNode.Type};base64,{imageNode.Text}") />
                     }
                 }
             </div>
@@ -62,7 +62,8 @@
         catch (Exception e)
         {
 
-            <p>Error displaying this page</p>
+            <p>Error displaying this page:</p>
+            <p>@e.Message</p>
 
             fuckedLines++;
             Debug.WriteLine($"There have been {fuckedLines} fucked lines");
@@ -132,7 +133,7 @@
                 CurrentPage = 0;
             }
 
-            CurrentPage = 0;
+            CurrentPage = 10;
 
             //Number does not matter but needs assignemnt
             interaction.LastTimeNumberOfPages = 99;

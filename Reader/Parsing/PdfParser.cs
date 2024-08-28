@@ -95,6 +95,7 @@ namespace Mio.Reader.Parsing
             PdfNode pdfNode = chapter.PdfLines[index];
             //This is wrong. Refactor
             string imageAsBase64 = Convert.ToBase64String(originalElement.Image);
+            pdfNode.BoundingBox = originalElement.BoundingBox;
             pdfNode.ImageNode = new ImageNode {
                 Text = imageAsBase64,
                 Type = originalElement.Extension};

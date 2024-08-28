@@ -1,7 +1,7 @@
 .rdr-western-viewer {
     position:relative;
-    min-width: 595pt;
-    min-height: 842pt;
+    width: 595pt;
+    height: 842pt;
 }
 
 .rdr-western-text-block {
